@@ -34,9 +34,10 @@ class WorklogsTable(BaseJira):
         self.user_display_name = raw_user_info['displayName']
         self.email = raw_user_info['emailAddress']
         del raw_user_info
+        # create db name.
         self.dbname = self.username + '_'\
-                      + self.jira.replace('http://', '').replace('/',
-            '').replace(':', '') + '.db'
+                      + self.jira.replace('http://', '').replace('/','').replace(':', '') \
+                      + '.db'
         logging.debug('Dbname is %s' % self.dbname)
         logging.debug('Connection to sqlite database')
         self.db_conn = sqlite3.connect(self.dbname)
@@ -70,16 +71,21 @@ class WorklogsTable(BaseJira):
         issue_url = self.jira + '/rest/api/2/issue/' + issue_key
         #TODO: handle of unexisted issue
         logging.debug('Request worklog for issue %s' % issue_key)
-        raw_issue_data = self.req_api(issue_url, self.username, self.password)
+        try:
+            raw_issue_data = self.req_api(issue_url, self.username, self.password)
+        except urllib2.HTTPError as e:
+            logging.error('Can\'t get worklog for issue %s' % issue_key)
+            logging.error(e)
+            return
 
         formated_worklog = {}
 
         for a in raw_issue_data['fields']['worklog']['worklogs']:
             if a['author']['name'] == self.username:
 #                end_date =
-                print a['timeSpent']
-                time_spent = self.__convert_to_timedelta(a['timeSpent'])
-                print time_spent
+                time_spent = datetime.timedelta(minutes=0)
+                for timeframe in a['timeSpent'].split(' '):
+                    time_spent += self.__convert_to_timedelta(timeframe)
                 formated_worklog[a['id']] = ( strptime(a['started'][:19],
                                                         jira_timeformat),
                                               strptime(a['started'][:19],
@@ -90,22 +96,30 @@ class WorklogsTable(BaseJira):
             # and link to jira_issues table, and add all worklogs
 
         cursor = self.db_conn.cursor()
-        cursor.execute('SELECT jira_issue_key FROM JIRAIssues WHERE jira_issue_key = ?', [issue_key])
+        cursor.execute('SELECT '
+                       '    jira_issue_key '
+                       'FROM '
+                       '    JIRAIssues '
+                       'WHERE '
+                       '    jira_issue_key = ?', [issue_key])
         issue_in_db = cursor.fetchone()
 
         if issue_in_db:
-            logging.debug('Issue has been requested before, start sync procedure for this issue')
+            logging.debug('Issue has been requested before, '
+                          'start sync procedure for this issue')
             #TODO: add call of sync function
         else:
             # if issue has been requsted before, call sync table for this
             # issue
-            logging.debug('Issue hasn\'t been requested before, add it to table')
-            i = ( raw_issue_data['id'], raw_issue_data['key'], raw_issue_data['fields']['summary'])
-            cursor.execute('INSERT INTO JIRAIssues (jira_issue_id, jira_issue_key, summary) VALUES (?,?,?)', i)
-            logging.debug(i)
+            logging.debug('Issue hasn\'t been requested before, '
+                          'adding it to table')
+            i = ( raw_issue_data['id'],
+                  raw_issue_data['key'],
+                  raw_issue_data['fields']['summary'])
+            cursor.execute('INSERT INTO '
+                           'JIRAIssues (jira_issue_id, jira_issue_key, summary) '
+                           'VALUES (?,?,?)', i)
             for w_id, w_val in formated_worklog.iteritems():
-                logging.debug(w_id)
-                logging.debug(w_val)
                 entry = (int(w_id), int(raw_issue_data['id']), w_val[2], w_val[0], w_val[1] )
                 cursor.execute("""INSERT INTO Worklogs (worklog_id, jira_issue_id, comment, start_date, end_date)
                                 VALUES (?,?,?,?,?)""", entry)
