@@ -79,54 +79,59 @@ class WorklogsTable(BaseJira):
             return
 
         formated_worklog = {}
-
-        for a in raw_issue_data['fields']['worklog']['worklogs']:
-            if a['author']['name'] == self.username:
-#                end_date =
-                time_spent = datetime.timedelta(minutes=0)
-                for timeframe in a['timeSpent'].split(' '):
-                    time_spent += self.__convert_to_timedelta(timeframe)
-                formated_worklog[a['id']] = ( strptime(a['started'][:19],
-                                                        jira_timeformat),
-                                              strptime(a['started'][:19],
-                                                        jira_timeformat) + \
-                                              time_spent,
-                                              a['comment'])
-            # If issue hasn't been requested before, add id, key, summary
-            # and link to jira_issues table, and add all worklogs
-
-        cursor = self.db_conn.cursor()
-        cursor.execute('SELECT '
-                       '    jira_issue_key '
-                       'FROM '
-                       '    JIRAIssues '
-                       'WHERE '
-                       '    jira_issue_key = ?', [issue_key])
-        issue_in_db = cursor.fetchone()
-
-        if issue_in_db:
-            logging.debug('Issue has been requested before, '
-                          'start sync procedure for this issue')
-            #TODO: add call of sync function
+        if not raw_issue_data['fields']['worklog']['worklogs']:
+            logging.info('Worklog is emtpty for this issue')
+            return
         else:
-            # if issue has been requsted before, call sync table for this
-            # issue
-            logging.debug('Issue hasn\'t been requested before, '
-                          'adding it to table')
-            i = ( raw_issue_data['id'],
-                  raw_issue_data['key'],
-                  raw_issue_data['fields']['summary'])
-            cursor.execute('INSERT INTO '
-                           'JIRAIssues (jira_issue_id, jira_issue_key, summary) '
-                           'VALUES (?,?,?)', i)
-            for w_id, w_val in formated_worklog.iteritems():
-                entry = (int(w_id), int(raw_issue_data['id']), w_val[2], w_val[0], w_val[1] )
-                cursor.execute("""INSERT INTO Worklogs (worklog_id, jira_issue_id, comment, start_date, end_date)
-                                VALUES (?,?,?,?,?)""", entry)
-            self.db_conn.commit()
-        logging.debug('Worklog Table has been updated')
+            for a in raw_issue_data['fields']['worklog']['worklogs']:
+                if a['author']['name'] == self.username:
+    #                end_date =
+                    time_spent = datetime.timedelta(minutes=0)
+                    for timeframe in a['timeSpent'].split(' '):
+                        time_spent += self.__convert_to_timedelta(timeframe)
+                    formated_worklog[a['id']] = ( strptime(a['started'][:19],
+                                                            jira_timeformat),
+                                                  strptime(a['started'][:19],
+                                                            jira_timeformat) + \
+                                                  time_spent,
+                                                  a['comment'])
+                # If issue hasn't been requested before, add id, key, summary
+                # and link to jira_issues table, and add all worklogs
+            if not formated_worklog:
+                logging.info('User didn\'t spend time on this issue')
+                return
+            cursor = self.db_conn.cursor()
+            cursor.execute('SELECT '
+                           '    jira_issue_key '
+                           'FROM '
+                           '    JIRAIssues '
+                           'WHERE '
+                           '    jira_issue_key = ?', [issue_key])
+            issue_in_db = cursor.fetchone()
 
-        return formated_worklog
+            if issue_in_db:
+                logging.debug('Issue has been requested before, '
+                              'start sync procedure for this issue')
+                #TODO: add call of sync function
+            else:
+                # if issue has been requsted before, call sync table for this
+                # issue
+                logging.debug('Issue hasn\'t been requested before, '
+                              'adding it to table')
+                i = ( raw_issue_data['id'],
+                      raw_issue_data['key'],
+                      raw_issue_data['fields']['summary'])
+                cursor.execute('INSERT INTO '
+                               'JIRAIssues (jira_issue_id, jira_issue_key, summary) '
+                               'VALUES (?,?,?)', i)
+                for w_id, w_val in formated_worklog.iteritems():
+                    entry = (int(w_id), int(raw_issue_data['id']), w_val[2], w_val[0], w_val[1] )
+                    cursor.execute("""INSERT INTO Worklogs (worklog_id, jira_issue_id, comment, start_date, end_date)
+                                    VALUES (?,?,?,?,?)""", entry)
+                self.db_conn.commit()
+            logging.debug('Worklog Table has been updated')
+
+            return formated_worklog
 
 
     def add_worklog(self, issue_key, start_date, end_date):
