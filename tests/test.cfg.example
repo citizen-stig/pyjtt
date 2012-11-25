@@ -1,0 +1,12 @@
+[jira]
+host =http://jira.ringcentral.com
+user =nikolay.golub
+password = lv4FZV-53
+# Test specific parameters
+# Enter Display name for you user
+display_name = Nikolay Golub
+email = nikolay.golub@nordigy.ru
+# Enter issue key without user worklog
+empty_issue = PERF-142
+# Enter issue key with user worklog
+nonempty_issue = PERF-193
