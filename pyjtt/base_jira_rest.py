@@ -218,7 +218,7 @@ class WorklogsTable(BaseJira):
             return timedelta(hours=num)
         elif time_val.endswith('d'):
             return timedelta(days=num)
-    def __int_round(seld, x, base=5):
+    def __int_round(self, x, base=5):
         logging.debug('Round %s' % str(x))
         return int(base * round(float(x)/base))
 
