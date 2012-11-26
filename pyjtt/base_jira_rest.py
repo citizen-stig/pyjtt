@@ -7,9 +7,12 @@ class BaseJira(object):
     def __init__(self):
         pass
 
-    def req_api(self, url, login, passwd):
-        request = urllib2.Request(url)
-        # TODO: add error handling
+    def req_api(self, url, login, passwd, data=None):
+        if data:
+            request = urllib2.Request(url, data,
+                                      {'Content-Type': 'application/json'})
+        else:
+            request = urllib2.Request(url)
         request.add_header('Authorization',
                            'Basic ' \
                            + (login + ":" + passwd).encode('base64').rstrip())
@@ -94,7 +97,7 @@ class WorklogsTable(BaseJira):
                                                   strptime(a['started'][:19],
                                                             jira_timeformat) + \
                                                   time_spent,
-                                                  a['comment'])
+                                                  a.get('comment', ''))
                 # If issue hasn't been requested before, add id, key, summary
                 # and link to jira_issues table, and add all worklogs
             if not formated_worklog:
@@ -134,8 +137,38 @@ class WorklogsTable(BaseJira):
             return formated_worklog
 
 
-    def add_worklog(self, issue_key, start_date, end_date):
-        pass
+    def add_worklog(self, issue_key, start_date, end_date, comment=None):
+        logging.debug('Adding worklog to issue %s' % issue_key)
+        add_url = self.jira + '/rest/api/2/issue/' + issue_key + '/worklog'
+        # TODO: add timezone offset calculation
+        time_spent = ''
+        started = start_date.strftime('%Y-%m-%dT%H:%M:%S') + '.000+0400'
+        # TODO : add checking of end and start date diffenrece
+        spent = end_date - start_date
+        if spent.days:
+            time_spent += str(spent.days) +'d '
+        elif spent.seconds:
+            time_spent += str(self.__int_round(spent.seconds / 60 )) + 'm'
+
+        time_spent = time_spent.strip()
+        logging.debug('Time spent: %s' % time_spent)
+        data = {
+            'started' : started,
+            'timeSpent' : time_spent
+        }
+        if comment:
+            data['comment'] = comment
+        #json_data = json.dumps({
+        #    'comment': 'Test from python',
+        #    "started": "2011-11-25T16:10:48.704+0400",
+        #    "timeSpent": "3h 20m"
+        #})
+        json_data = json.dumps(data)
+        logging.debug('1: %s' % json_data)
+        new_worklog = self.req_api(add_url, self.username, self.password, json_data)
+        # TODO: add checking of added worklog
+        # TODO: add writing of added worklog to database
+        return new_worklog
 
     def update_worklog(self, worklog_id):
         pass
@@ -143,7 +176,7 @@ class WorklogsTable(BaseJira):
     def remove_worklog(self, worklog_id):
         pass
 
-    def print_day_work(self, day):
+    def print_days_work(self, day):
         pass
 
     def sync_table(self, issue_key=None):
@@ -185,7 +218,9 @@ class WorklogsTable(BaseJira):
             return timedelta(hours=num)
         elif time_val.endswith('d'):
             return timedelta(days=num)
-
+    def __int_round(seld, x, base=5):
+        logging.debug('Round %s' % str(x))
+        return int(base * round(float(x)/base))
 
 
 def main():
