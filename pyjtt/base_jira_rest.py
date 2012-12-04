@@ -20,6 +20,32 @@ class BaseJira(object):
         result = json.loads(raw_result.read())
         return result
 
+    def del_req(self, url, login, passwd):
+        opener = urllib2.build_opener(urllib2.HTTPHandler)
+        request = urllib2.Request(url)
+        request.add_header('Authorization',
+            'Basic '\
+            + (login + ":" + passwd).encode('base64').rstrip())
+        request.get_method = lambda: 'DELETE'
+        url = opener.open(request)
+        logging.debug('Return code is %s' % url.code)
+        # 204 Returned if delete was successful
+        # 400 Returned if the input is invalid
+        #   (e.g. missing required fields, invalid values, and so forth).
+        # 403 Returned if the calling
+        #   user does not have permission to delete the worklog
+        
+    def upd_req(self, url, login, passwd, data):
+        opener = urllib2.build_opener(urllib2.HTTPHandler)
+        request = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+        request.add_header('Authorization',
+            'Basic '\
+            + (login + ":" + passwd).encode('base64').rstrip())
+        request.get_method = lambda: 'PUT'
+        url = opener.open(request)
+        logging.debug('Return code is %s' % url.code)
+
+
 
 class WorklogsTable(BaseJira):
     """Class for manipulation with JIRA worklogs"""
@@ -149,7 +175,7 @@ class WorklogsTable(BaseJira):
             time_spent += str(spent.days) +'d '
         elif spent.seconds:
             time_spent += str(self.__int_round(spent.seconds / 60 )) + 'm'
-
+        # TODO: add handling of empty string
         time_spent = time_spent.strip()
         logging.debug('Time spent: %s' % time_spent)
         data = {
@@ -165,16 +191,41 @@ class WorklogsTable(BaseJira):
         #})
         json_data = json.dumps(data)
         logging.debug('1: %s' % json_data)
-        new_worklog = self.req_api(add_url, self.username, self.password, json_data)
+        new_worklog = self.req_api(add_url,
+                                   self.username,
+                                   self.password,
+                                   json_data)
         # TODO: add checking of added worklog
         # TODO: add writing of added worklog to database
         return new_worklog
 
-    def update_worklog(self, worklog_id):
-        pass
+    def update_worklog(self, issue_key, worklog_id, start_date=None, end_date=None, comment=None):
+        logging.debug('Update worklog')
+        upd_url = self.jira + '/rest/api/2/issue/' + issue_key + '/worklog/' + worklog_id
+        data = {}
+        if start_date:
+            data['started'] = start_date.strftime('%Y-%m-%dT%H:%M:%S') + '.000+0400'
+        if end_date:
+            time_spent = ''
+            spent = end_date - start_date
+            if spent.days:
+                time_spent += str(spent.days) +'d '
+            elif spent.seconds:
+                time_spent += str(self.__int_round(spent.seconds / 60 )) + 'm'
+            data['timeSpent'] = time_spent
+        if comment:
+            data['comment'] = comment
+        json_data = json.dumps(data)
+        r = self.upd_req(upd_url, self.username, self.password, json_data )
 
-    def remove_worklog(self, worklog_id):
-        pass
+
+
+    def remove_worklog(self, issue_key, worklog_id):
+        logging.debug('Start deleting worklog')
+        del_url = self.jira + '/rest/api/2/issue/' + issue_key + '/worklog/' + worklog_id
+        print del_url
+        r = self.del_req(del_url, self.username, self.password )
+        logging.debug('Worklog has been deleted.')
 
     def print_days_work(self, day):
         pass
