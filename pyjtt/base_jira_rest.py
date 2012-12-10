@@ -34,7 +34,7 @@ class BaseJira(object):
         #   (e.g. missing required fields, invalid values, and so forth).
         # 403 Returned if the calling
         #   user does not have permission to delete the worklog
-        
+
     def upd_req(self, url, login, passwd, data):
         opener = urllib2.build_opener(urllib2.HTTPHandler)
         request = urllib2.Request(url, data, {'Content-Type': 'application/json'})
