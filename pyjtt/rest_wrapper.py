@@ -30,19 +30,19 @@ class JiraRestBase(object):
         logging.debug("Make a request %s" % url)
         if data:
             request = urllib2.Request(url,
-                                      data,
-                                      {'Content-Type': 'application/json'})
+                data,
+                {'Content-Type': 'application/json'})
         else:
             request = urllib2.Request(url)
         request.add_header('Authorization', self.auth_string)
         if req_type:
             opener = urllib2.build_opener(urllib2.HTTPHandler)
             request.get_method = lambda: req_type
-            raw_result = opener.open(request)
+            raw_res = opener.open(request)
         else:
-            raw_result = urllib2.urlopen(request)
-        result = json.loads(raw_result.read()) if req_type != 'DELETE' else raw_result
-        logging.debug('Result is %s' % repr(result))
+            raw_res = urllib2.urlopen(request)
+        result = json.loads(raw_res.read()) if req_type != 'DELETE' else raw_res
+        #logging.debug('Result is %s' % repr(result))
         logging.debug("Request completed")
         return result
 
@@ -51,61 +51,68 @@ class JIRAIssue(JiraRestBase):
     """
     Class for manipulation with Issue worklogs
     """
-    def __init__(self, jirahost, login, password, issue_key):
+    def __init__(self, jirahost, login, password, issue_key, new=False):
         logging.debug('Initialize JIRA Issue object')
         JiraRestBase.__init__(self, jirahost, login, password)
         self.issue_key = issue_key
         self.issue_url = self.jirahost + '/rest/api/2/issue/' + self.issue_key
-        self.add_url = self.jirahost + '/rest/api/2/issue/' + self.issue_key + '/worklog'
+        self.add_url = self.jirahost + '/rest/api/2/issue/' +\
+                       self.issue_key + '/worklog'
         self.jira_timeformat = '%Y-%m-%dT%H:%M:%S'
         self.worklog = {}
-        self.get_worklog()
+        self.new = new
+        if self.new:
+            self.get_issue_data()
         logging.debug('Initialization completed')
 
-    def get_worklog(self):
+    def get_issue_data(self):
         logging.info('Request worklog for issue %s' % self.issue_key)
         strptime = datetime.datetime.strptime
         raw_issue_data = self.rest_req(self.issue_url)
-        logging.debug(raw_issue_data)
         logging.debug('Parse worklogs')
         if not raw_issue_data['fields']['worklog']['worklogs']:
             logging.info('Worklog is emtpty for this issue')
         else:
-            #logging.debug('1')
             for a in raw_issue_data['fields']['worklog']['worklogs']:
-                #logging.debug('2')
                 if a['author']['name'] == self.login:
-                    #logging.debug('3')
-                    self.worklog[a['id']] = self.__parse_worklog(a['started'],
-                                                                 a['timeSpentSeconds'],
-                                                                 a['comment'])
-                    #logging.debug('4')
-        logging.debug(self.worklog)
+                    self.worklog[a['id']] = self.__parse_worklog(
+                        a['started'],
+                        a['timeSpentSeconds'],
+                        a['comment'])
+        if self.new:
+            #TODO
+        logging.debug('Issue info collected')
 
     def add_worklog(self, start_date, end_date, comment=None):
         logging.debug('Adding worklog to issue %s' % self.issue_key)
-        json_data = json.dumps(self.__prepare_worklog_data(start_date, end_date, comment))
+        json_data = json.dumps(self.__prepare_worklog_data(start_date,
+                                                           end_date,
+                                                           comment))
         logging.debug('1: %s' % json_data)
         new_worklog = self.rest_req(self.add_url,
                                     data=json_data)
         print new_worklog
-        self.worklog[new_worklog['id']] = self.__parse_worklog(new_worklog['started'],
-                                                               new_worklog['timeSpentSeconds'],
-                                                               new_worklog['comment'])
+        self.worklog[new_worklog['id']] = self.__parse_worklog(
+            new_worklog['started'],
+            new_worklog['timeSpentSeconds'],
+            new_worklog['comment'])
         logging.debug('Worklog has been added')
         return new_worklog
 
     def remove_worklog(self, worklog_id):
         logging.debug('Removing worklog %s' % worklog_id)
-        remove_url = self.jirahost + '/rest/api/2/issue/' + self.issue_key + '/worklog/' + worklog_id
+        remove_url = self.jirahost + '/rest/api/2/issue/' +\
+                     self.issue_key + '/worklog/' + worklog_id
         res = self.rest_req(remove_url, req_type='DELETE')
         if res.code == 204:
             del self.worklog[worklog_id]
         logging.debug('Worklog has been deleted.')
 
-    def update_worklog(self, worklog_id, start_date=None, end_date=None, comment=None):
+    def update_worklog(self, worklog_id, start_date=None,
+                       end_date=None, comment=None):
         logging.debug('Updating worklog %s' % repr(worklog_id))
-        upd_url = self.jirahost + '/rest/api/2/issue/' + self.issue_key + '/worklog/' + worklog_id
+        upd_url = self.jirahost + '/rest/api/2/issue/' +\
+                  self.issue_key + '/worklog/' + worklog_id
         if start_date and end_date:
             # TODO: add timezone offset calculation
             data = self.__prepare_worklog_data(start_date, end_date, comment)
@@ -114,9 +121,10 @@ class JIRAIssue(JiraRestBase):
         json_data = json.dumps(data)
         updated_worklog = self.rest_req(upd_url, data=json_data, req_type='PUT')
         logging.debug(updated_worklog)
-        self.worklog[worklog_id] = self.__parse_worklog(updated_worklog['started'],
-                                                        updated_worklog['timeSpentSeconds'],
-                                                        updated_worklog['comment'])
+        self.worklog[worklog_id] = self.__parse_worklog(
+            updated_worklog['started'],
+            updated_worklog['timeSpentSeconds'],
+            updated_worklog['comment'])
         logging.debug('Worklog updated')
 
     def __parse_worklog(self, started, spent_seconds, comment):
@@ -134,7 +142,6 @@ class JIRAIssue(JiraRestBase):
             time_spent += str(spent.days) +'d '
         elif spent.seconds:
             time_spent += str(self.__int_round(spent.seconds / 60 )) + 'm'
-        # TODO: add handling of empty string
         time_spent = time_spent.strip()
         logging.debug('Time spent: %s' % time_spent)
         data = {

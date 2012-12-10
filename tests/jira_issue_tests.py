@@ -46,15 +46,15 @@ class pyjttTestJiraIssue(unittest.TestCase):
             print w, r
         nw = jissue.add_worklog(datetime.datetime(2012, 12, 01, 14, 00), datetime.datetime(2012, 12, 01, 16, 00), 'Test from python')
         self.assertEqual(nw['comment'], 'Test from python')
-        for w in jissue.worklog.iteritems():
+        for w, r in jissue.worklog.iteritems():
             print w, r
         jissue.update_worklog(nw['id'], datetime.datetime(2012, 12, 02, 14, 00), datetime.datetime(2012, 12, 02, 16, 00), 'Updated from python' )
         self.assertEqual(jissue.worklog[nw['id']][2], 'Updated from python')
-        for w in jissue.worklog.iteritems():
+        for w, r in jissue.worklog.iteritems():
             print w, r
         jissue.remove_worklog(nw['id'])
         self.assertTrue(nw['id'] not in jissue.worklog)
-        for w in jissue.worklog.iteritems():
+        for w, r in jissue.worklog.iteritems():
             print w, r
 
 if __name__ == '__main__':
