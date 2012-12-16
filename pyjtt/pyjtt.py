@@ -1,97 +1,60 @@
 #!/usr/bin/env python
 #
+from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
 
-import os, sys, ConfigParser, logging, datetime, sqlite3
+
+import os, sys, logging
+
 from urllib2 import HTTPError
+import db, utils
 from rest_wrapper import *
 
-def get_settings(config_filename):
-    logging.debug('Getting base options')
-    config = ConfigParser.ConfigParser()
-    logging.debug('Config file exists, read options')
-    config.read(config_filename)
-    try:
-        jirahost = config.get('jira', 'host')
-        login = config.get('jira', 'login')
-        password = config.get('jira', 'password')
-    except ConfigParser.NoSectionError as e:
-        logging.error('Section %s is missed in configuration file!' % e[0])
-        sys.exit(1)
-    except ConfigParser.NoOptionError as e:
-        logging.error('Option %s is missed in configuration file!' % e[0])
-        sys.exit(1)
-    logging.debug('Options have been red')
-        #config.add_section('jira')
-        #config.set('jira', 'host', jirahost)
-        #config.set('jira', 'login', login)
-        #config.set('jira', 'password', password)
-        #with open(config_filename, 'wb') as configfile:
-            #config.write(configfile)
-    return jirahost, login, password
+#only for console
+import getpass
 
-def save_settings(config_filename, creds):
-    logging.debug('Saving configuration')
-    config = ConfigParser.ConfigParser()
-    config.add_section('jira')
-    config.set('jira', 'host', creds[0])
-    config.set('jira', 'login', creds[1])
-    config.set('jira', 'password', creds[2])
-    with open(config_filename, 'wb') as configfile:
-        config.write(configfile)
-    logging.debug('Options have been saved')
-
-def get_db_filename(login, jirahost):
-    # TODO: add absolute path handling
-    return login + '_' + jirahost.replace('http://', '').replace('/','').replace(':', '')\
-           + '.db'
-
-def create_local_db(db_filename):
-    db_conn = sqlite3.connect(db_filename)
-    cursor = db_conn.cursor()
-    logging.debug('Creating table JIRAIssues')
-    cursor.execute("""CREATE TABLE if not exists JIRAIssues
-                        (jira_issue_id INTEGER PRIMARY KEY,
-                        jira_issue_key TEXT,
-                        summary TEXT,
-                        link TEXT)""")
-    logging.debug('Creating table worklogs')
-    cursor.execute("""CREATE TABLE if not exists Worklogs
-                        (worklog_id INTEGER,
-                         jira_issue_id INTEGER,
-                         comment TEXT,
-                         start_date TIMESTAMP,
-                         end_date TIMESTAMP)""")
-    db_conn.commit()
-    logging.debug('Tables created')
-    return db_conn, cursor
-
-
-def get_action(creds, issue_key):
+def get_issue_from_jira(creds, issue_key):
     try:
         issue = JIRAIssue(creds[0], creds[1], creds[2], issue_key, new=True)
     except HTTPError:
         logging.error('HTTP Error')
         return
-    logging.debug('Save issue to local db')
-    logging.debug('Save issue info')
-    creds[4].execute('INSERT INTO '
-                     'JIRAIssues (jira_issue_id, jira_issue_key, summary) '
-                     'VALUES (?,?,?)', (issue.issue_id, issue.issue_key, issue.summary))
-    logging.debug('Save worklogs')
-    for w, r in issue.worklog.iteritems():
-        #print w, r[0], r[1], r[2]
-        creds[4].execute("""INSERT INTO Worklogs (worklog_id, jira_issue_id, comment, start_date, end_date)
-                                    VALUES (?,?,?,?,?)""", (w, issue.issue_id, r[2], r[0], r[1]))
-    creds[3].commit()
+    db.add_issue(creds[3],
+        creds[4],
+        issue.issue_id,
+        issue.issue_key,
+        issue.summary)
+    db.add_issue_worklog(creds[3], creds[4], issue.worklog, issue.issue_id)
+    logging.debug('Info for issue %s is saved' % issue_key)
     return issue
 
+
+def add_worklog(creds, issue, start_date, end_date, comment=None):
+    try:
+        added_worklog = issue.add_worklog(start_date, end_date, comment)
+    except HTTPError:
+        logging.error('HTTP Error')
+        return
+    db.add_issue_worklog(creds[3], creds[4], added_worklog, issue.issue_id)
+
+
+def remove_worklog(creds, issue, worklog_id):
+    try:
+        issue.remove_worklog(worklog_id)
+    except HTTPError:
+        logging.error('HTTP Error')
+        return
+    db.remove_issue_worklog(creds[3], creds[4], worklog_id)
+
+
+def update_worklog(creds, issue, worklog_id, start_date=None, end_date=None, comment=None):
+    updated_worklog = issue.update_worklog(worklog_id, start_date, end_date, comment)
+    db.update_worklog = (creds[3], creds[4], updated_worklog[0], updated_worklog[1][0], updated_worklog[1][2], updated_worklog[1][2])
 
 
 def normal_exit(db_conn):
     logging.debug('Closing worklog database')
     db_conn.close()
-
 
 def main():
     logging.debug('Starting')
@@ -104,25 +67,34 @@ def main():
         logging.debug('First start')
         jirahost = raw_input("Enter jira URL: ")
         login = raw_input("Enter login: ")
-        password = raw_input("Enter password: ")
+        password = getpass.getpass("Enter password: ")
         creds = (jirahost, login, password )
         # TODO: add test request of user name for checking correct password
         #
         logging.debug('Creating local database')
-        db_conn, cursor = create_local_db(get_db_filename(login, jirahost))
+        db_conn, cursor = db.create_local_db(utils.get_db_filename(login, jirahost))
     else:
         logging.debug('Read settings')
-        jirahost, login, password = get_settings(config_filename)
-        logging.debug('Connect to local database')
-        db_conn = sqlite3.connect(get_db_filename(login, jirahost))
-        cursor = db_conn.cursor()
-        logging.debug('Load Issue to memory')
-        # TODO: add loading jira issues to memory
+        jirahost, login, password = utils.get_settings(config_filename)
+        db_conn, cursor = db.connect_to_db(utils.get_db_filename(login, jirahost))
+        logging.debug('Load issues to memory')
+        raw_issues = db.get_all_issues(cursor)
+        for issue_entry in raw_issues:
+            issue = JIRAIssue(jirahost, login, password, issue_entry[1])
+            issue.issue_id = issue_entry[0]
+            issue.summary = issue_entry[2]
+            issue.worklog = db.get_issue_worklog(cursor, issue.issue_id)
+            jira_issues[issue.issue_key] = issue
+        logging.debug('Issues have been loaded')
 
     creds = ( jirahost, login, password, db_conn, cursor )
     while True:
         print '1 - print current username'
         print '2 - get worklog for issue'
+        print '3 - add worklog for issue'
+        print '4 - remove worklog from issue'
+        print '5 - update worklog from issue'
+        print '6 - get worklog for a day'
         print '9 - exit'
         action = raw_input("Enter action number: ")
         if action == '9':
@@ -130,19 +102,62 @@ def main():
         elif action == '1':
             print 'Not supported yet'
         elif action == '2':
-            issue_key = raw_input("Enter issue key: ")
+            issue_key = raw_input("Enter issue key: ").upper()
             if issue_key not in jira_issues:
-                issue = get_action(creds, issue_key)
+                issue = get_issue_from_jira(creds, issue_key)
                 jira_issues[issue_key] = issue
             for w, r in jira_issues[issue_key].worklog.iteritems():
                 print w, r
-
-
+        elif action == '3':
+            issue_key = raw_input("Enter issue key: ").upper()
+            if issue_key in jira_issues:
+                issue = jira_issues[issue_key]
+            else:
+                issue = get_issue_from_jira(creds, issue_key)
+                jira_issues[issue_key] = issue
+            start_time_str = raw_input("Enter start time[%Y-%m-%dT%H:%M:%S]: ")
+            end_time_str = raw_input("Enter end time[%Y-%m-%dT%H:%M:%S]: ")
+            comment = raw_input('Comment: ')
+            start_time = datetime.datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M:%S')
+            end_time = datetime.datetime.strptime(end_time_str, '%Y-%m-%dT%H:%M:%S')
+            add_worklog(creds, issue, start_time, end_time, comment)
+        elif action == '4':
+            issue_key = raw_input("Enter issue key: ").upper()
+            if issue_key in jira_issues:
+                issue = jira_issues[issue_key]
+            else:
+                logging.error('Add issue first')
+                continue
+            worklog_id = int(raw_input("Enter worklog_id: "))
+            remove_worklog(creds, issue, worklog_id)
+        elif action == '5':
+            issue_key = raw_input("Enter issue key: ").upper()
+            if issue_key in jira_issues:
+                issue = jira_issues[issue_key]
+            else:
+                continue
+            worklog_id = int(raw_input("Enter worklog_id: "))
+            start_time_str = raw_input("Enter start time[%Y-%m-%dT%H:%M:%S]: ")
+            end_time_str = raw_input("Enter end time[%Y-%m-%dT%H:%M:%S]: ")
+            comment = raw_input('Comment: ')
+            if start_time_str:
+                start_time = datetime.datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M:%S')
+            else:
+                start_time = None
+            if end_time_str:
+                end_time = datetime.datetime.strptime(end_time_str, '%Y-%m-%dT%H:%M:%S')
+            else:
+                end_time = None
+            update_worklog(creds, issue, worklog_id, start_time, end_time, comment)
+        elif action == '6':
+            selected_day = raw_input("Enter day[%Y-%m-%d]: ")
+            day_work = db.get_day_worklog(creds[4], selected_day)
+            for entry in day_work:
+                print entry
 
     # NORMAL exit
-    save_settings(config_filename, creds)
+    utils.save_settings(config_filename, creds)
     normal_exit(db_conn)
-
 
 
 if __name__ == '__main__':
