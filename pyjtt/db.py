@@ -13,7 +13,8 @@ def convert_to_datetime(datetime_string):
 
 
 def create_local_db(db_filename):
-    db_conn = sqlite3.connect(db_filename)
+    logging.debug('Creating db %s' % db_filename)
+    db_conn = sqlite3.connect(str(db_filename))
     cursor = db_conn.cursor()
     logging.debug('Creating table JIRAIssues')
     cursor.execute("""CREATE TABLE if not exists JIRAIssues
