@@ -37,16 +37,6 @@
         <string>Issues</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QLineEdit" name="lineIssueKey">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="placeholderText">
-           <string>Enter issue key...</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="1">
          <widget class="QPushButton" name="AddIssue">
           <property name="text">
@@ -57,8 +47,39 @@
           </property>
          </widget>
         </item>
+        <item row="0" column="0">
+         <widget class="QLineEdit" name="lineIssueKey">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Enter issue key...</string>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="0" colspan="2">
          <widget class="QTableWidget" name="tableIssues">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>100</number>
+          </attribute>
+          <attribute name="horizontalHeaderMinimumSectionSize">
+           <number>30</number>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderDefaultSectionSize">
+           <number>22</number>
+          </attribute>
+          <attribute name="verticalHeaderMinimumSectionSize">
+           <number>17</number>
+          </attribute>
+          <attribute name="verticalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
           <column>
            <property name="text">
             <string>Key</string>
@@ -82,6 +103,67 @@
        <attribute name="title">
         <string>Worklogs</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="1" column="0" colspan="5">
+         <widget class="QTableWidget" name="tableDayWorklog">
+          <attribute name="verticalHeaderDefaultSectionSize">
+           <number>22</number>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>Issue Key</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Summary</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Start Time</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>End Time</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QDateEdit" name="dateDayWorklogEdit">
+          <property name="date">
+           <date>
+            <year>2001</year>
+            <month>1</month>
+            <day>1</day>
+           </date>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="addWorklog">
+          <property name="text">
+           <string>Add</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="editWorklog">
+          <property name="text">
+           <string>Edit</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QPushButton" name="removeWorklog">
+          <property name="text">
+           <string>Remove</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
