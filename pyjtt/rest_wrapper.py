@@ -5,6 +5,7 @@ __author__ = 'Nikolay Golub'
 
 
 import urllib2, json, logging, datetime
+import utils
 
 class JiraRestBase(object):
     """
@@ -106,7 +107,7 @@ class JIRAIssue(JiraRestBase):
         res = self.rest_req(remove_url, req_type='DELETE')
         if res.code == 204:
             del self.worklog[worklog_id]
-        logging.debug('Worklog has been deleted.')
+            logging.debug('Worklog has been deleted.')
 
     def update_worklog(self, worklog_id, start_date=None,
                        end_date=None, comment=None):
@@ -119,6 +120,7 @@ class JIRAIssue(JiraRestBase):
             data = self.__prepare_worklog_data(start_date, end_date, comment)
         elif comment:
             data = { 'comment' : comment }
+        logging.debug('Update worklog with this data: %s ' % repr(data))
         json_data = json.dumps(data)
         updated_worklog = self.rest_req(upd_url, data=json_data, req_type='PUT')
         logging.debug(updated_worklog)
@@ -126,19 +128,26 @@ class JIRAIssue(JiraRestBase):
             updated_worklog['started'],
             updated_worklog['timeSpentSeconds'],
             updated_worklog['comment'])
-        logging.debug('Worklog updated')
-        return ( int(updated_worklog['id']), self.worklog[int(updated_worklog['id'])] )
+        return int(updated_worklog['id']), self.worklog[int(updated_worklog['id'])]
 
     def __parse_worklog(self, started, spent_seconds, comment):
         strptime = datetime.datetime.strptime
         time_spent = datetime.timedelta(seconds=spent_seconds)
-        started = strptime(started[:19], self.jira_timeformat)
-        return started, started + time_spent, comment
+        remote_started = strptime(started[:19], self.jira_timeformat)
+        utc_offset = utils.get_timedelta_from_utc_offset(started[-5:])
+        if started[-5] == '-':
+            utc_started = remote_started + utc_offset
+        else:
+            utc_started = remote_started - utc_offset
+        if utils.LOCAL_UTC_OFFSET[0] == '+':
+            local_started = utc_started + utils.LOCAL_UTC_OFFSET_TIMEDELTA
+        else:
+            local_started = utc_started - utils.LOCAL_UTC_OFFSET_TIMEDELTA
+        return local_started, local_started + time_spent, comment
 
     def __prepare_worklog_data(self, start_date, end_date, comment=None):
-        # TODO: add timezone offset calculation
         time_spent = ''
-        started = start_date.strftime(self.jira_timeformat) + '.000+0400'
+        started = start_date.strftime(self.jira_timeformat) + '.000' + utils.LOCAL_UTC_OFFSET
         spent = end_date - start_date
         if spent.days:
             time_spent += str(spent.days) +'d '
@@ -157,3 +166,13 @@ class JIRAIssue(JiraRestBase):
     def __int_round(self, x, base=5):
         logging.debug('Round %s' % str(x))
         return int(base * round(float(x)/base))
+
+
+class JiraUser(JiraRestBase):
+    def __init__(self, jirahost, login, password):
+        logging.debug('Jira user object has been called')
+        JiraRestBase.__init__(self, jirahost, login, password)
+        self.user_url = str(self.jirahost) + '/rest/api/2/user?username=' + str(self.login)
+        raw_user_data = self.rest_req(self.user_url)
+        self.display_name = raw_user_data['displayName']
+        self.email = raw_user_data['emailAddress']

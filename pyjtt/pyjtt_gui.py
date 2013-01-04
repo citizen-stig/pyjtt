@@ -2,11 +2,88 @@
 from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
 
-import os, sys, logging
+import os, sys, logging, datetime
 import db, utils, rest_wrapper, pyjtt
-import login_screen, main_window
+import login_screen, main_window, worklog_window
+from functools import partial
 
 from PyQt4 import QtCore, QtGui
+
+
+def datetime_to_qtime(timestamp):
+    return QtCore.QTime(timestamp.hour, timestamp.minute)
+
+class WorklogWindow(QtGui.QDialog):
+    def __init__(self, title, issue_key, summary, selected_date, start_time=None, end_time=None, comment=None, parent=None):
+        logging.debug('Opening worklog window')
+        QtGui.QWidget.__init__(self, parent)
+        self.ui = worklog_window.Ui_WorklogWindow()
+        self.ui.setupUi(self)
+        self.setWindowTitle(title)
+        self.ui.labelIssue.setText(issue_key + ': ' + summary)
+        self.ui.dateEdit.setDate(selected_date)
+        if  start_time and end_time:
+            self.ui.timeStartEdit.setTime(datetime_to_qtime(start_time))
+            self.ui.timeEndEdit.setTime(datetime_to_qtime(end_time))
+        else:
+            current_hour = QtCore.QTime.currentTime().hour()
+            self.ui.timeStartEdit.setTime(QtCore.QTime(current_hour - 2, 0) )
+            self.ui.timeEndEdit.setTime(QtCore.QTime(current_hour, 0) )
+        if comment:
+            self.ui.plainTextCommentEdit.setPlainText(comment)
+        self._refresh_spent()
+
+        self.ui.timeStartEdit.timeChanged.connect(self._start_time_changed)
+        self.ui.timeEndEdit.timeChanged.connect(self._end_time_changed)
+        self.ui.buttonBox.accepted.connect(self._save_worklog_data)
+        self.ui.buttonBox.rejected.connect(self._user_exit)
+
+    def _start_time_changed(self):
+        if self.ui.timeStartEdit.time() >= self.ui.timeEndEdit.time():
+            combine = datetime.datetime.combine
+            start_time = (combine(datetime.date.today(), self.ui.timeEndEdit.time().toPyTime())\
+                          - datetime.timedelta(minutes=1)).time()
+            self.ui.timeStartEdit.setTime(datetime_to_qtime(start_time))
+        self._refresh_spent()
+
+    def _end_time_changed(self):
+        if self.ui.timeStartEdit.time() >= self.ui.timeEndEdit.time():
+            combine = datetime.datetime.combine
+            end_time = (combine(datetime.date.today(), self.ui.timeStartEdit.time().toPyTime())\
+                          + datetime.timedelta(minutes=1)).time()
+            self.ui.timeEndEdit.setTime(datetime_to_qtime(end_time))
+        self._refresh_spent()
+
+    def _save_worklog_data(self):
+        logging.debug('Saving worklog')
+        combine = datetime.datetime.combine
+        date = self.ui.dateEdit.date().toPyDate()
+        start = self.ui.timeStartEdit.time().toPyTime()
+        end = self.ui.timeEndEdit.time().toPyTime()
+        self.start_time = combine(date, start)
+        self.end_time = combine(date, end)
+        self.comment = str(self.ui.plainTextCommentEdit.toPlainText())
+        self.accept()
+        logging.debug('Worklog saved')
+
+    def _user_exit(self):
+        self.reject()
+
+    def _refresh_spent(self):
+        logging.debug('Refresh time spent')
+        raw_spent = self.ui.timeEndEdit.dateTime().toPyDateTime()\
+                    - self.ui.timeStartEdit.dateTime().toPyDateTime()
+        hours, seconds = divmod(raw_spent.seconds, 3600)
+        minutes = seconds / 60
+        spent = ''
+        if hours:
+            spent += str(hours) + 'h'
+        if minutes:
+            spent += ' ' + str(minutes) + 'm'
+        spent = 'Time spent: ' + spent.strip()
+
+        self.ui.labelSpent.setText(spent)
+        logging.debug('Time spent is refreshed')
 
 
 class LoginForm(QtGui.QDialog):
@@ -31,7 +108,6 @@ class LoginForm(QtGui.QDialog):
         elif not self.password:
             QtGui.QMessageBox.warning(self, 'Login Error', 'Enter password')
         else:
-            # TODO: add test request of user name for checking correct password
             if self._login(self.login, self.password, self.jira_host):
                 self.accept()
 
@@ -43,8 +119,6 @@ class LoginForm(QtGui.QDialog):
         try:
             user_info = rest_wrapper.JiraUser(str(jirahost), str(login), str(password))
             logging.debug('Login successful')
-            # TODO: add saving user info
-            print self.ui.checkBoxSaveCredentials.isChecked()
             if self.ui.checkBoxSaveCredentials.isChecked():
                 logging.debug('Saving Credentials')
                 utils.save_settings(self.config_filename, (jirahost,  login, password))
@@ -67,6 +141,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.setupUi(self)
 
         self.jira_issues = {}
+        self.selected_issue = None
+        self.is_tracking_on = False
 
         local_db_name = utils.get_db_filename(login, jirahost)
         if not os.path.isfile(local_db_name):
@@ -85,9 +161,61 @@ class MainWindow(QtGui.QMainWindow):
             self._refresh_issues_table()
         logging.debug('Issues have been loaded')
         self.creds = ( str(jirahost), str(login), str(password), db_conn, cursor )
+        self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
+
+        self._print_day_worklog()
+        self.ui.tableDayWorklog.setColumnHidden(4, True)
 
         # add issue
-        self.ui.AddIssue.clicked.connect(self._get_issue)
+        self.ui.FindIssue.clicked.connect(self._get_issue)
+        self.ui.dateDayWorklogEdit.dateChanged.connect(self._print_day_worklog)
+        self.ui.editWorklog.clicked.connect(self._edit_worklog)
+        self.ui.removeWorklog.clicked.connect(self._remove_worklog)
+        self.ui.tableIssues.clicked.connect(self._select_issue)
+        self.ui.tableIssues.doubleClicked.connect(self._add_worklog)
+        self.ui.startStopTracking.clicked.connect(self._tracking)
+
+    def _add_worklog(self):
+        title = 'Add worklog'
+        issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
+        summary = self.jira_issues[issue_key].summary
+        selected_date = datetime.datetime.now()
+        end_time = datetime.datetime.now()
+        start_time = end_time - datetime.timedelta(hours=1)
+        self.add_window = WorklogWindow(title, issue_key, summary,
+            selected_date, start_time=start_time, end_time=end_time)
+        self.add_window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.add_window.show()
+        if self.add_window.exec_() == QtGui.QDialog.Accepted:
+            start_time = self.add_window.start_time
+            end_time = self.add_window.end_time
+            comment = self.add_window.comment
+            logging.debug('From user: %s, %s, %s' % (str(start_time), str(end_time), comment))
+            pyjtt.add_worklog(self.creds, self.jira_issues[issue_key],
+                start_time, end_time, comment)
+            self._print_day_worklog()
+
+    def _select_issue(self):
+        if not self.is_tracking_on:
+            issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
+            summary = str(self.ui.tableIssues.selectedItems()[1].text())
+            self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
+            self.selected_issue = self.jira_issues[issue_key]
+            logging.debug('Now selected issue %s' % self.jira_issues[issue_key].summary)
+
+    def _tracking(self):
+        if self.selected_issue:
+            if self.ui.startStopTracking.isChecked():
+                # TODO: add starting of tracking here
+                self.ui.startStopTracking.setText('Stop Tracking')
+                self.is_tracking_on = True
+            else:
+                # TODO: Add stoping of tracking here
+                self.ui.startStopTracking.setText('Start Tracking')
+                self.is_tracking_on = False
+        else:
+            QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select issue first')
+            self.ui.startStopTracking.setChecked(False)
 
         # TODO: add event for filtering issues in table, when user enters key
 
@@ -95,6 +223,7 @@ class MainWindow(QtGui.QMainWindow):
         logging.debug('Get issue button has been clicked')
         issue_key = str(self.ui.lineIssueKey.text())
         if issue_key and issue_key not in self.jira_issues:
+            # TODO: add try block here
             issue = pyjtt.get_issue_from_jira(self.creds, issue_key)
             self.jira_issues[issue_key] = issue
             logging.debug('Issue has been added')
@@ -106,22 +235,81 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.tableIssues.setRowCount(len(self.jira_issues))
         row = 0
         for issue_key in sorted(self.jira_issues.keys()):
-            print issue_key, self.jira_issues[issue_key].summary
             self.ui.tableIssues.setItem(row, 0, QtGui.QTableWidgetItem(issue_key))
             self.ui.tableIssues.setItem(row, 1, QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
             self.ui.tableIssues.setItem(row, 2, QtGui.QTableWidgetItem('N/A'))
             row += 1
         logging.debug('Table refresh has been completed')
 
+    def _print_day_worklog(self):
+        logging.debug('Request worklog for a day')
+        selected_day = self.ui.dateDayWorklogEdit.date().toPyDate()
+        day_work = db.get_day_worklog(self.creds[4], selected_day)
+        # (u'PERF-303', u'[SS POD2] 5.10 Migration Environment Issues', datetime.datetime(2012, 12, 28, 8, 59), datetime.datetime(2012, 12, 28, 10, 59))
+        self.ui.tableDayWorklog.setRowCount(len(day_work))
+        for row, entry in enumerate(day_work):
+            self.ui.tableDayWorklog.setItem(row, 0, QtGui.QTableWidgetItem(entry[0]))
+            self.ui.tableDayWorklog.setItem(row, 1, QtGui.QTableWidgetItem(entry[1]))
+            self.ui.tableDayWorklog.setItem(row, 2, QtGui.QTableWidgetItem(entry[2].strftime('%H:%M')))
+            self.ui.tableDayWorklog.setItem(row, 3, QtGui.QTableWidgetItem(entry[3].strftime('%H:%M')))
+            # hidden worklogid
+            self.ui.tableDayWorklog.setItem(row, 4, QtGui.QTableWidgetItem(str(entry[4])))
+        logging.debug('Worklog table has been updated')
+
+    def _edit_worklog(self):
+        if self.ui.tableDayWorklog.selectedItems():
+            title = 'Edit worklog'
+            self.ui.tableDayWorklog.setColumnHidden(4, False)
+            issue_key = str(self.ui.tableDayWorklog.selectedItems()[0].text())
+            worklog_id = int(self.ui.tableDayWorklog.selectedItems()[4].text())
+            self.ui.tableDayWorklog.setColumnHidden(4, True)
+            summary = self.jira_issues[issue_key].summary
+            start_time = self.jira_issues[issue_key].worklog[worklog_id][0]
+            end_time = self.jira_issues[issue_key].worklog[worklog_id][1]
+            comment = self.jira_issues[issue_key].worklog[worklog_id][2]
+            selected_date = self.jira_issues[issue_key].worklog[worklog_id][0]
+
+            self.edit_window = WorklogWindow(title, issue_key, summary, selected_date, start_time=start_time, end_time=end_time, comment=comment)
+            self.edit_window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            self.edit_window.show()
+            if self.edit_window.exec_() == QtGui.QDialog.Accepted:
+                new_start_time = self.edit_window.start_time
+                new_end_time = self.edit_window.end_time
+                new_comment = self.edit_window.comment
+                logging.debug('From user: %s, %s, %s' % (str(new_start_time), str(new_end_time), new_comment))
+                pyjtt.update_worklog(self.creds, self.jira_issues[issue_key],
+                    worklog_id, new_start_time, new_end_time, new_comment)
+                self._print_day_worklog()
+        else:
+            QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select worklog first')
+
+    def _remove_worklog(self):
+        if self.ui.tableDayWorklog.selectedItems():
+            title = 'Remove worklog'
+            self.ui.tableDayWorklog.setColumnHidden(4, False)
+            issue_key = str(self.ui.tableDayWorklog.selectedItems()[0].text())
+            worklog_id = int(self.ui.tableDayWorklog.selectedItems()[4].text())
+            self.ui.tableDayWorklog.setColumnHidden(4, True)
+            remove_msg = "Are you sure you want to remove this worklog?"
+            reply = QtGui.QMessageBox.question(self, 'Message',
+            remove_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+
+            if reply == QtGui.QMessageBox.Yes:
+                pyjtt.remove_worklog(self.creds, self.jira_issues[issue_key],
+                    worklog_id)
+                self._print_day_worklog()
+        else:
+            QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select worklog first')
 
     def __del__(self):
         # TODO: if creds is not defined yet
         pyjtt.normal_exit(self.creds[3])
 
+
 def main():
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
     logging.debug('Starting')
-
+    logging.debug('Local GMT offset is %s' % utils.LOCAL_UTC_OFFSET)
     # base constants
     app = QtGui.QApplication(sys.argv)
     config_filename = 'pyjtt.cfg'

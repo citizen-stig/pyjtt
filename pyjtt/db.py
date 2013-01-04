@@ -68,11 +68,12 @@ def get_issue_worklog(cursor, issue_id):
 
 
 def add_issue_worklog(db_conn, cursor, worklog, issue_id):
-    logging.debug('Save worklogs')
+    logging.debug('Add new worklog to local DB')
     rows = [ [x[0]] + [issue_id] + list(x[1]) for x in worklog.items()]
     cursor.executemany("""INSERT INTO Worklogs (worklog_id, jira_issue_id, start_date, end_date, comment)
                                     VALUES (?,?,?,?,?)""", rows)
     db_conn.commit()
+    logging.debug('Worklog %s has been saved in local DB' % str(rows[0][0]))
 
 
 def remove_issue_worklog(db_conn,cursor, worklog_id):
@@ -82,17 +83,18 @@ def remove_issue_worklog(db_conn,cursor, worklog_id):
     logging.debug('Worklog has been deleted')
 
 def update_issue_worklog(db_conn, cursor, worklog_id, start_date, end_date, comment):
-    logging.debug('Update worklog %s in local db')
+    logging.debug('Updating worklog %s in local db' % str(worklog_id))
+    logging.debug('New data is: %s, %s, %s' % (str(start_date), str(end_date), comment) )
     cursor.execute("""
                     UPDATE  Worklogs
-                    SET start_date = ?
-                        end_date = ?
+                    SET start_date = ?,
+                        end_date = ?,
                         comment = ?
                     WHERE
                         worklog_id = ?
                     """, (start_date, end_date, comment, worklog_id) )
     db_conn.commit()
-    logging.debug('Worklog Updated')
+    logging.debug('Worklog %s Updated in local database' % str(worklog_id))
 
 def get_day_worklog(cursor, selected_day):
     logging.debug('Get worklog for %s' % selected_day)
@@ -102,20 +104,21 @@ def get_day_worklog(cursor, selected_day):
                         JIRAIssues.jira_issue_key,
                         JIRAIssues.summary,
                         Worklogs.start_date,
-                        Worklogs.end_date
+                        Worklogs.end_date,
+                        Worklogs.worklog_id
                     FROM
                         Worklogs
                     JOIN JIRAIssues on Worklogs.jira_issue_id = JIRAIssues.jira_issue_id
                     WHERE
                         Worklogs.start_date like ?
                         OR Worklogs.end_date  like ?
-                    """, (selected_day+'%', selected_day+'%'))
+                    """, (selected_day.strftime('%Y-%m-%d') + '%', selected_day.strftime('%Y-%m-%d') +'%'))
     logging.debug('Worklog Returned')
     raw_worklogs = cursor.fetchall()
     for worklog_entry in raw_worklogs:
         start_date = convert_to_datetime(worklog_entry[2])
         end_date = convert_to_datetime(worklog_entry[3])
-        worklogs.append((worklog_entry[0], worklog_entry[1], start_date, end_date))
+        worklogs.append((worklog_entry[0], worklog_entry[1], start_date, end_date, worklog_entry[4]))
     return worklogs
 
 def get_all_issues(cursor):

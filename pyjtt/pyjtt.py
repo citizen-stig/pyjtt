@@ -48,13 +48,20 @@ def remove_worklog(creds, issue, worklog_id):
 
 
 def update_worklog(creds, issue, worklog_id, start_date=None, end_date=None, comment=None):
-    updated_worklog = issue.update_worklog(worklog_id, start_date, end_date, comment)
-    db.update_worklog = (creds[3], creds[4], updated_worklog[0], updated_worklog[1][0], updated_worklog[1][2], updated_worklog[1][2])
+    try:
+        updated_worklog = issue.update_worklog(worklog_id, start_date, end_date, comment)
+        logging.debug('Worklog updated in JIRA')
+        logging.debug(updated_worklog)
+        db.update_issue_worklog(creds[3], creds[4], updated_worklog[0], updated_worklog[1][0], updated_worklog[1][1], updated_worklog[1][2])
+    except HTTPError:
+        logging.error('Update failed, HTTP Error')
+
 
 
 def normal_exit(db_conn):
     logging.debug('Closing worklog database')
     db_conn.close()
+
 
 def main():
     logging.debug('Starting')
