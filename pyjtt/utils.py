@@ -2,7 +2,7 @@
 #
 from __future__ import unicode_literals
 from datetime import datetime, timedelta
-import ConfigParser, logging
+import ConfigParser, logging, sys
 
 __author__ = 'Nikolay Golub'
 
@@ -35,16 +35,13 @@ def save_settings(config_filename, creds):
         config.write(configfile)
     logging.debug('Options have been saved')
 
-
 def get_db_filename(login, jirahost):
     # TODO: add absolute path handling
     return login + '_' + jirahost.replace('http://', '').replace('https://', '').replace('/','').replace(':', '') \
            + '.db'
 
-
-
 def get_local_utc_offset(now, utcnow):
-    logging.debug('Getting Local UTC Offset')
+    logging.debug('Getting local UTC Offset')
     def absolute_offset(bigger_timestamp, smaller_timestamp):
         offset = bigger_timestamp.hour - smaller_timestamp.hour
         minutes = bigger_timestamp.minute - smaller_timestamp.minute
@@ -65,7 +62,6 @@ def get_local_utc_offset(now, utcnow):
         offset = absolute_offset(utcnow, now)
     return sign + offset
 
-
 def get_timedelta_from_utc_offset(time_string):
     logging.debug('Getting timedelta from UTC offset')
     utc_offset = time_string[-5:]
@@ -73,7 +69,6 @@ def get_timedelta_from_utc_offset(time_string):
     minutes = int(utc_offset[3:5])
     # TODO: add bound values checking
     return timedelta(hours=hours, minutes=minutes)
-
 
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)

@@ -59,11 +59,29 @@
         </item>
         <item row="1" column="0" colspan="2">
          <widget class="QTableWidget" name="tableIssues">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="sortingEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
           </property>
           <attribute name="horizontalHeaderDefaultSectionSize">
            <number>100</number>
@@ -109,6 +127,12 @@
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="1" column="0" colspan="4">
          <widget class="QTableWidget" name="tableDayWorklog">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
@@ -120,7 +144,7 @@
           </attribute>
           <column>
            <property name="text">
-            <string>Issue Key</string>
+            <string>Key</string>
            </property>
           </column>
           <column>
@@ -179,8 +203,11 @@
     </item>
     <item row="0" column="0">
      <layout class="QFormLayout" name="formLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
       <property name="fieldGrowthPolicy">
-       <enum>QFormLayout::ExpandingFieldsGrow</enum>
+       <enum>QFormLayout::FieldsStayAtSizeHint</enum>
       </property>
       <item row="0" column="0">
        <widget class="QCommandLinkButton" name="startStopTracking">
@@ -214,7 +241,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <layout class="QVBoxLayout" name="verticalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
         <property name="sizeConstraint">
          <enum>QLayout::SetDefaultConstraint</enum>
         </property>
@@ -229,8 +256,23 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>No issue selected</string>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <property name="indent">
+           <number>-1</number>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>

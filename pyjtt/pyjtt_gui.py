@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
 
 import os, sys, logging, datetime
+
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
+
 import db, utils, rest_wrapper, pyjtt
 import login_screen, main_window, worklog_window
 from functools import partial
@@ -41,7 +44,7 @@ class WorklogWindow(QtGui.QDialog):
     def _start_time_changed(self):
         if self.ui.timeStartEdit.time() >= self.ui.timeEndEdit.time():
             combine = datetime.datetime.combine
-            start_time = (combine(datetime.date.today(), self.ui.timeEndEdit.time().toPyTime())\
+            start_time = (combine(datetime.date.today(), self.ui.timeEndEdit.time().toPyTime())
                           - datetime.timedelta(minutes=1)).time()
             self.ui.timeStartEdit.setTime(datetime_to_qtime(start_time))
         self._refresh_spent()
@@ -49,7 +52,7 @@ class WorklogWindow(QtGui.QDialog):
     def _end_time_changed(self):
         if self.ui.timeStartEdit.time() >= self.ui.timeEndEdit.time():
             combine = datetime.datetime.combine
-            end_time = (combine(datetime.date.today(), self.ui.timeStartEdit.time().toPyTime())\
+            end_time = (combine(datetime.date.today(), self.ui.timeStartEdit.time().toPyTime())
                           + datetime.timedelta(minutes=1)).time()
             self.ui.timeEndEdit.setTime(datetime_to_qtime(end_time))
         self._refresh_spent()
@@ -216,7 +219,6 @@ class MainWindow(QtGui.QMainWindow):
         else:
             QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select issue first')
             self.ui.startStopTracking.setChecked(False)
-
         # TODO: add event for filtering issues in table, when user enters key
 
     def _get_issue(self):
@@ -239,6 +241,10 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.tableIssues.setItem(row, 1, QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
             self.ui.tableIssues.setItem(row, 2, QtGui.QTableWidgetItem('N/A'))
             row += 1
+        self.ui.tableIssues.resizeColumnToContents(0)
+        self.ui.tableIssues.resizeColumnToContents(2)
+        self.ui.tableIssues.horizontalHeader().setResizeMode(1,QtGui.QHeaderView.Stretch)
+        self.ui.tableIssues.horizontalHeader().setResizeMode(0,QtGui.QHeaderView.Fixed)
         logging.debug('Table refresh has been completed')
 
     def _print_day_worklog(self):
@@ -254,6 +260,11 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.tableDayWorklog.setItem(row, 3, QtGui.QTableWidgetItem(entry[3].strftime('%H:%M')))
             # hidden worklogid
             self.ui.tableDayWorklog.setItem(row, 4, QtGui.QTableWidgetItem(str(entry[4])))
+        self.ui.tableDayWorklog.resizeColumnToContents(0)
+        self.ui.tableDayWorklog.resizeColumnToContents(2)
+        self.ui.tableDayWorklog.resizeColumnToContents(3)
+        self.ui.tableDayWorklog.horizontalHeader().setResizeMode(1,QtGui.QHeaderView.Stretch)
+        self.ui.tableDayWorklog.horizontalHeader().setResizeMode(0,QtGui.QHeaderView.Fixed)
         logging.debug('Worklog table has been updated')
 
     def _edit_worklog(self):
@@ -285,7 +296,6 @@ class MainWindow(QtGui.QMainWindow):
 
     def _remove_worklog(self):
         if self.ui.tableDayWorklog.selectedItems():
-            title = 'Remove worklog'
             self.ui.tableDayWorklog.setColumnHidden(4, False)
             issue_key = str(self.ui.tableDayWorklog.selectedItems()[0].text())
             worklog_id = int(self.ui.tableDayWorklog.selectedItems()[4].text())
@@ -304,11 +314,9 @@ class MainWindow(QtGui.QMainWindow):
     def __del__(self):
         # TODO: if creds is not defined yet
         pyjtt.normal_exit(self.creds[3])
-cd
+
 
 def main():
-    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
-    logging.debug('Starting')
     logging.debug('Local GMT offset is %s' % utils.LOCAL_UTC_OFFSET)
     # base constants
     app = QtGui.QApplication(sys.argv)

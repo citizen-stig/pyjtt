@@ -3,14 +3,11 @@
 from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
 
-
 import datetime, sqlite3, logging
-
 
 def convert_to_datetime(datetime_string):
     timeformat = '%Y-%m-%d %H:%M:%S'
     return datetime.datetime.strptime(datetime_string, timeformat)
-
 
 def create_local_db(db_filename):
     logging.debug('Creating db %s' % db_filename)
@@ -33,14 +30,12 @@ def create_local_db(db_filename):
     logging.debug('Tables created')
     return db_conn, cursor
 
-
 def connect_to_db(db_filename):
     logging.debug('Connecting to local Database: %s' % db_filename)
     db_conn = sqlite3.connect(db_filename)
     cursor = db_conn.cursor()
     logging.debug('Connection successfull')
     return db_conn, cursor
-
 
 def add_issue(db_conn, cursor, issue_id, issue_key, issue_summary):
     logging.debug('Save issue to local db')
@@ -65,8 +60,6 @@ def get_issue_worklog(cursor, issue_id):
     logging.debug('Worklogs have been fetched')
     return worklogs
 
-
-
 def add_issue_worklog(db_conn, cursor, worklog, issue_id):
     logging.debug('Add new worklog to local DB')
     rows = [ [x[0]] + [issue_id] + list(x[1]) for x in worklog.items()]
@@ -74,7 +67,6 @@ def add_issue_worklog(db_conn, cursor, worklog, issue_id):
                                     VALUES (?,?,?,?,?)""", rows)
     db_conn.commit()
     logging.debug('Worklog %s has been saved in local DB' % str(rows[0][0]))
-
 
 def remove_issue_worklog(db_conn,cursor, worklog_id):
     logging.debug('Deleting worklog %s' % str(worklog_id))

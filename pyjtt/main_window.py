@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Sat Jan  5 01:17:31 2013
+# Created: Sat Jan  5 18:25:20 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -49,8 +49,13 @@ class Ui_MainWindow(object):
         self.lineIssueKey.setObjectName(_fromUtf8("lineIssueKey"))
         self.gridLayout_4.addWidget(self.lineIssueKey, 0, 0, 1, 1)
         self.tableIssues = QtGui.QTableWidget(self.tabIssues)
+        self.tableIssues.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.tableIssues.setFrameShadow(QtGui.QFrame.Plain)
         self.tableIssues.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.tableIssues.setAlternatingRowColors(True)
+        self.tableIssues.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableIssues.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.tableIssues.setWordWrap(True)
         self.tableIssues.setObjectName(_fromUtf8("tableIssues"))
         self.tableIssues.setColumnCount(3)
         self.tableIssues.setRowCount(0)
@@ -73,6 +78,8 @@ class Ui_MainWindow(object):
         self.gridLayout_2 = QtGui.QGridLayout(self.tabWorklogs)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.tableDayWorklog = QtGui.QTableWidget(self.tabWorklogs)
+        self.tableDayWorklog.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.tableDayWorklog.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableDayWorklog.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableDayWorklog.setObjectName(_fromUtf8("tableDayWorklog"))
         self.tableDayWorklog.setColumnCount(5)
@@ -104,7 +111,8 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tabWorklogs, _fromUtf8(""))
         self.gridLayout.addWidget(self.tabWidget, 1, 0, 1, 1)
         self.formLayout = QtGui.QFormLayout()
-        self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
+        self.formLayout.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
+        self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.FieldsStayAtSizeHint)
         self.formLayout.setObjectName(_fromUtf8("formLayout"))
         self.startStopTracking = QtGui.QCommandLinkButton(self.centralwidget)
         self.startStopTracking.setEnabled(True)
@@ -128,6 +136,11 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.labelSelectedIssue.sizePolicy().hasHeightForWidth())
         self.labelSelectedIssue.setSizePolicy(sizePolicy)
+        self.labelSelectedIssue.setAcceptDrops(False)
+        self.labelSelectedIssue.setScaledContents(False)
+        self.labelSelectedIssue.setMargin(0)
+        self.labelSelectedIssue.setIndent(-1)
+        self.labelSelectedIssue.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         self.labelSelectedIssue.setObjectName(_fromUtf8("labelSelectedIssue"))
         self.verticalLayout.addWidget(self.labelSelectedIssue)
         self.labelTimeSpent = QtGui.QLabel(self.centralwidget)
@@ -152,6 +165,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Jira Time Tracker", None))
         self.FindIssue.setText(_translate("MainWindow", "Find", None))
         self.lineIssueKey.setPlaceholderText(_translate("MainWindow", "Enter issue key...", None))
+        self.tableIssues.setSortingEnabled(False)
         item = self.tableIssues.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Key", None))
         item = self.tableIssues.horizontalHeaderItem(1)
@@ -160,7 +174,7 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "Action", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabIssues), _translate("MainWindow", "Issues", None))
         item = self.tableDayWorklog.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "Issue Key", None))
+        item.setText(_translate("MainWindow", "Key", None))
         item = self.tableDayWorklog.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Summary", None))
         item = self.tableDayWorklog.horizontalHeaderItem(2)

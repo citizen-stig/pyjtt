@@ -134,9 +134,12 @@ class JIRAIssue(JiraRestBase):
         strptime = datetime.datetime.strptime
         time_spent = datetime.timedelta(seconds=spent_seconds)
         remote_started = strptime(started[:19], self.jira_timeformat)
+        logging.debug('Remote timestamp %s' % str(remote_started))
         utc_offset = utils.get_timedelta_from_utc_offset(started[-5:])
-        utc_started = remote_started + utc_offset
-        local_started = utc_started - utils.LOCAL_UTC_OFFSET_TIMEDELTA
+        utc_started = remote_started - utc_offset
+        logging.debug('UTC timestamp: %s' % str(utc_started))
+        local_started = utc_started + utils.LOCAL_UTC_OFFSET_TIMEDELTA
+        logging.debug('Local timestamp: %s' % str(local_started))
 
         return local_started, local_started + time_spent, comment
 
@@ -161,7 +164,6 @@ class JIRAIssue(JiraRestBase):
     def __int_round(self, x, base=5):
         logging.debug('Round %s' % str(x))
         return int(base * round(float(x)/base))
-
 
 class JiraUser(JiraRestBase):
     def __init__(self, jirahost, login, password):
