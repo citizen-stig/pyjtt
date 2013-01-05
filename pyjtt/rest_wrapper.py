@@ -135,14 +135,9 @@ class JIRAIssue(JiraRestBase):
         time_spent = datetime.timedelta(seconds=spent_seconds)
         remote_started = strptime(started[:19], self.jira_timeformat)
         utc_offset = utils.get_timedelta_from_utc_offset(started[-5:])
-        if started[-5] == '-':
-            utc_started = remote_started + utc_offset
-        else:
-            utc_started = remote_started - utc_offset
-        if utils.LOCAL_UTC_OFFSET[0] == '+':
-            local_started = utc_started + utils.LOCAL_UTC_OFFSET_TIMEDELTA
-        else:
-            local_started = utc_started - utils.LOCAL_UTC_OFFSET_TIMEDELTA
+        utc_started = remote_started + utc_offset
+        local_started = utc_started - utils.LOCAL_UTC_OFFSET_TIMEDELTA
+
         return local_started, local_started + time_spent, comment
 
     def __prepare_worklog_data(self, start_date, end_date, comment=None):

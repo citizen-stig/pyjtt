@@ -304,7 +304,7 @@ class MainWindow(QtGui.QMainWindow):
     def __del__(self):
         # TODO: if creds is not defined yet
         pyjtt.normal_exit(self.creds[3])
-
+cd
 
 def main():
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)

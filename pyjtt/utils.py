@@ -43,8 +43,8 @@ def get_db_filename(login, jirahost):
 
 
 
-def get_local_utc_offset():
-    now, utcnow = (datetime.now(), datetime.utcnow())
+def get_local_utc_offset(now, utcnow):
+    logging.debug('Getting Local UTC Offset')
     def absolute_offset(bigger_timestamp, smaller_timestamp):
         offset = bigger_timestamp.hour - smaller_timestamp.hour
         minutes = bigger_timestamp.minute - smaller_timestamp.minute
@@ -55,7 +55,9 @@ def get_local_utc_offset():
             hours_diff = abs(hours_diff - 24)
         offset = '%02d%02d' % ( hours_diff, abs(minutes))
         return offset
-    if now > utcnow:
+    if (now-utcnow).total_seconds() > 50400 or (now-utcnow).total_seconds() < -43200:
+        raise ValueError('Offset is too large')
+    if now >= utcnow:
         sign = '+'
         offset = absolute_offset(now, utcnow)
     else:
@@ -64,9 +66,14 @@ def get_local_utc_offset():
     return sign + offset
 
 
-def get_timedelta_from_utc_offset(utc_offset):
-    return timedelta(hours=int(utc_offset[1:3]), minutes= int(utc_offset[3:5]))
+def get_timedelta_from_utc_offset(time_string):
+    logging.debug('Getting timedelta from UTC offset')
+    utc_offset = time_string[-5:]
+    hours = int(utc_offset[0:3])
+    minutes = int(utc_offset[3:5])
+    # TODO: add bound values checking
+    return timedelta(hours=hours, minutes=minutes)
 
 
-LOCAL_UTC_OFFSET = get_local_utc_offset()
+LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)
