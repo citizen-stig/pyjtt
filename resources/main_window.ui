@@ -164,6 +164,11 @@
           </column>
           <column>
            <property name="text">
+            <string>Time Spent</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
             <string>worklog_id</string>
            </property>
           </column>

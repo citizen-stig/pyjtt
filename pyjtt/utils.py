@@ -9,7 +9,6 @@ __author__ = 'Nikolay Golub'
 def get_settings(config_filename):
     logging.debug('Getting base options')
     config = ConfigParser.ConfigParser()
-    logging.debug('Config file exists, read options')
     config.read(config_filename)
     try:
         jirahost = config.get('jira', 'host')

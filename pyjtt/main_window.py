@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_window.ui'
+# Form implementation generated from reading ui file 'resources/main_window.ui'
 #
-# Created: Sat Jan  5 18:25:20 2013
+# Created: Sun Jan  6 14:50:02 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -82,7 +82,7 @@ class Ui_MainWindow(object):
         self.tableDayWorklog.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableDayWorklog.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableDayWorklog.setObjectName(_fromUtf8("tableDayWorklog"))
-        self.tableDayWorklog.setColumnCount(5)
+        self.tableDayWorklog.setColumnCount(6)
         self.tableDayWorklog.setRowCount(0)
         item = QtGui.QTableWidgetItem()
         self.tableDayWorklog.setHorizontalHeaderItem(0, item)
@@ -94,6 +94,8 @@ class Ui_MainWindow(object):
         self.tableDayWorklog.setHorizontalHeaderItem(3, item)
         item = QtGui.QTableWidgetItem()
         self.tableDayWorklog.setHorizontalHeaderItem(4, item)
+        item = QtGui.QTableWidgetItem()
+        self.tableDayWorklog.setHorizontalHeaderItem(5, item)
         self.tableDayWorklog.verticalHeader().setVisible(False)
         self.tableDayWorklog.verticalHeader().setDefaultSectionSize(22)
         self.gridLayout_2.addWidget(self.tableDayWorklog, 1, 0, 1, 4)
@@ -182,6 +184,8 @@ class Ui_MainWindow(object):
         item = self.tableDayWorklog.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "End Time", None))
         item = self.tableDayWorklog.horizontalHeaderItem(4)
+        item.setText(_translate("MainWindow", "Time Spent", None))
+        item = self.tableDayWorklog.horizontalHeaderItem(5)
         item.setText(_translate("MainWindow", "worklog_id", None))
         self.editWorklog.setText(_translate("MainWindow", "Edit", None))
         self.removeWorklog.setText(_translate("MainWindow", "Remove", None))
