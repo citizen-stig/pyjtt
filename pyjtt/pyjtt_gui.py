@@ -337,16 +337,18 @@ class MainWindow(QtGui.QMainWindow):
         end_time = datetime.datetime.now()
         start_time = end_time - datetime.timedelta(hours=1)
         self.add_window = WorklogWindow(title, issue_key, summary,
-            selected_date, start_time=start_time, end_time=end_time)
+            selected_date, start_time=start_time, end_time=end_time, parent=self)
         self.add_window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.add_window.show()
         if self.add_window.exec_() == QtGui.QDialog.Accepted:
             start_time = self.add_window.start_time
             end_time = self.add_window.end_time
             comment = self.add_window.comment
-            logging.debug('From user: %s, %s, %s' % (str(start_time), str(end_time), comment))
+            logging.debug('From user: %s, %s, %s' % (str(start_time),
+                                                     str(end_time), comment))
             stat_message = 'Adding worklog for issue %s' % str(issue_key)
-            self._start_io(pyjtt.add_worklog, stat_message, self.creds, self.jira_issues[issue_key],  start_time,
+            self._start_io(pyjtt.add_worklog, stat_message, self.creds,
+                self.jira_issues[issue_key],  start_time,
                 end_time, comment )
 
     def _edit_worklog(self):
@@ -358,7 +360,9 @@ class MainWindow(QtGui.QMainWindow):
             end_time = self.jira_issues[issue_key].worklog[worklog_id][1]
             comment = self.jira_issues[issue_key].worklog[worklog_id][2]
             selected_date = self.jira_issues[issue_key].worklog[worklog_id][0]
-            self.edit_window = WorklogWindow(title, issue_key, summary, selected_date, start_time=start_time, end_time=end_time, comment=comment)
+            self.edit_window = WorklogWindow(title, issue_key, summary,
+                selected_date, start_time=start_time, end_time=end_time,
+                comment=comment, parent=self)
             self.edit_window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
             self.edit_window.show()
             if self.edit_window.exec_() == QtGui.QDialog.Accepted:
@@ -437,9 +441,13 @@ class MainWindow(QtGui.QMainWindow):
                                                                 str(self.tracking_thread.current)
                                                                 )
                                     )
-                        self._add_worklog(self.selected_issue,
-                            self.tracking_thread.start,
-                            self.tracking_thread.current)
+                        stat_message = 'Adding worklog for issue %s' % str(self.selected_issue.issue_key)
+                        self._start_io(pyjtt.add_worklog, stat_message,
+                            self.creds, self.selected_issue,
+                            self.tracking_thread.start, self.tracking_thread.current)
+                        #self.add_worklog(self.selected_issue,
+                        #    self.tracking_thread.start,
+                        #    self.tracking_thread.current)
                         # TODO: Add 'Add worklog' operation' here
                         self._clear_tracking_timer()
                     else:
