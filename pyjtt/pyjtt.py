@@ -14,11 +14,10 @@ def get_issue_from_jira(creds, issue_key):
         logging.error('HTTP Error')
         return
     db.add_issue(creds[3],
-        creds[4],
         issue.issue_id,
         issue.issue_key,
         issue.summary)
-    db.add_issue_worklog(creds[3], creds[4], issue.worklog, issue.issue_id)
+    db.add_issue_worklog(creds[3], issue.worklog, issue.issue_id)
     logging.debug('Info for issue %s is saved' % issue_key)
     return issue
 
@@ -28,7 +27,7 @@ def add_worklog(creds, issue, start_date, end_date, comment=None):
     except HTTPError:
         logging.error('HTTP Error')
         return
-    db.add_issue_worklog(creds[3], creds[4], added_worklog, issue.issue_id)
+    db.add_issue_worklog(creds[3], added_worklog, issue.issue_id)
 
 def remove_worklog(creds, issue, worklog_id):
     try:
@@ -36,17 +35,13 @@ def remove_worklog(creds, issue, worklog_id):
     except HTTPError:
         logging.error('HTTP Error')
         return
-    db.remove_issue_worklog(creds[3], creds[4], worklog_id)
+    db.remove_issue_worklog(creds[3], worklog_id)
 
 def update_worklog(creds, issue, worklog_id, start_date=None, end_date=None, comment=None):
     try:
         updated_worklog = issue.update_worklog(worklog_id, start_date, end_date, comment)
         logging.debug('Worklog updated in JIRA')
         logging.debug(updated_worklog)
-        db.update_issue_worklog(creds[3], creds[4], updated_worklog[0], updated_worklog[1][0], updated_worklog[1][1], updated_worklog[1][2])
+        db.update_issue_worklog(creds[3], updated_worklog[0], updated_worklog[1][0], updated_worklog[1][1], updated_worklog[1][2])
     except HTTPError:
         logging.error('Update failed, HTTP Error')
-
-def normal_exit(db_conn):
-    logging.debug('Closing worklog database')
-    db_conn.close()

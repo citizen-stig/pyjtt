@@ -37,17 +37,20 @@ def connect_to_db(db_filename):
     logging.debug('Connection successfull')
     return db_conn, cursor
 
-def add_issue(db_conn, cursor, issue_id, issue_key, issue_summary):
+def add_issue(db_filename, issue_id, issue_key, issue_summary):
+    db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Save issue to local db')
     cursor.execute('INSERT INTO '
                      'JIRAIssues (jira_issue_id, jira_issue_key, summary) '
                      'VALUES (?,?,?)', (issue_id, issue_key, issue_summary))
     db_conn.commit()
+    db_conn.close()
 
 def get_issue(cursor):
     pass
 
-def get_issue_worklog(cursor, issue_id):
+def get_issue_worklog(db_filename, issue_id):
+    db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Fetching issue worklogs')
     worklogs = {}
     cursor.execute('SELECT worklog_id, start_date, end_date, comment FROM Worklogs WHERE jira_issue_id = ?', (issue_id,))
@@ -58,23 +61,29 @@ def get_issue_worklog(cursor, issue_id):
         worklogs[worklog_entry[0]] = (start_date, end_date, worklog_entry[3])
 
     logging.debug('Worklogs have been fetched')
+    db_conn.close()
     return worklogs
 
-def add_issue_worklog(db_conn, cursor, worklog, issue_id):
+def add_issue_worklog(db_filename, worklog, issue_id):
+    db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Add new worklog to local DB')
     rows = [ [x[0]] + [issue_id] + list(x[1]) for x in worklog.items()]
     cursor.executemany("""INSERT INTO Worklogs (worklog_id, jira_issue_id, start_date, end_date, comment)
                                     VALUES (?,?,?,?,?)""", rows)
     db_conn.commit()
     logging.debug('Worklog %s has been saved in local DB' % str(rows[0][0]))
+    db_conn.close()
 
-def remove_issue_worklog(db_conn,cursor, worklog_id):
+def remove_issue_worklog(db_filename, worklog_id):
+    db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Deleting worklog %s' % str(worklog_id))
     cursor.execute('DELETE from Worklogs WHERE worklog_id = ?', (worklog_id,))
     db_conn.commit()
     logging.debug('Worklog has been deleted')
+    db_conn.close()
 
-def update_issue_worklog(db_conn, cursor, worklog_id, start_date, end_date, comment):
+def update_issue_worklog(db_filename, worklog_id, start_date, end_date, comment):
+    db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Updating worklog %s in local db' % str(worklog_id))
     logging.debug('New data is: %s, %s, %s' % (str(start_date), str(end_date), comment) )
     cursor.execute("""
@@ -87,8 +96,10 @@ def update_issue_worklog(db_conn, cursor, worklog_id, start_date, end_date, comm
                     """, (start_date, end_date, comment, worklog_id) )
     db_conn.commit()
     logging.debug('Worklog %s Updated in local database' % str(worklog_id))
+    db_conn.close()
 
-def get_day_worklog(cursor, selected_day):
+def get_day_worklog(db_filename, selected_day):
+    db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Get worklog for %s' % selected_day)
     worklogs = []
     cursor.execute("""
@@ -111,8 +122,12 @@ def get_day_worklog(cursor, selected_day):
         start_date = convert_to_datetime(worklog_entry[2])
         end_date = convert_to_datetime(worklog_entry[3])
         worklogs.append((worklog_entry[0], worklog_entry[1], start_date, end_date, worklog_entry[4]))
+    db_conn.close()
     return worklogs
 
-def get_all_issues(cursor):
+def get_all_issues(db_filename):
+    db_conn, cursor = connect_to_db(db_filename)
     cursor.execute('SELECT jira_issue_id, jira_issue_key, summary FROM JIRAIssues')
-    return cursor.fetchall()
+    all_issues = cursor.fetchall()
+    db_conn.close()
+    return all_issues

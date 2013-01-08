@@ -8,19 +8,21 @@ __author__ = 'Nikolay Golub'
 
 def get_settings(config_filename):
     logging.debug('Getting base options')
-    config = ConfigParser.ConfigParser()
+    #config = ConfigParser.ConfigParser()
+    config = ConfigParser.SafeConfigParser({'host': '',
+                                            'login': '',
+                                            'password': ''})
     config.read(config_filename)
     try:
-        jirahost = config.get('jira', 'host')
-        login = config.get('jira', 'login')
-        password = config.get('jira', 'password')
+        jirahost = config.get('jira', 'host', '')
+        login = config.get('jira', 'login', '')
+        password = config.get('jira', 'password', '')
     except ConfigParser.NoSectionError as e:
-        logging.error('Section %s is missed in configuration file!' % e[0])
-        sys.exit(1)
-    except ConfigParser.NoOptionError as e:
-        logging.error('Option %s is missed in configuration file!' % e[0])
-        sys.exit(1)
-    logging.debug('Options have been red')
+        logging.warning('Section %s is missed in configuration file!' % e[0])
+        logging.warning('Return default values')
+        defaults = config.defaults()
+        return defaults['host'], defaults['login'], defaults['password'],
+    logging.info('Options have been red')
     return jirahost, login, password
 
 def save_settings(config_filename, creds):
@@ -36,7 +38,8 @@ def save_settings(config_filename, creds):
 
 def get_db_filename(login, jirahost):
     # TODO: add absolute path handling
-    return login + '_' + jirahost.replace('http://', '').replace('https://', '').replace('/','').replace(':', '') \
+    return login + '_'\
+           + jirahost.replace('http://', '').replace('https://', '').replace('/','').replace(':', '') \
            + '.db'
 
 def get_local_utc_offset(now, utcnow):
@@ -62,12 +65,28 @@ def get_local_utc_offset(now, utcnow):
     return sign + offset
 
 def get_timedelta_from_utc_offset(time_string):
-    logging.debug('Getting timedelta from UTC offset')
+    #logging.debug('Getting timedelta from UTC offset')
     utc_offset = time_string[-5:]
     hours = int(utc_offset[0:3])
     minutes = int(utc_offset[3:5])
     # TODO: add bound values checking
     return timedelta(hours=hours, minutes=minutes)
+
+
+def get_time_spent_string(timestamp_start, timestamp_end):
+    logging.debug('Convert time bounds to time spent string')
+    raw_spent = timestamp_end\
+                - timestamp_start
+    hours, seconds = divmod(raw_spent.seconds, 3600)
+    minutes = seconds / 60
+    spent = ''
+    if hours:
+        spent += str(hours) + 'h'
+    if minutes:
+        spent += ' ' + str(minutes) + 'm'
+    spent_str = spent.strip()
+    logging.debug('Convertion of time bounds to time stpent string is completed')
+    return spent_str
 
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)

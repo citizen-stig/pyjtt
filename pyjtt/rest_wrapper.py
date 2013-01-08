@@ -96,7 +96,7 @@ class JIRAIssue(JiraRestBase):
         self.worklog[int(new_worklog['id'])] = self.__parse_worklog(
             new_worklog['started'],
             new_worklog['timeSpentSeconds'],
-            new_worklog['comment'])
+            new_worklog.get('comment', ''))
         logging.debug('Worklog has been added')
         return { int(new_worklog['id']) : self.worklog[int(new_worklog['id'])] }
 
@@ -127,19 +127,19 @@ class JIRAIssue(JiraRestBase):
         self.worklog[worklog_id] = self.__parse_worklog(
             updated_worklog['started'],
             updated_worklog['timeSpentSeconds'],
-            updated_worklog['comment'])
+            updated_worklog.get('comment', ''))
         return int(updated_worklog['id']), self.worklog[int(updated_worklog['id'])]
 
     def __parse_worklog(self, started, spent_seconds, comment):
         strptime = datetime.datetime.strptime
         time_spent = datetime.timedelta(seconds=spent_seconds)
         remote_started = strptime(started[:19], self.jira_timeformat)
-        logging.debug('Remote timestamp %s' % str(remote_started))
+        #logging.debug('Remote timestamp %s' % str(remote_started))
         utc_offset = utils.get_timedelta_from_utc_offset(started[-5:])
         utc_started = remote_started - utc_offset
-        logging.debug('UTC timestamp: %s' % str(utc_started))
+        #logging.debug('UTC timestamp: %s' % str(utc_started))
         local_started = utc_started + utils.LOCAL_UTC_OFFSET_TIMEDELTA
-        logging.debug('Local timestamp: %s' % str(local_started))
+        #logging.debug('Local timestamp: %s' % str(local_started))
 
         return local_started, local_started + time_spent, comment
 
