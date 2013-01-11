@@ -2,7 +2,7 @@
 #
 from __future__ import unicode_literals
 from datetime import datetime, timedelta
-import ConfigParser, logging, sys
+import ConfigParser, logging, sys, os
 
 __author__ = 'Nikolay Golub'
 
@@ -18,7 +18,7 @@ def get_settings(config_filename):
         login = config.get('jira', 'login', '')
         password = config.get('jira', 'password', '')
     except ConfigParser.NoSectionError as e:
-        logging.warning('Section %s is missed in configuration file!' % e[0])
+        logging.warning('Section %s is missed in configuration file %s' % (e[0], config_filename))
         logging.warning('Return default values')
         defaults = config.defaults()
         return defaults['host'], defaults['login'], defaults['password'],
@@ -27,6 +27,8 @@ def get_settings(config_filename):
 
 def save_settings(config_filename, creds):
     logging.debug('Saving configuration')
+    if len(creds) != 3:
+        raise ValueError('Credentials tuple is incomplete')
     config = ConfigParser.ConfigParser()
     config.add_section('jira')
     config.set('jira', 'host', creds[0])

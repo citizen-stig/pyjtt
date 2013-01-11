@@ -196,15 +196,14 @@ class pyjttUtilsTest(unittest.TestCase):
         os.remove(missed_filename)
 
     def test_get_settings_errors(self):
-        # non existed file
-        pass
-        # too big file
+        self.assertEqual(utils.get_settings('no_such_file'), ('', '', ''))
+        self.assertEqual(utils.get_settings(''), ('', '', ''))
 
 
 # utils.save_settings
     def test_save_settings_normal(self):
         normal_filename = 'save_simple.cfg'
-        creds = ( 'http://jira.example.com/', 'username', 'secret')
+        creds = ( 'http://jira.example.com', 'username', 'secret')
         utils.save_settings(normal_filename, creds)
         r_creds = utils.get_settings(normal_filename)
         self.assertEqual(creds, r_creds)
@@ -231,7 +230,13 @@ class pyjttUtilsTest(unittest.TestCase):
 
     def test_save_settings_errors(self):
         # wrong file name, etc
-        pass
+        creds = ( 'http://jira.example.com', 'username', 'secret')
+        with self.assertRaises(IOError):
+            utils.save_settings(os.path.join('no', 'such', 'file'), creds)
+        creds = ( 'http://jira.example.com', 'username')
+        with self.assertRaises(ValueError):
+            utils.save_settings(os.path.join('example'), creds)
+
 
 # utils.get_time_spent_string
     def test_get_time_spent_string_normal(self):

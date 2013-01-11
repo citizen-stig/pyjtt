@@ -2,7 +2,6 @@
 #
 from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
-
 import datetime, sqlite3, logging
 
 def convert_to_datetime(datetime_string):
@@ -17,8 +16,7 @@ def create_local_db(db_filename):
     cursor.execute("""CREATE TABLE if not exists JIRAIssues
                         (jira_issue_id INTEGER PRIMARY KEY,
                         jira_issue_key TEXT,
-                        summary TEXT,
-                        link TEXT)""")
+                        summary TEXT)""")
     logging.debug('Creating table worklogs')
     cursor.execute("""CREATE TABLE if not exists Worklogs
                         (worklog_id INTEGER,
@@ -46,23 +44,30 @@ def add_issue(db_filename, issue_id, issue_key, issue_summary):
     db_conn.commit()
     db_conn.close()
 
-def get_issue(cursor):
-    pass
+def get_issue(db_filename, issue_key):
+    db_conn, cursor = connect_to_db(db_filename)
+    logging.debug('Getting issue %s' % issue_key)
+    cursor.execute('SELECT * FROM JIRAIssues where jira_issue_key = ?', (issue_key,))
+    issue = cursor.fetchone()
+    if issue:
+        return issue
+    db_conn.close()
+
 
 def get_issue_worklog(db_filename, issue_id):
     db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Fetching issue worklogs')
-    worklogs = {}
+    worklog = {}
     cursor.execute('SELECT worklog_id, start_date, end_date, comment FROM Worklogs WHERE jira_issue_id = ?', (issue_id,))
-    raw_worklogs = cursor.fetchall()
-    for worklog_entry in raw_worklogs:
+    raw_worklog = cursor.fetchall()
+    for worklog_entry in raw_worklog:
         start_date = convert_to_datetime(worklog_entry[1])
         end_date = convert_to_datetime(worklog_entry[2])
-        worklogs[worklog_entry[0]] = (start_date, end_date, worklog_entry[3])
+        worklog[worklog_entry[0]] = (start_date, end_date, worklog_entry[3])
 
     logging.debug('Worklogs have been fetched')
     db_conn.close()
-    return worklogs
+    return worklog
 
 def add_issue_worklog(db_filename, worklog, issue_id):
     db_conn, cursor = connect_to_db(db_filename)
@@ -101,7 +106,7 @@ def update_issue_worklog(db_filename, worklog_id, start_date, end_date, comment)
 def get_day_worklog(db_filename, selected_day):
     db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Get worklog for %s' % selected_day)
-    worklogs = []
+    worklog = []
     cursor.execute("""
                     SELECT
                         JIRAIssues.jira_issue_key,
@@ -117,13 +122,14 @@ def get_day_worklog(db_filename, selected_day):
                         OR Worklogs.end_date  like ?
                     """, (selected_day.strftime('%Y-%m-%d') + '%', selected_day.strftime('%Y-%m-%d') +'%'))
     logging.debug('Worklog Returned')
-    raw_worklogs = cursor.fetchall()
-    for worklog_entry in raw_worklogs:
+    raw_worklog = cursor.fetchall()
+    for worklog_entry in raw_worklog:
         start_date = convert_to_datetime(worklog_entry[2])
         end_date = convert_to_datetime(worklog_entry[3])
-        worklogs.append((worklog_entry[0], worklog_entry[1], start_date, end_date, worklog_entry[4]))
+        worklog.append((worklog_entry[0], worklog_entry[1], start_date, end_date, worklog_entry[4]))
     db_conn.close()
-    return worklogs
+    # TODO: add sorting by start_time
+    return worklog
 
 def get_all_issues(db_filename):
     db_conn, cursor = connect_to_db(db_filename)

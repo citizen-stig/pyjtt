@@ -315,6 +315,7 @@ class MainWindow(QtGui.QMainWindow):
         for issue_key in issue_keys.split(','):
             issue_key = issue_key.strip()
             if issue_key and issue_key not in self.jira_issues:
+
                 get_issue_func = partial(pyjtt.get_issue_from_jira, self.creds, issue_key)
                 self.get_issue_thread =  GetIssueThread(get_issue_func, parent=self)
                 set_stat_msg = partial(self.set_status_message, 'Getting issue %s' % str(issue_key), spin_img=True)
