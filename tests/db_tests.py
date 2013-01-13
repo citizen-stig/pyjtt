@@ -45,12 +45,13 @@ class pyjttUtilsTest(unittest.TestCase):
 
 
     def test_add_issue_errors(self):
-        print 'TDB'
+        # TODO:
         # PRIMARY KEY ERROR
 
         # WRONG TYPES
 
         # WRONG FILEPATH
+        pass
 
     def test_get_issue(self):
         issue_id = 12345
@@ -62,21 +63,33 @@ class pyjttUtilsTest(unittest.TestCase):
         self.assertEqual(None, db.get_issue(self.filename, 'NOSUCH-123'))
 
     def test_get_issue_errors(self):
-        print 'TDB'
+        # TODO:
         #Wrong filename
+        pass
 
-    def test_add_issue_worklog(self):
+    def test_add_issue_worklog_normal(self):
+        # normal
+        issue_id = 12345
+        issue_key = 'SAMPLE-123'
+        issue_summary = 'Summary'
+        db.add_issue(self.filename, issue_id, issue_key, issue_summary )
+        # worklog = { id : ( start_date, end_date, comment) }
+        worklog = { 12345 : ( datetime.datetime(2013, 01, 03, 15), datetime.datetime(2013, 01, 03, 17) , 'Sample comment'),
+                    12346 : ( datetime.datetime(2013, 01, 04, 15), datetime.datetime(2013, 01, 04, 17) , 'Sample comment'), }
+        db.add_issue_worklog(self.filename, worklog, issue_id)
+
+    def test_add_issue_worklog_empty(self):
+        # normal
         issue_id = 12345
         issue_key = 'SAMPLE-123'
         issue_summary = 'Summary'
         db.add_issue(self.filename, issue_id, issue_key, issue_summary )
         # worglog = { id : ( start_date, end_date, comment) }
-        worklog = { 12345 : ( datetime.datetime(2013, 01, 03, 15), datetime.datetime(2013, 01, 03, 17) , 'Sample comment'),
-                    12346 : ( datetime.datetime(2013, 01, 04, 15), datetime.datetime(2013, 01, 04, 17) , 'Sample comment'), }
-        db.add_issue_worklog(self.filename, worklog, issue_id)
+        db.add_issue_worklog(self.filename, {}, issue_id)
 
     def test_add_issue_worklog_errors(self):
-        print 'TDB'
+        # TODO:
+        pass
 
     def test_get_issue_worklog(self):
         issue_id = 12345
@@ -91,7 +104,8 @@ class pyjttUtilsTest(unittest.TestCase):
         self.assertEqual(worklog, r_worklog)
 
     def test_get_issue_worklog_error(self):
-        print 'TDB'
+        # TODO:
+        pass
 
     def test_remove_issue_worklog(self):
         issue_id = 12345
@@ -109,7 +123,8 @@ class pyjttUtilsTest(unittest.TestCase):
         self.assertEqual(worklog, r_worklog)
 
     def test_remove_issue_worklog_errors(self):
-        print 'TDB'
+        # TODO:
+        pass
 
     def test_update_issue_worklog(self):
         issue_id = 12345
@@ -130,7 +145,8 @@ class pyjttUtilsTest(unittest.TestCase):
         self.assertEqual(worklog, r_worklog)
 
     def test_upd_issue_worklog_errors(self):
-        print 'TDB'
+        # TODO:
+        pass
 
     def test_get_day_worklog(self):
         issue_id_1 = 12345
@@ -167,7 +183,8 @@ class pyjttUtilsTest(unittest.TestCase):
         self.assertEqual(all_issues, expected)
 
     def test_get_all_issues_err(self):
-        print 'TDB'
+        # TODO:
+        pass
 
 if __name__ == '__main__':
     unittest.main()

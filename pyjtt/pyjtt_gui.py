@@ -80,11 +80,12 @@ class WorklogWindow(QtGui.QDialog):
         if comment:
             self.ui.plainTextCommentEdit.setPlainText(comment)
         self._refresh_spent()
-
         self.ui.timeStartEdit.timeChanged.connect(self._start_time_changed)
         self.ui.timeEndEdit.timeChanged.connect(self._end_time_changed)
         self.ui.buttonBox.accepted.connect(self._save_worklog_data)
         self.ui.buttonBox.rejected.connect(self._user_exit)
+
+
 
     def _start_time_changed(self):
         if self.ui.timeStartEdit.time() >= self.ui.timeEndEdit.time():
@@ -232,10 +233,13 @@ class MainWindow(QtGui.QMainWindow):
 # GUI Methods
     def select_issue(self):
         if not self.is_tracking_on:
+            label_new_width = self.width() - ( self.ui.startStopTracking.width() + 20 )
             issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
             summary = str(self.ui.tableIssues.selectedItems()[1].text())
             self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
+            self.ui.labelSelectedIssue.setMaximumWidth(label_new_width)
             self.selected_issue = self.jira_issues[issue_key]
+
             logging.debug('Now selected issue %s' % self.jira_issues[issue_key].summary)
 
     def refresh_issues_table(self):
@@ -251,6 +255,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.tableIssues.resizeColumnToContents(2)
         self.ui.tableIssues.horizontalHeader().setResizeMode(1,QtGui.QHeaderView.Stretch)
         self.ui.tableIssues.horizontalHeader().setResizeMode(0,QtGui.QHeaderView.Fixed)
+        self.ui.tableIssues.sortByColumn(0,0)
         logging.debug('Table refresh has been completed')
 
     def print_day_worklog(self):

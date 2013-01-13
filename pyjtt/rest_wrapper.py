@@ -93,6 +93,7 @@ class JIRAIssue(JiraRestBase):
         logging.debug('1: %s' % json_data)
         new_worklog = self.rest_req(self.add_url,
                                     data=json_data)
+
         self.worklog[int(new_worklog['id'])] = self.__parse_worklog(
             new_worklog['started'],
             new_worklog['timeSpentSeconds'],
@@ -115,8 +116,6 @@ class JIRAIssue(JiraRestBase):
         upd_url = self.jirahost + '/rest/api/2/issue/' +\
                   self.issue_key + '/worklog/' + str(worklog_id)
         if start_date and end_date:
-            # TODO: add timezone offset calculation
-            # TODO: add handling if only start or end date entered
             data = self.__prepare_worklog_data(start_date, end_date, comment)
         elif comment:
             data = { 'comment' : comment }

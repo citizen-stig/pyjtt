@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'resources/main_window.ui'
 #
-# Created: Sun Jan  6 14:50:02 2013
+# Created: Sun Jan 13 21:56:58 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,7 +78,9 @@ class Ui_MainWindow(object):
         self.gridLayout_2 = QtGui.QGridLayout(self.tabWorklogs)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.tableDayWorklog = QtGui.QTableWidget(self.tabWorklogs)
+        self.tableDayWorklog.setFrameShape(QtGui.QFrame.StyledPanel)
         self.tableDayWorklog.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.tableDayWorklog.setAlternatingRowColors(True)
         self.tableDayWorklog.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tableDayWorklog.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableDayWorklog.setObjectName(_fromUtf8("tableDayWorklog"))
@@ -123,16 +125,18 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.startStopTracking.sizePolicy().hasHeightForWidth())
         self.startStopTracking.setSizePolicy(sizePolicy)
-        self.startStopTracking.setMinimumSize(QtCore.QSize(120, 36))
-        self.startStopTracking.setMaximumSize(QtCore.QSize(120, 36))
+        self.startStopTracking.setMinimumSize(QtCore.QSize(168, 41))
         self.startStopTracking.setCheckable(True)
+        self.startStopTracking.setAutoDefault(False)
         self.startStopTracking.setObjectName(_fromUtf8("startStopTracking"))
         self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.startStopTracking)
-        self.verticalLayout = QtGui.QVBoxLayout()
+        self.widgetOnlineTracking = QtGui.QWidget(self.centralwidget)
+        self.widgetOnlineTracking.setObjectName(_fromUtf8("widgetOnlineTracking"))
+        self.verticalLayout = QtGui.QVBoxLayout(self.widgetOnlineTracking)
         self.verticalLayout.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
-        self.verticalLayout.setContentsMargins(0, -1, -1, -1)
+        self.verticalLayout.setContentsMargins(1, -1, -1, -1)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.labelSelectedIssue = QtGui.QLabel(self.centralwidget)
+        self.labelSelectedIssue = QtGui.QLabel(self.widgetOnlineTracking)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -145,10 +149,10 @@ class Ui_MainWindow(object):
         self.labelSelectedIssue.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         self.labelSelectedIssue.setObjectName(_fromUtf8("labelSelectedIssue"))
         self.verticalLayout.addWidget(self.labelSelectedIssue)
-        self.labelTimeSpent = QtGui.QLabel(self.centralwidget)
+        self.labelTimeSpent = QtGui.QLabel(self.widgetOnlineTracking)
         self.labelTimeSpent.setObjectName(_fromUtf8("labelTimeSpent"))
         self.verticalLayout.addWidget(self.labelTimeSpent)
-        self.formLayout.setLayout(0, QtGui.QFormLayout.FieldRole, self.verticalLayout)
+        self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.widgetOnlineTracking)
         self.gridLayout.addLayout(self.formLayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
@@ -160,14 +164,22 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.startStopTracking, self.tabWidget)
+        MainWindow.setTabOrder(self.tabWidget, self.dateDayWorklogEdit)
+        MainWindow.setTabOrder(self.dateDayWorklogEdit, self.tableDayWorklog)
+        MainWindow.setTabOrder(self.tableDayWorklog, self.editWorklog)
+        MainWindow.setTabOrder(self.editWorklog, self.removeWorklog)
+        MainWindow.setTabOrder(self.removeWorklog, self.lineIssueKey)
+        MainWindow.setTabOrder(self.lineIssueKey, self.tableIssues)
+        MainWindow.setTabOrder(self.tableIssues, self.FindIssue)
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "Jira Time Tracker", None))
         self.FindIssue.setText(_translate("MainWindow", "Find", None))
         self.lineIssueKey.setPlaceholderText(_translate("MainWindow", "Enter issue key...", None))
-        self.tableIssues.setSortingEnabled(False)
+        self.tableIssues.setSortingEnabled(True)
         item = self.tableIssues.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Key", None))
         item = self.tableIssues.horizontalHeaderItem(1)
@@ -175,6 +187,7 @@ class Ui_MainWindow(object):
         item = self.tableIssues.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "Action", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabIssues), _translate("MainWindow", "Issues", None))
+        self.tableDayWorklog.setSortingEnabled(True)
         item = self.tableDayWorklog.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Key", None))
         item = self.tableDayWorklog.horizontalHeaderItem(1)

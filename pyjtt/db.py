@@ -70,14 +70,17 @@ def get_issue_worklog(db_filename, issue_id):
     return worklog
 
 def add_issue_worklog(db_filename, worklog, issue_id):
-    db_conn, cursor = connect_to_db(db_filename)
-    logging.debug('Add new worklog to local DB')
-    rows = [ [x[0]] + [issue_id] + list(x[1]) for x in worklog.items()]
-    cursor.executemany("""INSERT INTO Worklogs (worklog_id, jira_issue_id, start_date, end_date, comment)
-                                    VALUES (?,?,?,?,?)""", rows)
-    db_conn.commit()
-    logging.debug('Worklog %s has been saved in local DB' % str(rows[0][0]))
-    db_conn.close()
+    if worklog:
+        db_conn, cursor = connect_to_db(db_filename)
+        logging.debug('Add new worklog to local DB')
+        rows = [ [x[0]] + [issue_id] + list(x[1]) for x in worklog.items()]
+        cursor.executemany("""INSERT INTO Worklogs (worklog_id, jira_issue_id, start_date, end_date, comment)
+                                        VALUES (?,?,?,?,?)""", rows)
+        db_conn.commit()
+        logging.debug('Worklog %s has been saved in local DB' % str(rows[0][0]))
+        db_conn.close()
+    else:
+        logging.debug('Worklog is empty, nothing to save')
 
 def remove_issue_worklog(db_filename, worklog_id):
     db_conn, cursor = connect_to_db(db_filename)

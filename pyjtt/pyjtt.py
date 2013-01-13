@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
 import os, sys, logging
 from urllib2 import HTTPError
-import db, utils
+import db
 from rest_wrapper import *
 
 def get_issue_from_jira(creds, issue_key):
@@ -17,6 +17,8 @@ def get_issue_from_jira(creds, issue_key):
         issue.issue_id,
         issue.issue_key,
         issue.summary)
+    logging.debug('Issue %s' % repr(issue))
+    logging.debug('Worklog %s' % repr(issue.worklog))
     db.add_issue_worklog(creds[3], issue.worklog, issue.issue_id)
     logging.debug('Info for issue %s is saved' % issue_key)
     return issue

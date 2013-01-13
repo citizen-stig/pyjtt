@@ -30,7 +30,7 @@
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabIssues">
        <attribute name="title">
@@ -78,7 +78,7 @@
            <enum>QAbstractItemView::SelectRows</enum>
           </property>
           <property name="sortingEnabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -127,14 +127,23 @@
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="1" column="0" colspan="4">
          <widget class="QTableWidget" name="tableDayWorklog">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::SingleSelection</enum>
           </property>
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
           </property>
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
@@ -227,14 +236,8 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>120</width>
-          <height>36</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>120</width>
-          <height>36</height>
+          <width>168</width>
+          <height>41</height>
          </size>
         </property>
         <property name="text">
@@ -243,52 +246,57 @@
         <property name="checkable">
          <bool>true</bool>
         </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
       <item row="0" column="1">
-       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetDefaultConstraint</enum>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QLabel" name="labelSelectedIssue">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="acceptDrops">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>No issue selected</string>
-          </property>
-          <property name="scaledContents">
-           <bool>false</bool>
-          </property>
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <property name="indent">
-           <number>-1</number>
-          </property>
-          <property name="textInteractionFlags">
-           <set>Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="labelTimeSpent">
-          <property name="text">
-           <string>00:00:00</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QWidget" name="widgetOnlineTracking" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="labelSelectedIssue">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="acceptDrops">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>No issue selected</string>
+           </property>
+           <property name="scaledContents">
+            <bool>false</bool>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <property name="indent">
+            <number>-1</number>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::TextSelectableByMouse</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelTimeSpent">
+           <property name="text">
+            <string>00:00:00</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </item>
@@ -306,6 +314,17 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>startStopTracking</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>dateDayWorklogEdit</tabstop>
+  <tabstop>tableDayWorklog</tabstop>
+  <tabstop>editWorklog</tabstop>
+  <tabstop>removeWorklog</tabstop>
+  <tabstop>lineIssueKey</tabstop>
+  <tabstop>tableIssues</tabstop>
+  <tabstop>FindIssue</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
