@@ -292,12 +292,11 @@ class MainWindow(QtGui.QMainWindow):
     def select_issue(self):
         if not self.is_tracking_on:
             label_new_width = self.width() - ( self.ui.startStopTracking.width() + 30 )
-            issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
+            issue_key = str(self.ui.tableIssues.selectedItems()[0].text()).capitalize()
             summary = str(self.ui.tableIssues.selectedItems()[1].text())
             self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
             self.ui.labelSelectedIssue.setMaximumWidth(label_new_width)
             self.selected_issue = self.jira_issues[issue_key]
-
             logging.debug('Now selected issue %s' % self.jira_issues[issue_key].summary)
 
     def refresh_issues_table(self):
