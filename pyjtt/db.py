@@ -44,6 +44,13 @@ def add_issue(db_filename, issue_id, issue_key, issue_summary):
     db_conn.commit()
     db_conn.close()
 
+def update_issue(db_filename, issue_key, issue_summary):
+    db_conn, cursor = connect_to_db(db_filename)
+    logging.debug('Updating issue')
+    # put query here
+    db_conn.commit()
+    db_conn.close()
+
 def get_issue(db_filename, issue_key):
     db_conn, cursor = connect_to_db(db_filename)
     logging.debug('Getting issue %s' % issue_key)
@@ -121,9 +128,8 @@ def get_day_worklog(db_filename, selected_day):
                         Worklogs
                     JOIN JIRAIssues on Worklogs.jira_issue_id = JIRAIssues.jira_issue_id
                     WHERE
-                        Worklogs.start_date like ?
-                        OR Worklogs.end_date  like ?
-                    """, (selected_day.strftime('%Y-%m-%d') + '%', selected_day.strftime('%Y-%m-%d') +'%'))
+                        Worklogs.start_date like (?)
+                    """, (selected_day.strftime('%Y-%m-%d') + '%',))
     logging.debug('Worklog Returned')
     raw_worklog = cursor.fetchall()
     for worklog_entry in raw_worklog:

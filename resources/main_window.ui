@@ -30,7 +30,7 @@
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabIssues">
        <attribute name="title">
@@ -109,11 +109,6 @@
           <column>
            <property name="text">
             <string>Summary</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Action</string>
            </property>
           </column>
          </widget>
@@ -311,8 +306,39 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionReresh_issue"/>
+    <addaction name="actionFull_refresh"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionReresh_issue">
+   <property name="text">
+    <string>Reresh issue</string>
+   </property>
+  </action>
+  <action name="actionFull_refresh">
+   <property name="text">
+    <string>Full refresh</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>startStopTracking</tabstop>
@@ -326,5 +352,22 @@
   <tabstop>FindIssue</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>lineIssueKey</sender>
+   <signal>returnPressed()</signal>
+   <receiver>FindIssue</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>527</x>
+     <y>123</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>550</x>
+     <y>121</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

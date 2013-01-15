@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'resources/main_window.ui'
 #
-# Created: Sun Jan 13 21:56:58 2013
+# Created: Tue Jan 15 09:57:17 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -57,14 +57,12 @@ class Ui_MainWindow(object):
         self.tableIssues.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableIssues.setWordWrap(True)
         self.tableIssues.setObjectName(_fromUtf8("tableIssues"))
-        self.tableIssues.setColumnCount(3)
+        self.tableIssues.setColumnCount(2)
         self.tableIssues.setRowCount(0)
         item = QtGui.QTableWidgetItem()
         self.tableIssues.setHorizontalHeaderItem(0, item)
         item = QtGui.QTableWidgetItem()
         self.tableIssues.setHorizontalHeaderItem(1, item)
-        item = QtGui.QTableWidgetItem()
-        self.tableIssues.setHorizontalHeaderItem(2, item)
         self.tableIssues.horizontalHeader().setDefaultSectionSize(100)
         self.tableIssues.horizontalHeader().setMinimumSectionSize(30)
         self.tableIssues.verticalHeader().setVisible(False)
@@ -158,13 +156,29 @@ class Ui_MainWindow(object):
         self.menubar = QtGui.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 640, 21))
         self.menubar.setObjectName(_fromUtf8("menubar"))
+        self.menuFile = QtGui.QMenu(self.menubar)
+        self.menuFile.setObjectName(_fromUtf8("menuFile"))
+        self.menuHelp = QtGui.QMenu(self.menubar)
+        self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
         MainWindow.setStatusBar(self.statusbar)
+        self.actionReresh_issue = QtGui.QAction(MainWindow)
+        self.actionReresh_issue.setObjectName(_fromUtf8("actionReresh_issue"))
+        self.actionFull_refresh = QtGui.QAction(MainWindow)
+        self.actionFull_refresh.setObjectName(_fromUtf8("actionFull_refresh"))
+        self.actionExit = QtGui.QAction(MainWindow)
+        self.actionExit.setObjectName(_fromUtf8("actionExit"))
+        self.menuFile.addAction(self.actionReresh_issue)
+        self.menuFile.addAction(self.actionFull_refresh)
+        self.menuFile.addSeparator()
+        self.menuFile.addAction(self.actionExit)
+        self.menubar.addAction(self.menuFile.menuAction())
+        self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.startStopTracking, self.tabWidget)
         MainWindow.setTabOrder(self.tabWidget, self.dateDayWorklogEdit)
@@ -184,8 +198,6 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "Key", None))
         item = self.tableIssues.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Summary", None))
-        item = self.tableIssues.horizontalHeaderItem(2)
-        item.setText(_translate("MainWindow", "Action", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabIssues), _translate("MainWindow", "Issues", None))
         self.tableDayWorklog.setSortingEnabled(True)
         item = self.tableDayWorklog.horizontalHeaderItem(0)
@@ -206,4 +218,9 @@ class Ui_MainWindow(object):
         self.startStopTracking.setText(_translate("MainWindow", "Start Tracking", None))
         self.labelSelectedIssue.setText(_translate("MainWindow", "No issue selected", None))
         self.labelTimeSpent.setText(_translate("MainWindow", "00:00:00", None))
+        self.menuFile.setTitle(_translate("MainWindow", "File", None))
+        self.menuHelp.setTitle(_translate("MainWindow", "Help", None))
+        self.actionReresh_issue.setText(_translate("MainWindow", "Reresh issue", None))
+        self.actionFull_refresh.setText(_translate("MainWindow", "Full refresh", None))
+        self.actionExit.setText(_translate("MainWindow", "Exit", None))
 

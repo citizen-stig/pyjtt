@@ -82,7 +82,7 @@ class JIRAIssue(JiraRestBase):
                     self.worklog[int(a['id'])] = self.__parse_worklog(
                         a['started'],
                         a['timeSpentSeconds'],
-                        a['comment'])
+                        a.get('comment', ''))
         logging.debug('Issue info collected')
 
     def add_worklog(self, start_date, end_date, comment=None):

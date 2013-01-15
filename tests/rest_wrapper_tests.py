@@ -150,6 +150,7 @@ class JIRAIssue(rest_wrapper.JIRAIssue):
                                 'timeSpent': '4h 5m',
                                 'timeSpentSeconds': 14700,
                                 'id': 4}
+                    del worklog['comment']
                     issue_data['fields']['worklog']['worklogs'].append(worklog)
                     issue_data['fields']['worklog']['total'] += 1
                 if issue == 'EMPTY-2':
