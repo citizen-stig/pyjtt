@@ -373,7 +373,7 @@ class MainWindow(QtGui.QMainWindow):
         issue_keys = str(self.ui.lineIssueKey.text())
         logging.debug('Issue keys has red')
         for issue_key in issue_keys.split(','):
-            issue_key = issue_key.strip()
+            issue_key = issue_key.strip().upper()
             logging.debug('issue key is ')
             if issue_key and issue_key not in self.jira_issues:
                 logging.debug('Partial')
