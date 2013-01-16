@@ -293,7 +293,7 @@ class MainWindow(QtGui.QMainWindow):
     def select_issue(self):
         if not self.is_tracking_on:
             label_new_width = self.width() - ( self.ui.startStopTracking.width() + 30 )
-            issue_key = str(self.ui.tableIssues.selectedItems()[0].text()).capitalize()
+            issue_key = str(self.ui.tableIssues.selectedItems()[0].text()).upper()
             summary = str(self.ui.tableIssues.selectedItems()[1].text())
             self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
             self.ui.labelSelectedIssue.setMaximumWidth(label_new_width)
