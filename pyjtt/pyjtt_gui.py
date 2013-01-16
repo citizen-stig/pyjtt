@@ -28,7 +28,6 @@ class BaseThread(QtCore.QThread):
         self.queue = deque()
         self.statuses = deque()
 
-
     def _run(self, func):
         pass
 
@@ -281,6 +280,8 @@ class MainWindow(QtGui.QMainWindow):
         self.result_thread.status_sent.connect(self.set_status_message)
         self.result_thread.status_cleared.connect(self.clear_status_msg)
         self.result_thread.issue_done.connect(self._add_issue)
+        self.ui.actionReresh_issue.triggered.connect(self.refresh_issue_action)
+        self.ui.actionFull_refresh.triggered.connect(self.full_refresh_action)
 
 
     def print_exception(self, exception):
@@ -382,6 +383,37 @@ class MainWindow(QtGui.QMainWindow):
                 self.result_thread.queue.append(get_issue_func)
                 self.result_thread.statuses.append('Getting issue %s ...' % str(issue_key))
         self.ui.lineIssueKey.clear()
+
+    def refresh_issue_action(self):
+        if self.ui.tabWorklogs.isHidden():
+            # we on issues tab
+            if len(self.ui.tableIssues.selectedItems()):
+                issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
+                self._refresh_issue(issue_key)
+            else:
+                QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select issue first')
+        if self.ui.tableIssues.isHidden():
+            # we on worklogs tab
+            if len(self.ui.tableDayWorklog.selectedItems()):
+               issue_key = str(self.ui.tableDayWorklog.selectedItems()[0].text())
+               self._refresh_issue(issue_key)
+            else:
+                QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select issue first')
+
+    def full_refresh_action(self):
+        for issue_key in self.jira_issues.keys():
+            self._refresh_issue(issue_key)
+
+    def _refresh_issue(self, issue_key):
+        logging.debug('Refreshing issue %s' % str(issue_key))
+        del self.jira_issues[issue_key]
+        db.remove_issue(self.creds[3], issue_key)
+        self._refresh_gui()
+        get_issue_func = partial(pyjtt.get_issue_from_jira,
+            self.creds, issue_key)
+        self.result_thread.queue.append(get_issue_func)
+        self.result_thread.statuses.append('Refreshing issue %s ...' % str(issue_key))
+
 
     def _add_issue(self, issue):
         self.jira_issues[issue.issue_key] = issue

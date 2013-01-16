@@ -44,10 +44,16 @@ def add_issue(db_filename, issue_id, issue_key, issue_summary):
     db_conn.commit()
     db_conn.close()
 
-def update_issue(db_filename, issue_key, issue_summary):
+def remove_issue(db_filename, issue_key):
     db_conn, cursor = connect_to_db(db_filename)
-    logging.debug('Updating issue')
-    # put query here
+    print db_filename
+    logging.debug('Removing worklogs for issue %s' % str(issue_key))
+    cursor.execute('DELETE FROM Worklogs '
+                   'WHERE jira_issue_id = (SELECT jira_issue_id '
+                                          'FROM JIRAIssues '
+                                          'WHERE jira_issue_key = ?)', (issue_key,))
+    cursor.execute('DELETE FROM JIRAIssues '
+                   'WHERE jira_issue_key = ?', (issue_key,))
     db_conn.commit()
     db_conn.close()
 
