@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'resources/main_window.ui'
 #
-# Created: Tue Jan 15 09:57:17 2013
+# Created: Sun Jan 20 18:11:04 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -170,15 +170,19 @@ class Ui_MainWindow(object):
         self.actionFull_refresh.setObjectName(_fromUtf8("actionFull_refresh"))
         self.actionExit = QtGui.QAction(MainWindow)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
+        self.actionRefresh = QtGui.QAction(MainWindow)
+        self.actionRefresh.setObjectName(_fromUtf8("actionRefresh"))
         self.menuFile.addAction(self.actionReresh_issue)
         self.menuFile.addAction(self.actionFull_refresh)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
+        self.menuHelp.addAction(self.actionRefresh)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
+        QtCore.QObject.connect(self.lineIssueKey, QtCore.SIGNAL(_fromUtf8("returnPressed()")), self.FindIssue.click)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.startStopTracking, self.tabWidget)
         MainWindow.setTabOrder(self.tabWidget, self.dateDayWorklogEdit)
@@ -223,4 +227,5 @@ class Ui_MainWindow(object):
         self.actionReresh_issue.setText(_translate("MainWindow", "Reresh issue", None))
         self.actionFull_refresh.setText(_translate("MainWindow", "Full refresh", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
+        self.actionRefresh.setText(_translate("MainWindow", "refresh!", None))
 

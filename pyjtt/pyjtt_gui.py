@@ -282,6 +282,7 @@ class MainWindow(QtGui.QMainWindow):
         self.result_thread.issue_done.connect(self._add_issue)
         self.ui.actionReresh_issue.triggered.connect(self.refresh_issue_action)
         self.ui.actionFull_refresh.triggered.connect(self.full_refresh_action)
+        self.ui.actionRefresh.triggered.connect(self._refresh_gui)
 
 
     def print_exception(self, exception):

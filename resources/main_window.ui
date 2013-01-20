@@ -319,6 +319,7 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionRefresh"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -337,6 +338,11 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionRefresh">
+   <property name="text">
+    <string>refresh!</string>
    </property>
   </action>
  </widget>
