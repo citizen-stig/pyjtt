@@ -143,18 +143,11 @@ class JIRAIssue(JiraRestBase):
         return local_started, local_started + time_spent, comment
 
     def __prepare_worklog_data(self, start_date, end_date, comment=None):
-        time_spent = ''
         started = start_date.strftime(self.jira_timeformat) + '.000' + utils.LOCAL_UTC_OFFSET
         spent = end_date - start_date
-        if spent.days:
-            time_spent += str(spent.days) +'d '
-        elif spent.seconds:
-            time_spent += str(self.__int_round(spent.seconds / 60 )) + 'm'
-        time_spent = time_spent.strip()
-        logging.debug('Time spent: %s' % time_spent)
         data = {
             'started' : started,
-            'timeSpent' : time_spent
+            'timeSpentSeconds' : int(spent.total_seconds())
         }
         if comment:
             data['comment'] = comment
@@ -172,3 +165,14 @@ class JiraUser(JiraRestBase):
         raw_user_data = self.rest_req(self.user_url)
         self.display_name = raw_user_data['displayName']
         self.email = raw_user_data['emailAddress']
+
+
+    def get_assigned_issues(self):
+        assigned_url = '%s/rest/api/2/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed&fields=key' %(self.jirahost, self.login)
+        self.assigned_issue_keys = []
+        logging.debug('Request assigned issues')
+        raw_assigned = self.rest_req(assigned_url)
+        logging.debug('Parse assigned isses')
+        for raw_issue in raw_assigned['issues']:
+            self.assigned_issue_keys.append(raw_issue['key'])
+

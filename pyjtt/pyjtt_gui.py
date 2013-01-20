@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
-from gui import login_screen, main_window, worklog_window
-
-__author__ = 'Nikolay Golub'
-
-import os, sys, logging, datetime, time
-
-logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
-
-import db, utils, rest_wrapper, pyjtt
+import os
+import sys
+import logging
+import datetime
+import time
 from functools import partial
 from collections import deque
 from PyQt4 import QtCore, QtGui
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
+import db, utils, rest_wrapper, pyjtt
+from gui import login_screen, main_window, worklog_window
 
 
 def datetime_to_qtime(timestamp):
@@ -218,16 +217,20 @@ class MainWindow(QtGui.QMainWindow):
         self.ui = main_window.Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # Main dictionary, contains JIRAIssue objects, key is JIRA issue key
         self.jira_issues = {}
+        # Issue which is selected by user. It isud in online tracking
         self.selected_issue = None
         self.is_tracking_on = False
+        # number of worklogid column, which is hidden from user
         self.worklogid_column = 5
-
         self.local_db_name = utils.get_db_filename(login, jirahost)
+
         if not os.path.isfile(self.local_db_name):
             logging.debug('Local DB does not exist. Creating local database')
             db.create_local_db(self.local_db_name)
         else:
+            # Need to load issueds from db to memory
             raw_issues = db.get_all_issues(self.local_db_name)
             for issue_entry in raw_issues:
                 issue = rest_wrapper.JIRAIssue(jirahost, login, password, issue_entry[1])
@@ -235,17 +238,19 @@ class MainWindow(QtGui.QMainWindow):
                 issue.summary = issue_entry[2]
                 issue.worklog = db.get_issue_worklog(self.local_db_name, issue.issue_id)
                 self.jira_issues[issue.issue_key] = issue
-            self.refresh_issues_table()
         logging.debug('Issues have been loaded')
+        # Build tuple with credentials
         self.creds = ( str(jirahost), str(login), str(password), self.local_db_name )
+
+        # Get assigned issues keys
+        self.user = rest_wrapper.JiraUser(self.creds[0], self.creds[1], self.creds[2])
+        self.user.get_assigned_issues()
 
         # GUI customization
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
-        #    Hide worklogid from user
+        # Hide worklogid from user
         self.ui.tableDayWorklog.setColumnHidden(self.worklogid_column, True)
-        self.refresh_issues_table()
-        self.print_day_worklog()
-        #    Add status bar preferences
+        # Add status bar preferences
         self.ui.spinning_img = QtGui.QMovie('spinning-progress.gif')
         self.ui.spinning_label = QtGui.QLabel()
         self.ui.spinning_label.setMovie(self.ui.spinning_img)
@@ -283,6 +288,17 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionReresh_issue.triggered.connect(self.refresh_issue_action)
         self.ui.actionFull_refresh.triggered.connect(self.full_refresh_action)
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
+
+        # Reqeust assigned issues
+        for assigned_issue in self.user.assigned_issue_keys:
+            if assigned_issue not in self.jira_issues:
+                get_issue_func = partial(pyjtt.get_issue_from_jira,
+                    self.creds, assigned_issue)
+                logging.debug('Put func to queue')
+                self.result_thread.queue.append(get_issue_func)
+                self.result_thread.statuses.append('Getting issue %s ...' % str(assigned_issue))
+        self._refresh_gui()
+
 
 
     def print_exception(self, exception):
@@ -350,14 +366,14 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.status_msg.show()
         self.ui.spinning_img.start()
         self.status_msg_queue += 1
-        logging.debug('Thread queue for a status bar is %d ' % self.status_msg_queue)
+        logging.debug('Thread queue for a statusbar is %d ' % self.status_msg_queue)
 
     def clear_status_msg(self):
         if self.status_msg_queue == 1:
             self.ui.status_msg.hide()
             self.ui.spinning_label.hide()
         self.status_msg_queue -= 1
-        logging.debug('Thread queue for a status bar is %d ' % self.status_msg_queue)
+        logging.debug('Thread queue for a statusbar is %d ' % self.status_msg_queue)
 
     def _format_seconds_timer(self, seconds):
         days, seconds = divmod(seconds, 86400)
@@ -370,14 +386,17 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.labelTimeSpent.setText(self._format_seconds_timer(seconds))
 
     def _get_issue(self):
+        """ Function parses user input from find issue line edit and
+        Adds required issues to the pyjtt
+        """
         logging.debug('Get issue button has been clicked')
         issue_keys = str(self.ui.lineIssueKey.text())
         logging.debug('Issue keys has red')
         for issue_key in issue_keys.split(','):
             issue_key = issue_key.strip().upper()
-            logging.debug('issue key is ')
+            logging.debug('issue key is %s' % issue_key)
             if issue_key and issue_key not in self.jira_issues:
-                logging.debug('Partial')
+                logging.debug('Packing the function')
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
                     self.creds, issue_key)
                 logging.debug('Put func to queue')
@@ -519,8 +538,6 @@ class MainWindow(QtGui.QMainWindow):
                     reply = QtGui.QMessageBox.question(self, 'Add worklog',
                     info_msg    , QtGui.QMessageBox.Yes, QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)
                     if reply == QtGui.QMessageBox.Yes:
-                        #print self.thread.start
-                        # print self.thread.current
                         logging.debug('From GUI: %s, %s, %s' % (self.selected_issue.issue_key,
                                                                 str(self.tracking_thread.start),
                                                                 str(self.tracking_thread.current)
