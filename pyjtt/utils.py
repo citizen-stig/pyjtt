@@ -2,7 +2,8 @@
 #
 from __future__ import unicode_literals
 from datetime import datetime, timedelta
-import ConfigParser, logging, sys, os
+import ConfigParser
+import logging
 
 __author__ = 'Nikolay Golub'
 
@@ -67,7 +68,6 @@ def get_local_utc_offset(now, utcnow):
     return sign + offset
 
 def get_timedelta_from_utc_offset(time_string):
-    #logging.debug('Getting timedelta from UTC offset')
     utc_offset = time_string[-5:]
     hours = int(utc_offset[0:3])
     minutes = int(utc_offset[3:5])
@@ -76,7 +76,6 @@ def get_timedelta_from_utc_offset(time_string):
 
 
 def get_time_spent_string(timestamp_start, timestamp_end):
-    logging.debug('Convert time bounds to time spent string')
     raw_spent = timestamp_end\
                 - timestamp_start
     hours, seconds = divmod(raw_spent.seconds, 3600)
@@ -87,7 +86,6 @@ def get_time_spent_string(timestamp_start, timestamp_end):
     if minutes:
         spent += ' ' + str(minutes) + 'm'
     spent_str = spent.strip()
-    logging.debug('Convertion of time bounds to time stpent string is completed')
     return spent_str
 
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())

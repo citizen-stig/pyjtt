@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
 
-
 import urllib2, json, logging, datetime
 import utils
 
@@ -29,7 +28,7 @@ class JiraRestBase(object):
         data is json data
         req_type is used for DELETE or PUT reuest
         """
-        logging.debug("Make a request %s" % url)
+        logging.info("Make a request to %s" % url)
         if data:
             request = urllib2.Request(url,
                 data,
@@ -44,8 +43,7 @@ class JiraRestBase(object):
         else:
             raw_res = urllib2.urlopen(request)
         result = json.loads(raw_res.read()) if req_type != 'DELETE' else raw_res
-        #logging.debug('Result is %s' % repr(result))
-        logging.debug("Request completed")
+        logging.debug("Request to %s is completed" % url)
         return result
 
 
@@ -62,16 +60,15 @@ class JIRAIssue(JiraRestBase):
                        self.issue_key + '/worklog'
         self.jira_timeformat = '%Y-%m-%dT%H:%M:%S'
         self.worklog = {}
-        self.new = new
-        if self.new:
+        if new:
             self.get_issue_data()
         logging.debug('Initialization of %s is completed' % self.issue_key)
 
     def get_issue_data(self):
-        logging.info('Request worklog for issue %s' % self.issue_key)
+        logging.debug('Requesting worklog for issue %s' % self.issue_key)
         strptime = datetime.datetime.strptime
         raw_issue_data = self.rest_req(self.issue_url)
-        logging.debug('Parse worklogs')
+        logging.debug('Parsing issue %s' % self.issue_key)
         self.summary = raw_issue_data['fields']['summary']
         self.issue_id = int(raw_issue_data['id'])
         if not raw_issue_data['fields']['worklog']['worklogs']:
@@ -83,7 +80,7 @@ class JIRAIssue(JiraRestBase):
                         a['started'],
                         a['timeSpentSeconds'],
                         a.get('comment', ''))
-        logging.debug('Issue info collected')
+        logging.debug('Issue info has been collected')
 
     def add_worklog(self, start_date, end_date, comment=None):
         logging.debug('Adding worklog to issue %s' % self.issue_key)
@@ -130,19 +127,18 @@ class JIRAIssue(JiraRestBase):
         return int(updated_worklog['id']), self.worklog[int(updated_worklog['id'])]
 
     def __parse_worklog(self, started, spent_seconds, comment):
+        logging.debug('Parsing worklog')
         strptime = datetime.datetime.strptime
         time_spent = datetime.timedelta(seconds=spent_seconds)
         remote_started = strptime(started[:19], self.jira_timeformat)
-        #logging.debug('Remote timestamp %s' % str(remote_started))
         utc_offset = utils.get_timedelta_from_utc_offset(started[-5:])
         utc_started = remote_started - utc_offset
-        #logging.debug('UTC timestamp: %s' % str(utc_started))
         local_started = utc_started + utils.LOCAL_UTC_OFFSET_TIMEDELTA
-        #logging.debug('Local timestamp: %s' % str(local_started))
-
+        logging.debug('Worklog has been parsed')
         return local_started, local_started + time_spent, comment
 
     def __prepare_worklog_data(self, start_date, end_date, comment=None):
+        logging.debug('Preparing worklog for sending')
         started = start_date.strftime(self.jira_timeformat) + '.000' + utils.LOCAL_UTC_OFFSET
         spent = end_date - start_date
         data = {
@@ -151,11 +147,15 @@ class JIRAIssue(JiraRestBase):
         }
         if comment:
             data['comment'] = comment
+        logging.debug('Worklog has been prepared')
         return data
 
     def __int_round(self, x, base=5):
         logging.debug('Round %s' % str(x))
         return int(base * round(float(x)/base))
+
+    def __str__(self):
+        return '[%s]: %s' % (self.issue_key, self.summary)
 
 class JiraUser(JiraRestBase):
     def __init__(self, jirahost, login, password):
@@ -175,4 +175,3 @@ class JiraUser(JiraRestBase):
         logging.debug('Parse assigned isses')
         for raw_issue in raw_assigned['issues']:
             self.assigned_issue_keys.append(raw_issue['key'])
-

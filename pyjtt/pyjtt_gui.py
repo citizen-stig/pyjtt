@@ -140,6 +140,7 @@ class WorklogWindow(QtGui.QDialog):
         self._refresh_spent()
 
     def _save_worklog_data(self):
+        # test
         logging.debug('Saving worklog')
         combine = datetime.datetime.combine
         date = self.ui.dateEdit.date().toPyDate()
@@ -248,6 +249,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # GUI customization
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
+        #self.ui.tableDayWorklog.sortByColumn(2,0)
         # Hide worklogid from user
         self.ui.tableDayWorklog.setColumnHidden(self.worklogid_column, True)
         # Add status bar preferences
@@ -299,8 +301,6 @@ class MainWindow(QtGui.QMainWindow):
                 self.result_thread.statuses.append('Getting issue %s ...' % str(assigned_issue))
         self._refresh_gui()
 
-
-
     def print_exception(self, exception):
         info_msg = 'Error appears:\n'
         info_msg += str(exception)
@@ -315,39 +315,63 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
             self.ui.labelSelectedIssue.setMaximumWidth(label_new_width)
             self.selected_issue = self.jira_issues[issue_key]
-            logging.debug('Now selected issue %s' % self.jira_issues[issue_key].summary)
+            logging.debug('Now selected issue %s' % str(self.jira_issues[issue_key]))
 
     def refresh_issues_table(self):
-        logging.debug('Refreshing table')
+        logging.debug('Refreshing issues table')
         self.ui.tableIssues.setRowCount(len(self.jira_issues))
         for row, issue_key in enumerate(sorted(self.jira_issues.keys())):
-            self.ui.tableIssues.setItem(row, 0, QtGui.QTableWidgetItem(issue_key))
-            self.ui.tableIssues.setItem(row, 1, QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
+            self.ui.tableIssues.setItem(row, 0,
+                QtGui.QTableWidgetItem(issue_key))
+            self.ui.tableIssues.setItem(row, 1,
+                QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
         self.ui.tableIssues.resizeColumnToContents(0)
-        self.ui.tableIssues.horizontalHeader().setResizeMode(1,QtGui.QHeaderView.Stretch)
-        self.ui.tableIssues.horizontalHeader().setResizeMode(0,QtGui.QHeaderView.Fixed)
+        self.ui.tableIssues.horizontalHeader().setResizeMode(1,
+            QtGui.QHeaderView.Stretch)
+        self.ui.tableIssues.horizontalHeader().setResizeMode(0,
+            QtGui.QHeaderView.Fixed)
         self.ui.tableIssues.sortByColumn(0,0)
-        logging.debug('Table refresh has been completed')
+        logging.debug('Issues table has been refreshed')
 
     def print_day_worklog(self):
-        logging.info('Updating day worklog table')
+        logging.info('RefReshing day worklog table')
         selected_day = self.ui.dateDayWorklogEdit.date().toPyDate()
         day_work = db.get_day_worklog(self.creds[3], selected_day)
+        logging.debug(day_work)
+        # preparations
+        self.ui.tableDayWorklog.setSortingEnabled(False)
+
         # (u'PERF-303', u'[SS POD2] 5.10 Migration Environment Issues', datetime.datetime(2012, 12, 28, 8, 59), datetime.datetime(2012, 12, 28, 10, 59))
+        # Filling the table started
         self.ui.tableDayWorklog.setRowCount(len(day_work))
         for row, entry in enumerate(day_work):
-            self.ui.tableDayWorklog.setItem(row, 0, QtGui.QTableWidgetItem(entry[0]))
-            self.ui.tableDayWorklog.setItem(row, 1, QtGui.QTableWidgetItem(entry[1]))
-            self.ui.tableDayWorklog.setItem(row, 2, QtGui.QTableWidgetItem(entry[2].strftime('%H:%M')))
-            self.ui.tableDayWorklog.setItem(row, 3, QtGui.QTableWidgetItem(entry[3].strftime('%H:%M')))
-            self.ui.tableDayWorklog.setItem(row, 4, QtGui.QTableWidgetItem(utils.get_time_spent_string(entry[2],entry[3])))
-            # hidden worklogid
-            self.ui.tableDayWorklog.setItem(row, self.worklogid_column, QtGui.QTableWidgetItem(str(entry[4])))
-        self.ui.tableDayWorklog.horizontalHeader().setResizeMode(1,QtGui.QHeaderView.Stretch)
+            self.ui.tableDayWorklog.setItem(row, 0,
+                QtGui.QTableWidgetItem(entry[0]))
+            self.ui.tableDayWorklog.setItem(row, 1,
+                QtGui.QTableWidgetItem(entry[1]))
+            self.ui.tableDayWorklog.setItem(row, 2,
+                QtGui.QTableWidgetItem(entry[2].strftime('%H:%M')))
+            self.ui.tableDayWorklog.setItem(row, 3,
+                QtGui.QTableWidgetItem(entry[3].strftime('%H:%M')))
+            self.ui.tableDayWorklog.setItem(row, 4,
+                QtGui.QTableWidgetItem(utils.get_time_spent_string(entry[2],
+                                                                   entry[3])))
+            self.ui.tableDayWorklog.setItem(row, self.worklogid_column,
+                QtGui.QTableWidgetItem(str(entry[4])))
+        # Filling the table completed
+        # Sorting
+        self.ui.tableDayWorklog.setSortingEnabled(True)
+        self.ui.tableDayWorklog.sortByColumn(2,QtCore.Qt.AscendingOrder)
+        # Handle the width
+        self.ui.tableDayWorklog.horizontalHeader().setResizeMode(1,
+            QtGui.QHeaderView.Stretch)
         for column in (0,2,3,4):
             self.ui.tableDayWorklog.resizeColumnToContents(column)
-            self.ui.tableDayWorklog.horizontalHeader().setResizeMode(column,QtGui.QHeaderView.Fixed)
-        logging.info('Day worklog table has been updated')
+            self.ui.tableDayWorklog.horizontalHeader().setResizeMode(column,
+                QtGui.QHeaderView.Fixed)
+            self.ui.tableDayWorklog.horizontalHeader().setResizeMode(column,
+                QtGui.QHeaderView.Fixed)
+        logging.info('Day worklog table has been refreshed')
 
     def _refresh_gui(self):
         self.refresh_issues_table()
@@ -391,7 +415,7 @@ class MainWindow(QtGui.QMainWindow):
         """
         logging.debug('Get issue button has been clicked')
         issue_keys = str(self.ui.lineIssueKey.text())
-        logging.debug('Issue keys has red')
+        logging.debug('Issue keys has red, text is "%s"' % issue_keys)
         for issue_key in issue_keys.split(','):
             issue_key = issue_key.strip().upper()
             logging.debug('issue key is %s' % issue_key)
@@ -399,7 +423,7 @@ class MainWindow(QtGui.QMainWindow):
                 logging.debug('Packing the function')
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
                     self.creds, issue_key)
-                logging.debug('Put func to queue')
+                logging.debug('Puting funcion to the queue')
                 self.result_thread.queue.append(get_issue_func)
                 self.result_thread.statuses.append('Getting issue %s ...' % str(issue_key))
         self.ui.lineIssueKey.clear()
@@ -436,8 +460,9 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def _add_issue(self, issue):
+        logging.debug('Add issue "%s" to the memory' % str(issue))
         self.jira_issues[issue.issue_key] = issue
-        logging.debug('Issue has been added')
+        logging.debug('Issue "%s" has been added' % str(issue))
         self._refresh_gui()
 
     def add_worklog(self):
