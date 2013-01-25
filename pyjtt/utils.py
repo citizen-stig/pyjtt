@@ -75,16 +75,16 @@ def get_timedelta_from_utc_offset(time_string):
     return timedelta(hours=hours, minutes=minutes)
 
 
-def get_time_spent_string(timestamp_start, timestamp_end):
-    raw_spent = timestamp_end\
-                - timestamp_start
-    hours, seconds = divmod(raw_spent.seconds, 3600)
+def get_time_spent_string(t_delta):
+    #raw_spent = timestamp_end\
+    #            - timestamp_start
+    hours, seconds = divmod(t_delta.total_seconds(), 3600)
     minutes = seconds / 60
     spent = ''
     if hours:
-        spent += str(hours) + 'h'
+        spent += str(int(hours)) + 'h'
     if minutes:
-        spent += ' ' + str(minutes) + 'm'
+        spent += ' ' + str(int(minutes)) + 'm'
     spent_str = spent.strip()
     return spent_str
 

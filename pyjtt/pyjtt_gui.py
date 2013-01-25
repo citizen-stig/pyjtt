@@ -158,8 +158,8 @@ class WorklogWindow(QtGui.QDialog):
     def _refresh_spent(self):
         logging.debug('Refresh time spent')
         spent = 'Time spent: ' +\
-                utils.get_time_spent_string(self.ui.timeStartEdit.dateTime().toPyDateTime(),
-                    self.ui.timeEndEdit.dateTime().toPyDateTime())
+                utils.get_time_spent_string(self.ui.timeEndEdit.dateTime().toPyDateTime() -\
+                                            self.ui.timeStartEdit.dateTime().toPyDateTime())
         self.ui.labelSpent.setText(spent)
         logging.debug('Time spent is refreshed')
 
@@ -337,6 +337,7 @@ class MainWindow(QtGui.QMainWindow):
         logging.info('RefReshing day worklog table')
         selected_day = self.ui.dateDayWorklogEdit.date().toPyDate()
         day_work = db.get_day_worklog(self.creds[3], selected_day)
+        day_summary = datetime.timedelta(seconds=0)
         logging.debug(day_work)
         # preparations
         self.ui.tableDayWorklog.setSortingEnabled(False)
@@ -345,6 +346,8 @@ class MainWindow(QtGui.QMainWindow):
         # Filling the table started
         self.ui.tableDayWorklog.setRowCount(len(day_work))
         for row, entry in enumerate(day_work):
+            spent = entry[3] - entry[2]
+            day_summary += spent
             self.ui.tableDayWorklog.setItem(row, 0,
                 QtGui.QTableWidgetItem(entry[0]))
             self.ui.tableDayWorklog.setItem(row, 1,
@@ -354,10 +357,11 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.tableDayWorklog.setItem(row, 3,
                 QtGui.QTableWidgetItem(entry[3].strftime('%H:%M')))
             self.ui.tableDayWorklog.setItem(row, 4,
-                QtGui.QTableWidgetItem(utils.get_time_spent_string(entry[2],
-                                                                   entry[3])))
+                QtGui.QTableWidgetItem(utils.get_time_spent_string(entry[3] - \
+                                                                   entry[2])))
             self.ui.tableDayWorklog.setItem(row, self.worklogid_column,
                 QtGui.QTableWidgetItem(str(entry[4])))
+
         # Filling the table completed
         # Sorting
         self.ui.tableDayWorklog.setSortingEnabled(True)
@@ -371,6 +375,12 @@ class MainWindow(QtGui.QMainWindow):
                 QtGui.QHeaderView.Fixed)
             self.ui.tableDayWorklog.horizontalHeader().setResizeMode(column,
                 QtGui.QHeaderView.Fixed)
+        # Print total day work
+        if day_summary.total_seconds() > 0:
+            self.ui.labelDaySummary.setText('Total: ' \
+                                            + utils.get_time_spent_string(day_summary))
+        else:
+            self.ui.labelDaySummary.clear()
         logging.info('Day worklog table has been refreshed')
 
     def _refresh_gui(self):
@@ -557,8 +567,8 @@ class MainWindow(QtGui.QMainWindow):
                     """ % (self.selected_issue.issue_key,
                            str(self.tracking_thread.start),
                            str(self.tracking_thread.current),
-                           utils.get_time_spent_string(self.tracking_thread.start,
-                               self.tracking_thread.current)
+                           utils.get_time_spent_string(self.tracking_thread.current -\
+                               self.tracking_thread.start)
                           )
                     reply = QtGui.QMessageBox.question(self, 'Add worklog',
                     info_msg    , QtGui.QMessageBox.Yes, QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)

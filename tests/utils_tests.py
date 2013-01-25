@@ -242,13 +242,13 @@ class pyjttUtilsTest(unittest.TestCase):
     def test_get_time_spent_string_normal(self):
         start = datetime.datetime(2013, 1, 2, 15)
         end = datetime.datetime(2013, 1, 2, 17)
-        self.assertEqual(utils.get_time_spent_string(start, end), '2h')
+        self.assertEqual(utils.get_time_spent_string(end - start), '2h')
         start = datetime.datetime(2013, 1, 2, 15)
         end = datetime.datetime(2013, 1, 2, 15, 30)
-        self.assertEqual(utils.get_time_spent_string(start, end), '30m')
+        self.assertEqual(utils.get_time_spent_string(end - start), '30m')
         start = datetime.datetime(2013, 1, 2, 15)
         end = datetime.datetime(2013, 1, 2, 17, 30)
-        self.assertEqual(utils.get_time_spent_string(start, end), '2h 30m')
+        self.assertEqual(utils.get_time_spent_string(end - start), '2h 30m')
 
 
 if __name__ == '__main__':
