@@ -6,7 +6,7 @@ __author__ = 'Nikolay Golub'
 import urllib2, json, unittest, sys, logging, os, datetime, random
 sys.path.insert(0, os.path.abspath(os.path.join('..','pyjtt')))
 
-import rest_wrapper
+import rest_wrapper, utils
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
 
 WORKLOG_ID = 100
@@ -180,8 +180,9 @@ class JIRAIssue(rest_wrapper.JIRAIssue):
                                     { 'name' : self.login,
                                       'displayName': u'Test User'
                                     },
-                                'timeSpent': received_data['timeSpent'],
-                                'timeSpentSeconds': int(convert_to_timedelta(received_data['timeSpent']).total_seconds()),
+                                'timeSpent': utils.get_time_spent_string(
+                                    datetime.timedelta(seconds=received_data['timeSpentSeconds'])),
+                                'timeSpentSeconds': received_data['timeSpentSeconds'],
                                 'id': WORKLOG_ID}
 
                     issue_data['fields']['worklog']['worklogs'].append(worklog)
@@ -189,12 +190,12 @@ class JIRAIssue(rest_wrapper.JIRAIssue):
                     return worklog
                 elif req_type and data:
                     received_data = json.loads(data)
-                    print 'tset'
                     if req_type == 'PUT':
                         # update worklog
                         if int(worklog_id) in known_worklog_ids:
                             # TODO: add fields verification
-                            received_data['timeSpentSeconds'] = int(convert_to_timedelta(received_data['timeSpent']).total_seconds())
+                            received_data['timeSpent'] = utils.get_time_spent_string(
+                                datetime.timedelta(seconds=received_data['timeSpentSeconds']))
                             received_data['id'] = int(worklog_id)
                             return received_data
                         else:
