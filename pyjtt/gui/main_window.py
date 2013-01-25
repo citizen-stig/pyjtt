@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'resources/main_window.ui'
 #
-# Created: Fri Jan 25 09:02:03 2013
+# Created: Fri Jan 25 09:44:56 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -177,11 +177,13 @@ class Ui_MainWindow(object):
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
         self.actionRefresh = QtGui.QAction(MainWindow)
         self.actionRefresh.setObjectName(_fromUtf8("actionRefresh"))
+        self.actionAbout = QtGui.QAction(MainWindow)
+        self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
         self.menuFile.addAction(self.actionReresh_issue)
         self.menuFile.addAction(self.actionFull_refresh)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
-        self.menuHelp.addAction(self.actionRefresh)
+        self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
 
@@ -233,4 +235,5 @@ class Ui_MainWindow(object):
         self.actionFull_refresh.setText(_translate("MainWindow", "Full refresh", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
         self.actionRefresh.setText(_translate("MainWindow", "refresh!", None))
+        self.actionAbout.setText(_translate("MainWindow", "About", None))
 

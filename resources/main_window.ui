@@ -329,7 +329,7 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionRefresh"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -353,6 +353,11 @@
   <action name="actionRefresh">
    <property name="text">
     <string>refresh!</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

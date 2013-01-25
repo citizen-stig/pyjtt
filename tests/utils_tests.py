@@ -250,6 +250,14 @@ class pyjttUtilsTest(unittest.TestCase):
         end = datetime.datetime(2013, 1, 2, 17, 30)
         self.assertEqual(utils.get_time_spent_string(end - start), '2h 30m')
 
+    def test_check_jira_issue(self):
+        self.assertTrue(utils.check_jira_issue_key('SAMPLE-123'))
+        self.assertFalse(utils.check_jira_issue_key(''))
+        self.assertFalse(utils.check_jira_issue_key('SAMPLE'))
+        self.assertFalse(utils.check_jira_issue_key('321'))
+        self.assertFalse(utils.check_jira_issue_key('SAMPLE123'))
+        self.assertFalse(utils.check_jira_issue_key('-'))
+        self.assertFalse(utils.check_jira_issue_key('sample-123'))
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(pyjttUtilsTest)

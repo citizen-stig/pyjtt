@@ -88,5 +88,13 @@ def get_time_spent_string(t_delta):
     spent_str = spent.strip()
     return spent_str
 
+def check_jira_issue_key(issue_key):
+    splitted = issue_key.split('-')
+    if len(splitted) == 2:
+        return splitted[1].isdigit() and splitted[0].isalpha() and splitted[0].isupper()
+    else:
+        return False
+
+
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)

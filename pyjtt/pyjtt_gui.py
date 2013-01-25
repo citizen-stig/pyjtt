@@ -48,8 +48,8 @@ class BaseThread(QtCore.QThread):
 
 
 class ResultThread(BaseThread):
-    issue_done = QtCore.pyqtSignal(rest_wrapper.JIRAIssue)
-
+    issue_get = QtCore.pyqtSignal(rest_wrapper.JIRAIssue)
+    issue_removed = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
         logging.info('Initialize result thread')
         BaseThread.__init__(self, parent)
@@ -58,7 +58,10 @@ class ResultThread(BaseThread):
     def _run(self, func):
         logging.debug('Start I/O function with result')
         result = func()
-        self.issue_done.emit(result)
+        if isinstance(result, pyjtt.JIRAIssue):
+            self.issue_get.emit(result)
+        elif isinstance(result, str):
+            self.issue_removed.emit(result)
 
 
 class IOThread(BaseThread):
@@ -286,7 +289,8 @@ class MainWindow(QtGui.QMainWindow):
         self.result_thread.exception_raised.connect(self.print_exception)
         self.result_thread.status_sent.connect(self.set_status_message)
         self.result_thread.status_cleared.connect(self.clear_status_msg)
-        self.result_thread.issue_done.connect(self._add_issue)
+        self.result_thread.issue_get.connect(self._add_issue)
+        self.result_thread.issue_removed.connect(self._remove_issue)
         self.ui.actionReresh_issue.triggered.connect(self.refresh_issue_action)
         self.ui.actionFull_refresh.triggered.connect(self.full_refresh_action)
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
@@ -429,7 +433,7 @@ class MainWindow(QtGui.QMainWindow):
         for issue_key in issue_keys.split(','):
             issue_key = issue_key.strip().upper()
             logging.debug('issue key is %s' % issue_key)
-            if issue_key and issue_key not in self.jira_issues:
+            if utils.check_jira_issue_key(issue_key) and issue_key not in self.jira_issues:
                 logging.debug('Packing the function')
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
                     self.creds, issue_key)
@@ -460,9 +464,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def _refresh_issue(self, issue_key):
         logging.debug('Refreshing issue %s' % str(issue_key))
-        del self.jira_issues[issue_key]
-        db.remove_issue(self.creds[3], issue_key)
-        self._refresh_gui()
+        def del_wrapper(db_filename, del_issue_key):
+            db.remove_issue(db_filename, del_issue_key)
+            return del_issue_key
+        del_issue_func = partial(del_wrapper, self.creds[3], issue_key)
+        self.result_thread.queue.append(del_issue_func)
+        self.result_thread.statuses.append('')
         get_issue_func = partial(pyjtt.get_issue_from_jira,
             self.creds, issue_key)
         self.result_thread.queue.append(get_issue_func)
@@ -470,9 +477,15 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def _add_issue(self, issue):
-        logging.debug('Add issue "%s" to the memory' % str(issue))
+        logging.debug('Add issue "%s" to memory' % str(issue))
         self.jira_issues[issue.issue_key] = issue
-        logging.debug('Issue "%s" has been added' % str(issue))
+        logging.debug('Issue "%s" has been added to memory' % str(issue))
+        self._refresh_gui()
+
+    def _remove_issue(self, issue_key):
+        logging.debug('Remove issue %s from memory' % issue_key)
+        self.jira_issues[issue_key]
+        logging.debug('Issue %s has been removed from memory' % issue_key)
         self._refresh_gui()
 
     def add_worklog(self):
