@@ -8,6 +8,7 @@ import time
 from functools import partial
 from collections import deque
 from PyQt4 import QtCore, QtGui
+from urllib2 import URLError
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
 import db, utils, rest_wrapper, pyjtt
 from gui import login_screen, main_window, worklog_window
@@ -168,12 +169,13 @@ class WorklogWindow(QtGui.QDialog):
 
 
 class LoginForm(QtGui.QDialog):
-    def __init__(self, config_filename, parent=None):
+    def __init__(self, jirahost=None, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self.config_filename = config_filename
         self.ui = login_screen.Ui_loginWindow()
+        self.save_credentials = False
         self.ui.setupUi(self)
-
+        if jirahost:
+            self.ui.lineEditHostAddress.setText(jirahost)
         self.ui.buttonBox.accepted.connect(self.handle_login)
         self.ui.buttonBox.rejected.connect(self.user_exit)
 
@@ -183,14 +185,19 @@ class LoginForm(QtGui.QDialog):
         self.login = str(self.ui.lineEditLogin.text())
         self.password =  str(self.ui.lineEditPassword.text())
         if not self.jira_host:
-            QtGui.QMessageBox.warning(self, 'Login Error', 'Enter jira Host address')
+            QtGui.QMessageBox.warning(self, 'Login error', 'Enter jira host address')
         elif not self.login:
-            QtGui.QMessageBox.warning(self, 'Login Error', 'Enter login')
+            QtGui.QMessageBox.warning(self, 'Login error', 'Enter login')
         elif not self.password:
-            QtGui.QMessageBox.warning(self, 'Login Error', 'Enter password')
+            QtGui.QMessageBox.warning(self, 'Login error', 'Enter password')
         else:
-            if self._login(self.login, self.password, self.jira_host):
-                self.accept()
+            logging.debug('Starting Login')
+            if utils.check_url_host(self.jira_host):
+                if self._login(self.login, self.password, self.jira_host):
+                    self.accept()
+            else:
+                QtGui.QMessageBox.warning(self, 'Login error', 'Host is unavailbale or internet connection is too bad')
+            logging.debug('Ending Login')
 
     def user_exit(self):
         self.reject()
@@ -201,18 +208,19 @@ class LoginForm(QtGui.QDialog):
             user_info = rest_wrapper.JiraUser(str(jirahost), str(login), str(password))
             logging.debug('Login successful')
             if self.ui.checkBoxSaveCredentials.isChecked():
-                logging.debug('Saving Credentials')
-                utils.save_settings(self.config_filename, (jirahost,  login, password))
+                self.save_credentials = True
+                #logging.debug('Saving Credentials')
+                #utils.save_settings(self.config_filename, (jirahost,  login, password))
             return True
         except rest_wrapper.urllib2.HTTPError as e:
             if e.code == 401:
-                QtGui.QMessageBox.warning(self, 'Login Error', 'Wrong login or password')
+                QtGui.QMessageBox.warning(self, 'Login error', 'Wrong login or password')
             elif e.code == 403:
-                QtGui.QMessageBox.warning(self, 'Login Error', 'Error %s %s. Try to login via Web' % (str(e.code), e.reason) )
+                QtGui.QMessageBox.warning(self, 'Login error', 'Error %s %s. Try to login via Web' % (str(e.code), e.reason) )
             else:
-                QtGui.QMessageBox.warning(self, 'Login Error', 'Error: %s - %s' % (str(e.code), e.reason))
+                QtGui.QMessageBox.warning(self, 'Login error', 'Error: %s - %s' % (str(e.code), e.reason))
         except rest_wrapper.urllib2.URLError as ue:
-            QtGui.QMessageBox.warning(self, 'Login Error', 'Wrong jira url')
+            QtGui.QMessageBox.warning(self, 'Login error', 'Wrong jira URL')
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -247,9 +255,11 @@ class MainWindow(QtGui.QMainWindow):
         self.creds = ( str(jirahost), str(login), str(password), self.local_db_name )
 
         # Get assigned issues keys
-        self.user = rest_wrapper.JiraUser(self.creds[0], self.creds[1], self.creds[2])
-        self.user.get_assigned_issues()
-
+        try:
+            self.user = rest_wrapper.JiraUser(self.creds[0], self.creds[1], self.creds[2])
+            self.user.get_assigned_issues()
+        except URLError:
+            logging.error('Connection problems')
         # GUI customization
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
         #self.ui.tableDayWorklog.sortByColumn(2,0)
@@ -614,28 +624,43 @@ class MainWindow(QtGui.QMainWindow):
         self.is_tracking_on = False
 
 
+def perform_login(jirahost=None):
+    login_window = LoginForm(jirahost=jirahost)
+    login_window.show()
+    if login_window.exec_() == QtGui.QDialog.Accepted:
+        logging.debug('Login successful')
+        jirahost = login_window.jira_host
+        login = login_window.login
+        password = login_window.password
+        save_credentials = login_window.save_credentials
+    else:
+        logging.info('Exit')
+        #TODO: add exit code, but without freezing
+        sys.exit()
+    return jirahost, login, password, save_credentials
+
+
 def main():
     logging.debug('Local GMT offset is %s' % utils.LOCAL_UTC_OFFSET)
     # base constants
     app = QtGui.QApplication(sys.argv)
     config_filename = 'pyjtt.cfg'
-
+    save_credentials = False
     if not os.path.isfile(config_filename):
-        login_window = LoginForm(config_filename)
-        login_window.show()
-        if login_window.exec_() == QtGui.QDialog.Accepted:
-            logging.debug('Login successful')
-            jirahost = login_window.jira_host
-            login = login_window.login
-            password = login_window.password
-        else:
-            logging.info('Exit')
-            #TODO: add exit code, but without freezing
-            sys.exit()
+        jirahost, login, password, save_credentials = perform_login()
+    elif not all(utils.get_settings(config_filename)):
+        jirahost, login, password = utils.get_settings(config_filename)
+        jirahost, login, password, save_credentials = perform_login(jirahost)
     else:
         logging.debug('Config file exists, reading settings')
         jirahost, login, password = utils.get_settings(config_filename)
-    logging.debug('Start Main Application')
+    # add save credentials part
+    if save_credentials:
+        logging.debug('Saving credentials')
+        utils.save_settings(config_filename, (jirahost, login, password))
+    else:
+        utils.save_settings(config_filename, (jirahost, '', ''))
+    logging.debug('Starting Main Application')
     pyjtt_main_window = MainWindow(jirahost, login, password)
     pyjtt_main_window.show()
     sys.exit(app.exec_())

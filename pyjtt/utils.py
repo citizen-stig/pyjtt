@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from datetime import datetime, timedelta
 import ConfigParser
 import logging
+import urllib2
 
 __author__ = 'Nikolay Golub'
 
@@ -95,6 +96,16 @@ def check_jira_issue_key(issue_key):
     else:
         return False
 
+def check_url_host(url):
+    try:
+        urllib2.urlopen(url,timeout=3)
+        logging.info('Host %s is ok and accessible' % str(url))
+        return True
+    except urllib2.URLError as urlerr:
+        logging.warning('Problem to access URL: "%s": %s' % (str(url), urlerr))
+    except ValueError as valerr:
+        logging.error('URL: "%s" is not an valid url' % url)
+    return False
 
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)
