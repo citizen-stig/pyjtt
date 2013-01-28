@@ -14,6 +14,7 @@ import db, utils, rest_wrapper, pyjtt
 from gui import login_screen, main_window, worklog_window
 
 
+
 def datetime_to_qtime(timestamp):
     return QtCore.QTime(timestamp.hour, timestamp.minute)
 

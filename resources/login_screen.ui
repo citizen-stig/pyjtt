@@ -25,6 +25,10 @@
   <property name="windowTitle">
    <string>Login</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="pyjtt.qrc">
+    <normaloff>:/icons/clock_apple.ico</normaloff>:/icons/clock_apple.ico</iconset>
+  </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
@@ -143,6 +147,8 @@
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="pyjtt.qrc"/>
+ </resources>
  <connections/>
 </ui>

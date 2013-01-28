@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'worklog_window.ui'
 #
-# Created: Fri Jan  4 22:07:38 2013
+# Created: Mon Jan 28 09:59:40 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -34,6 +34,9 @@ class Ui_WorklogWindow(object):
         WorklogWindow.setSizePolicy(sizePolicy)
         WorklogWindow.setMinimumSize(QtCore.QSize(320, 264))
         WorklogWindow.setMaximumSize(QtCore.QSize(320, 264))
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/clock_apple.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        WorklogWindow.setWindowIcon(icon)
         self.gridLayout = QtGui.QGridLayout(WorklogWindow)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.labelIssue = QtGui.QLabel(WorklogWindow)
@@ -114,3 +117,4 @@ class Ui_WorklogWindow(object):
         self.dateEdit.setDisplayFormat(_translate("WorklogWindow", "MM/dd/yyyy", None))
         self.labelSpent.setText(_translate("WorklogWindow", "Time Spent :", None))
 
+import pyjtt_rc

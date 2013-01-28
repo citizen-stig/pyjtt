@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>Jira Time Tracker</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="pyjtt.qrc">
+    <normaloff>:/icons/clock_apple.ico</normaloff>:/icons/clock_apple.ico</iconset>
+  </property>
   <property name="animated">
    <bool>false</bool>
   </property>
@@ -36,17 +40,7 @@
        <attribute name="title">
         <string>Issues</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="1">
-         <widget class="QPushButton" name="FindIssue">
-          <property name="text">
-           <string>Find</string>
-          </property>
-          <property name="flat">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
+       <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <widget class="QLineEdit" name="lineIssueKey">
           <property name="text">
@@ -54,6 +48,16 @@
           </property>
           <property name="placeholderText">
            <string>Enter issue key...</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="FindIssue">
+          <property name="text">
+           <string>Find</string>
+          </property>
+          <property name="flat">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -369,10 +373,11 @@
   <tabstop>editWorklog</tabstop>
   <tabstop>removeWorklog</tabstop>
   <tabstop>lineIssueKey</tabstop>
-  <tabstop>tableIssues</tabstop>
   <tabstop>FindIssue</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="pyjtt.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>lineIssueKey</sender>

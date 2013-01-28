@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'resources/main_window.ui'
+# Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Jan 25 09:44:56 2013
+# Created: Mon Jan 28 10:01:02 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -28,6 +28,9 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         MainWindow.resize(640, 489)
         MainWindow.setMinimumSize(QtCore.QSize(640, 480))
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/clock_apple.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        MainWindow.setWindowIcon(icon)
         MainWindow.setAnimated(False)
         MainWindow.setTabShape(QtGui.QTabWidget.Rounded)
         self.centralwidget = QtGui.QWidget(MainWindow)
@@ -38,16 +41,16 @@ class Ui_MainWindow(object):
         self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
         self.tabIssues = QtGui.QWidget()
         self.tabIssues.setObjectName(_fromUtf8("tabIssues"))
-        self.gridLayout_4 = QtGui.QGridLayout(self.tabIssues)
-        self.gridLayout_4.setObjectName(_fromUtf8("gridLayout_4"))
-        self.FindIssue = QtGui.QPushButton(self.tabIssues)
-        self.FindIssue.setFlat(False)
-        self.FindIssue.setObjectName(_fromUtf8("FindIssue"))
-        self.gridLayout_4.addWidget(self.FindIssue, 0, 1, 1, 1)
+        self.gridLayout_3 = QtGui.QGridLayout(self.tabIssues)
+        self.gridLayout_3.setObjectName(_fromUtf8("gridLayout_3"))
         self.lineIssueKey = QtGui.QLineEdit(self.tabIssues)
         self.lineIssueKey.setText(_fromUtf8(""))
         self.lineIssueKey.setObjectName(_fromUtf8("lineIssueKey"))
-        self.gridLayout_4.addWidget(self.lineIssueKey, 0, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.lineIssueKey, 0, 0, 1, 1)
+        self.FindIssue = QtGui.QPushButton(self.tabIssues)
+        self.FindIssue.setFlat(False)
+        self.FindIssue.setObjectName(_fromUtf8("FindIssue"))
+        self.gridLayout_3.addWidget(self.FindIssue, 0, 1, 1, 1)
         self.tableIssues = QtGui.QTableWidget(self.tabIssues)
         self.tableIssues.setFrameShape(QtGui.QFrame.StyledPanel)
         self.tableIssues.setFrameShadow(QtGui.QFrame.Plain)
@@ -69,7 +72,7 @@ class Ui_MainWindow(object):
         self.tableIssues.verticalHeader().setDefaultSectionSize(22)
         self.tableIssues.verticalHeader().setMinimumSectionSize(17)
         self.tableIssues.verticalHeader().setStretchLastSection(False)
-        self.gridLayout_4.addWidget(self.tableIssues, 1, 0, 1, 2)
+        self.gridLayout_3.addWidget(self.tableIssues, 1, 0, 1, 2)
         self.tabWidget.addTab(self.tabIssues, _fromUtf8(""))
         self.tabWorklogs = QtGui.QWidget()
         self.tabWorklogs.setObjectName(_fromUtf8("tabWorklogs"))
@@ -197,13 +200,12 @@ class Ui_MainWindow(object):
         MainWindow.setTabOrder(self.tableDayWorklog, self.editWorklog)
         MainWindow.setTabOrder(self.editWorklog, self.removeWorklog)
         MainWindow.setTabOrder(self.removeWorklog, self.lineIssueKey)
-        MainWindow.setTabOrder(self.lineIssueKey, self.tableIssues)
-        MainWindow.setTabOrder(self.tableIssues, self.FindIssue)
+        MainWindow.setTabOrder(self.lineIssueKey, self.FindIssue)
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "Jira Time Tracker", None))
-        self.FindIssue.setText(_translate("MainWindow", "Find", None))
         self.lineIssueKey.setPlaceholderText(_translate("MainWindow", "Enter issue key...", None))
+        self.FindIssue.setText(_translate("MainWindow", "Find", None))
         self.tableIssues.setSortingEnabled(True)
         item = self.tableIssues.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Key", None))
@@ -237,3 +239,4 @@ class Ui_MainWindow(object):
         self.actionRefresh.setText(_translate("MainWindow", "refresh!", None))
         self.actionAbout.setText(_translate("MainWindow", "About", None))
 
+import pyjtt_rc
