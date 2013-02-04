@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-#
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from datetime import datetime, timedelta
 import ConfigParser
-import logging
+from custom_logging import logger
 import urllib2
+import sys
 
 __author__ = 'Nikolay Golub'
 
 def get_settings(config_filename):
-    logging.debug('Getting base options')
+    logger.debug('Getting base options')
     #config = ConfigParser.ConfigParser()
     config = ConfigParser.SafeConfigParser({'host': '',
                                             'login': '',
@@ -20,15 +21,15 @@ def get_settings(config_filename):
         login = config.get('jira', 'login', '')
         password = config.get('jira', 'password', '')
     except ConfigParser.NoSectionError as e:
-        logging.warning('Section %s is missed in configuration file %s' % (e[0], config_filename))
-        logging.warning('Return default values')
+        logger.warning('Section %s is missed in configuration file %s' % (e[0], config_filename))
+        logger.warning('Return default values')
         defaults = config.defaults()
         return defaults['host'], defaults['login'], defaults['password'],
-    logging.info('Options have been red')
+    logger.info('Options have been red')
     return jirahost, login, password
 
 def save_settings(config_filename, creds):
-    logging.debug('Saving configuration')
+    logger.debug('Saving configuration')
     if len(creds) != 3:
         raise ValueError('Credentials tuple is incomplete')
     config = ConfigParser.ConfigParser()
@@ -38,7 +39,7 @@ def save_settings(config_filename, creds):
     config.set('jira', 'password', creds[2])
     with open(config_filename, 'wb') as configfile:
         config.write(configfile)
-    logging.debug('Options have been saved')
+    logger.debug('Options have been saved')
 
 def get_db_filename(login, jirahost):
     # TODO: add absolute path handling
@@ -47,7 +48,7 @@ def get_db_filename(login, jirahost):
            + '.db'
 
 def get_local_utc_offset(now, utcnow):
-    logging.debug('Getting local UTC Offset')
+    logger.debug('Getting local UTC Offset')
     def absolute_offset(bigger_timestamp, smaller_timestamp):
         offset = bigger_timestamp.hour - smaller_timestamp.hour
         minutes = bigger_timestamp.minute - smaller_timestamp.minute
@@ -99,13 +100,26 @@ def check_jira_issue_key(issue_key):
 def check_url_host(url):
     try:
         urllib2.urlopen(url,timeout=3)
-        logging.info('Host %s is ok and accessible' % str(url))
+        logger.info('Host %s is ok and accessible' % str(url))
         return True
     except urllib2.URLError as urlerr:
-        logging.warning('Problem to access URL: "%s": %s' % (str(url), urlerr))
+        logger.warning('Problem to access URL: "%s": %s' % (str(url), urlerr))
     except ValueError as valerr:
-        logging.error('URL: "%s" is not an valid url' % url)
+        logger.error('URL: "%s" is not an valid url' % url)
     return False
+
+def get_app_working_dir():
+    app_name = 'pyjtt'
+    if 'linux' in sys.platform:
+		pass
+        # linux
+    elif 'win' in sys.platform:
+		pass
+        # windows
+    else:
+		pass
+        # 
+
 
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)

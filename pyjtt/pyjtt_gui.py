@@ -1,15 +1,16 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import os
 import sys
-import logging
+from custom_logging import logger
 import datetime
 import time
 from functools import partial
 from collections import deque
 from PyQt4 import QtCore, QtGui
 from urllib2 import URLError
-logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG)
+
 import db, utils, rest_wrapper, pyjtt
 from gui import login_screen, main_window, worklog_window
 
@@ -35,7 +36,7 @@ class BaseThread(QtCore.QThread):
     def run(self):
         while True:
             if len(self.queue):
-                logging.info('Here is a job in queue')
+                logger.info('Here is a job in queue')
                 try:
                     f = self.queue.popleft()
                     msg = self.statuses.popleft()
@@ -53,12 +54,12 @@ class ResultThread(BaseThread):
     issue_get = QtCore.pyqtSignal(rest_wrapper.JIRAIssue)
     issue_removed = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
-        logging.info('Initialize result thread')
+        logger.info('Initialize result thread')
         BaseThread.__init__(self, parent)
-        logging.debug('Result thread has been initialized')
+        logger.debug('Result thread has been initialized')
 
     def _run(self, func):
-        logging.debug('Start I/O function with result')
+        logger.debug('Start I/O function with result')
         result = func()
         if isinstance(result, pyjtt.JIRAIssue):
             self.issue_get.emit(result)
@@ -69,12 +70,12 @@ class ResultThread(BaseThread):
 class IOThread(BaseThread):
     done = QtCore.pyqtSignal()
     def __init__(self, parent=None):
-        logging.info('Initialize simple I/O thread')
+        logger.info('Initialize simple I/O thread')
         BaseThread.__init__(self, parent)
-        logging.debug('I/O thread initialized')
+        logger.debug('I/O thread initialized')
 
     def _run(self, func):
-        logging.debug('Start I/O function')
+        logger.debug('Start I/O function')
         func()
         self.done.emit()
 
@@ -82,12 +83,12 @@ class IOThread(BaseThread):
 class TimeWorker(QtCore.QThread):
     timer_updated = QtCore.pyqtSignal(int)
     def __init__(self, parent = None):
-        logging.debug('Initialize timer')
+        logger.debug('Initialize timer')
         QtCore.QThread.__init__(self, parent)
         self.exiting = False
 
     def run(self):
-        logging.info('Start tracking timer')
+        logger.info('Start tracking timer')
         self.start = datetime.datetime.now()
         while not self.exiting:
             self.current = datetime.datetime.now()
@@ -96,14 +97,14 @@ class TimeWorker(QtCore.QThread):
             time.sleep(0.5)
 
     def __del__(self):
-        logging.info("Stop tracking timer")
+        logger.info("Stop tracking timer")
         self.exiting = True
         self.wait()
 
 
 class WorklogWindow(QtGui.QDialog):
     def __init__(self, title, issue_key, summary, selected_date, start_time=None, end_time=None, comment=None, parent=None):
-        logging.debug('Opening worklog window')
+        logger.debug('Opening worklog window')
         QtGui.QWidget.__init__(self, parent)
         self.ui = worklog_window.Ui_WorklogWindow()
         self.ui.setupUi(self)
@@ -146,7 +147,7 @@ class WorklogWindow(QtGui.QDialog):
 
     def _save_worklog_data(self):
         # test
-        logging.debug('Saving worklog')
+        logger.debug('Saving worklog')
         combine = datetime.datetime.combine
         date = self.ui.dateEdit.date().toPyDate()
         start = self.ui.timeStartEdit.time().toPyTime()
@@ -155,18 +156,18 @@ class WorklogWindow(QtGui.QDialog):
         self.end_time = combine(date, end)
         self.comment = str(self.ui.plainTextCommentEdit.toPlainText())
         self.accept()
-        logging.debug('Worklog saved')
+        logger.debug('Worklog saved')
 
     def _user_exit(self):
         self.reject()
 
     def _refresh_spent(self):
-        logging.debug('Refresh time spent')
+        logger.debug('Refresh time spent')
         spent = 'Time spent: ' +\
                 utils.get_time_spent_string(self.ui.timeEndEdit.dateTime().toPyDateTime() -\
                                             self.ui.timeStartEdit.dateTime().toPyDateTime())
         self.ui.labelSpent.setText(spent)
-        logging.debug('Time spent is refreshed')
+        logger.debug('Time spent is refreshed')
 
 
 class LoginForm(QtGui.QDialog):
@@ -192,25 +193,25 @@ class LoginForm(QtGui.QDialog):
         elif not self.password:
             QtGui.QMessageBox.warning(self, 'Login error', 'Enter password')
         else:
-            logging.debug('Starting Login')
+            logger.debug('Starting Login')
             if utils.check_url_host(self.jira_host):
                 if self._login(self.login, self.password, self.jira_host):
                     self.accept()
             else:
                 QtGui.QMessageBox.warning(self, 'Login error', 'Host is unavailbale or internet connection is too bad')
-            logging.debug('Ending Login')
+            logger.debug('Ending Login')
 
     def user_exit(self):
         self.reject()
 
     def _login(self, login, password, jirahost):
-        logging.debug('Trying to get user info')
+        logger.debug('Trying to get user info')
         try:
             user_info = rest_wrapper.JiraUser(str(jirahost), str(login), str(password))
-            logging.debug('Login successful')
+            logger.debug('Login successful')
             if self.ui.checkBoxSaveCredentials.isChecked():
                 self.save_credentials = True
-                #logging.debug('Saving Credentials')
+                #logger.debug('Saving Credentials')
                 #utils.save_settings(self.config_filename, (jirahost,  login, password))
             return True
         except rest_wrapper.urllib2.HTTPError as e:
@@ -240,7 +241,7 @@ class MainWindow(QtGui.QMainWindow):
         self.local_db_name = utils.get_db_filename(login, jirahost)
 
         if not os.path.isfile(self.local_db_name):
-            logging.debug('Local DB does not exist. Creating local database')
+            logger.debug('Local DB does not exist. Creating local database')
             db.create_local_db(self.local_db_name)
         else:
             # Need to load issueds from db to memory
@@ -251,7 +252,7 @@ class MainWindow(QtGui.QMainWindow):
                 issue.summary = issue_entry[2]
                 issue.worklog = db.get_issue_worklog(self.local_db_name, issue.issue_id)
                 self.jira_issues[issue.issue_key] = issue
-        logging.debug('Issues have been loaded')
+        logger.debug('Issues have been loaded')
         # Build tuple with credentials
         self.creds = ( str(jirahost), str(login), str(password), self.local_db_name )
 
@@ -260,7 +261,7 @@ class MainWindow(QtGui.QMainWindow):
             self.user = rest_wrapper.JiraUser(self.creds[0], self.creds[1], self.creds[2])
             self.user.get_assigned_issues()
         except URLError:
-            logging.error('Connection problems')
+            logger.error('Connection problems')
         # GUI customization
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
         #self.ui.tableDayWorklog.sortByColumn(2,0)
@@ -311,7 +312,7 @@ class MainWindow(QtGui.QMainWindow):
             if assigned_issue not in self.jira_issues:
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
                     self.creds, assigned_issue)
-                logging.debug('Put func to queue')
+                logger.debug('Put func to queue')
                 self.result_thread.queue.append(get_issue_func)
                 self.result_thread.statuses.append('Getting issue %s ...' % str(assigned_issue))
         self._refresh_gui()
@@ -330,10 +331,10 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
             self.ui.labelSelectedIssue.setMaximumWidth(label_new_width)
             self.selected_issue = self.jira_issues[issue_key]
-            logging.debug('Now selected issue %s' % str(self.jira_issues[issue_key]))
+            logger.debug('Now selected issue %s' % str(self.jira_issues[issue_key]))
 
     def refresh_issues_table(self):
-        logging.debug('Refreshing issues table')
+        logger.debug('Refreshing issues table')
         self.ui.tableIssues.setRowCount(len(self.jira_issues))
         for row, issue_key in enumerate(sorted(self.jira_issues.keys())):
             self.ui.tableIssues.setItem(row, 0,
@@ -346,14 +347,14 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.tableIssues.horizontalHeader().setResizeMode(0,
             QtGui.QHeaderView.Fixed)
         self.ui.tableIssues.sortByColumn(0,0)
-        logging.debug('Issues table has been refreshed')
+        logger.debug('Issues table has been refreshed')
 
     def print_day_worklog(self):
-        logging.info('RefReshing day worklog table')
+        logger.info('RefReshing day worklog table')
         selected_day = self.ui.dateDayWorklogEdit.date().toPyDate()
         day_work = db.get_day_worklog(self.creds[3], selected_day)
         day_summary = datetime.timedelta(seconds=0)
-        logging.debug(day_work)
+        logger.debug(day_work)
         # preparations
         self.ui.tableDayWorklog.setSortingEnabled(False)
 
@@ -396,7 +397,7 @@ class MainWindow(QtGui.QMainWindow):
                                             + utils.get_time_spent_string(day_summary))
         else:
             self.ui.labelDaySummary.clear()
-        logging.info('Day worklog table has been refreshed')
+        logger.info('Day worklog table has been refreshed')
 
     def _refresh_gui(self):
         self.refresh_issues_table()
@@ -415,14 +416,14 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.status_msg.show()
         self.ui.spinning_img.start()
         self.status_msg_queue += 1
-        logging.debug('Thread queue for a statusbar is %d ' % self.status_msg_queue)
+        logger.debug('Thread queue for a statusbar is %d ' % self.status_msg_queue)
 
     def clear_status_msg(self):
         if self.status_msg_queue == 1:
             self.ui.status_msg.hide()
             self.ui.spinning_label.hide()
         self.status_msg_queue -= 1
-        logging.debug('Thread queue for a statusbar is %d ' % self.status_msg_queue)
+        logger.debug('Thread queue for a statusbar is %d ' % self.status_msg_queue)
 
     def _format_seconds_timer(self, seconds):
         days, seconds = divmod(seconds, 86400)
@@ -438,17 +439,17 @@ class MainWindow(QtGui.QMainWindow):
         """ Function parses user input from find issue line edit and
         Adds required issues to the pyjtt
         """
-        logging.debug('Get issue button has been clicked')
+        logger.debug('Get issue button has been clicked')
         issue_keys = str(self.ui.lineIssueKey.text())
-        logging.debug('Issue keys has red, text is "%s"' % issue_keys)
+        logger.debug('Issue keys has red, text is "%s"' % issue_keys)
         for issue_key in issue_keys.split(','):
             issue_key = issue_key.strip().upper()
-            logging.debug('issue key is %s' % issue_key)
+            logger.debug('issue key is %s' % issue_key)
             if utils.check_jira_issue_key(issue_key) and issue_key not in self.jira_issues:
-                logging.debug('Packing the function')
+                logger.debug('Packing the function')
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
                     self.creds, issue_key)
-                logging.debug('Puting funcion to the queue')
+                logger.debug('Puting funcion to the queue')
                 self.result_thread.queue.append(get_issue_func)
                 self.result_thread.statuses.append('Getting issue %s ...' % str(issue_key))
         self.ui.lineIssueKey.clear()
@@ -474,7 +475,7 @@ class MainWindow(QtGui.QMainWindow):
             self._refresh_issue(issue_key)
 
     def _refresh_issue(self, issue_key):
-        logging.debug('Refreshing issue %s' % str(issue_key))
+        logger.debug('Refreshing issue %s' % str(issue_key))
         def del_wrapper(db_filename, del_issue_key):
             db.remove_issue(db_filename, del_issue_key)
             return del_issue_key
@@ -488,15 +489,15 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def _add_issue(self, issue):
-        logging.debug('Add issue "%s" to memory' % str(issue))
+        logger.debug('Add issue "%s" to memory' % str(issue))
         self.jira_issues[issue.issue_key] = issue
-        logging.debug('Issue "%s" has been added to memory' % str(issue))
+        logger.debug('Issue "%s" has been added to memory' % str(issue))
         self._refresh_gui()
 
     def _remove_issue(self, issue_key):
-        logging.debug('Remove issue %s from memory' % issue_key)
+        logger.debug('Remove issue %s from memory' % issue_key)
         self.jira_issues[issue_key]
-        logging.debug('Issue %s has been removed from memory' % issue_key)
+        logger.debug('Issue %s has been removed from memory' % issue_key)
         self._refresh_gui()
 
     def add_worklog(self):
@@ -514,7 +515,7 @@ class MainWindow(QtGui.QMainWindow):
             start_time = self.add_window.start_time
             end_time = self.add_window.end_time
             comment = self.add_window.comment
-            logging.debug('From user: %s, %s, %s' % (str(start_time),
+            logger.debug('From user: %s, %s, %s' % (str(start_time),
                                                      str(end_time), comment))
             stat_message = 'Adding worklog for issue %s' % str(issue_key)
             self._start_io(pyjtt.add_worklog, stat_message, self.creds,
@@ -539,7 +540,7 @@ class MainWindow(QtGui.QMainWindow):
                 new_start_time = self.edit_window.start_time
                 new_end_time = self.edit_window.end_time
                 new_comment = self.edit_window.comment
-                logging.debug('From user: %s, %s, %s' % (str(new_start_time), str(new_end_time), new_comment))
+                logger.debug('From user: %s, %s, %s' % (str(new_start_time), str(new_end_time), new_comment))
                 stat_message = 'Edit worklog in issue %s' % str(issue_key)
                 self._start_io(pyjtt.update_worklog, stat_message, self.creds,
                     self.jira_issues[issue_key], worklog_id, new_start_time,
@@ -563,13 +564,13 @@ class MainWindow(QtGui.QMainWindow):
 
     def _start_io(self, func, msg, *args):
         single = False
-        logging.debug('Packing function')
+        logger.debug('Packing function')
         io_func = partial(func, *args)
         if single:
             io_func()
             self.print_day_worklog()
         else:
-            logging.debug('Adding finction to queue')
+            logger.debug('Adding finction to queue')
             self.io_thread.queue.append(io_func)
             self.io_thread.statuses.append(msg)
 
@@ -597,7 +598,7 @@ class MainWindow(QtGui.QMainWindow):
                     reply = QtGui.QMessageBox.question(self, 'Add worklog',
                     info_msg    , QtGui.QMessageBox.Yes, QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)
                     if reply == QtGui.QMessageBox.Yes:
-                        logging.debug('From GUI: %s, %s, %s' % (self.selected_issue.issue_key,
+                        logger.debug('From GUI: %s, %s, %s' % (self.selected_issue.issue_key,
                                                                 str(self.tracking_thread.start),
                                                                 str(self.tracking_thread.current)
                                                                 )
@@ -629,23 +630,28 @@ def perform_login(jirahost=None):
     login_window = LoginForm(jirahost=jirahost)
     login_window.show()
     if login_window.exec_() == QtGui.QDialog.Accepted:
-        logging.debug('Login successful')
+        logger.debug('Login successful')
         jirahost = login_window.jira_host
         login = login_window.login
         password = login_window.password
         save_credentials = login_window.save_credentials
     else:
-        logging.info('Exit')
+        logger.info('Exit')
         #TODO: add exit code, but without freezing
         sys.exit()
     return jirahost, login, password, save_credentials
 
 
 def main():
-    logging.debug('Local GMT offset is %s' % utils.LOCAL_UTC_OFFSET)
+    logger.debug('Local GMT offset is %s' % utils.LOCAL_UTC_OFFSET)
     # base constants
     app = QtGui.QApplication(sys.argv)
-    config_filename = 'pyjtt.cfg'
+    #workdir = utils.get_app_working_dir()
+    #if not os.path.isdir(workdir):
+    #    logger.debug('First start')
+    #    os.mkdir(workdir)
+    #config_filename = os.path.join(workdir,'pyjtt.cfg')
+    config_filename = 'pyjtt_user.cfg'
     save_credentials = False
     if not os.path.isfile(config_filename):
         jirahost, login, password, save_credentials = perform_login()
@@ -653,15 +659,14 @@ def main():
         jirahost, login, password = utils.get_settings(config_filename)
         jirahost, login, password, save_credentials = perform_login(jirahost)
     else:
-        logging.debug('Config file exists, reading settings')
+        logger.debug('Config file exists, reading settings')
         jirahost, login, password = utils.get_settings(config_filename)
-    # add save credentials part
     if save_credentials:
-        logging.debug('Saving credentials')
+        logger.debug('Saving credentials')
         utils.save_settings(config_filename, (jirahost, login, password))
     else:
         utils.save_settings(config_filename, (jirahost, '', ''))
-    logging.debug('Starting Main Application')
+    logger.debug('Starting Main Application')
     pyjtt_main_window = MainWindow(jirahost, login, password)
     pyjtt_main_window.show()
     sys.exit(app.exec_())
