@@ -646,12 +646,11 @@ def main():
     logger.debug('Local GMT offset is %s' % utils.LOCAL_UTC_OFFSET)
     # base constants
     app = QtGui.QApplication(sys.argv)
-    #workdir = utils.get_app_working_dir()
-    #if not os.path.isdir(workdir):
-    #    logger.debug('First start')
-    #    os.mkdir(workdir)
-    #config_filename = os.path.join(workdir,'pyjtt.cfg')
-    config_filename = 'pyjtt_user.cfg'
+    workdir = utils.get_app_working_dir()
+    if not os.path.isdir(workdir):
+        logger.debug('First start')
+        os.mkdir(workdir)
+    config_filename = os.path.join(workdir,'pyjtt.cfg')
     save_credentials = False
     if not os.path.isfile(config_filename):
         jirahost, login, password, save_credentials = perform_login()

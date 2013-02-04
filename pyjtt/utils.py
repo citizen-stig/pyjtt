@@ -6,6 +6,7 @@ import ConfigParser
 from custom_logging import logger
 import urllib2
 import sys
+import os
 
 __author__ = 'Nikolay Golub'
 
@@ -111,14 +112,11 @@ def check_url_host(url):
 def get_app_working_dir():
     app_name = 'pyjtt'
     if 'linux' in sys.platform:
-		pass
-        # linux
+        return os.path.join(os.environ['HOME'], '.' + app_name)
     elif 'win' in sys.platform:
-		pass
-        # windows
+        return os.path.join(os.environ['APPDATA'], app_name)
     else:
-		pass
-        # 
+        return os.path.abspath('.' + app_name)
 
 
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
