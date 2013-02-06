@@ -11,6 +11,7 @@ import os
 __author__ = 'Nikolay Golub'
 
 def get_settings(config_filename):
+    """Reads setting from configuration file"""
     logger.debug('Getting base options')
     #config = ConfigParser.ConfigParser()
     config = ConfigParser.SafeConfigParser({'host': '',
@@ -30,6 +31,7 @@ def get_settings(config_filename):
     return jirahost, login, password
 
 def save_settings(config_filename, creds):
+    """Saves settings to configuration file"""
     logger.debug('Saving configuration')
     if len(creds) != 3:
         raise ValueError('Credentials tuple is incomplete')
@@ -43,12 +45,14 @@ def save_settings(config_filename, creds):
     logger.debug('Options have been saved')
 
 def get_db_filename(login, jirahost):
+    """Builds Database filename from user login and JIRA host name"""
     # TODO: add absolute path handling
     return login + '_'\
            + jirahost.replace('http://', '').replace('https://', '').replace('/','').replace(':', '') \
            + '.db'
 
 def get_local_utc_offset(now, utcnow):
+    """Calculates local UTC offset. Returns string"""
     logger.debug('Getting local UTC Offset')
     def absolute_offset(bigger_timestamp, smaller_timestamp):
         offset = bigger_timestamp.hour - smaller_timestamp.hour
@@ -71,6 +75,7 @@ def get_local_utc_offset(now, utcnow):
     return sign + offset
 
 def get_timedelta_from_utc_offset(time_string):
+    """Defines timedelta object from utc offset string"""
     utc_offset = time_string[-5:]
     hours = int(utc_offset[0:3])
     minutes = int(utc_offset[3:5])
@@ -79,8 +84,7 @@ def get_timedelta_from_utc_offset(time_string):
 
 
 def get_time_spent_string(t_delta):
-    #raw_spent = timestamp_end\
-    #            - timestamp_start
+    """Converts timedelta object to time spent string."""
     hours, seconds = divmod(t_delta.total_seconds(), 3600)
     minutes = seconds / 60
     spent = ''
@@ -92,6 +96,7 @@ def get_time_spent_string(t_delta):
     return spent_str
 
 def check_jira_issue_key(issue_key):
+    """Checks syntax of JIRA issue key"""
     splitted = issue_key.split('-')
     if len(splitted) == 2:
         return splitted[1].isdigit() and splitted[0].isalpha() and splitted[0].isupper()
@@ -99,6 +104,7 @@ def check_jira_issue_key(issue_key):
         return False
 
 def check_url_host(url):
+    """Simple host availability checker"""
     try:
         urllib2.urlopen(url,timeout=3)
         logger.info('Host %s is ok and accessible' % str(url))
@@ -110,6 +116,10 @@ def check_url_host(url):
     return False
 
 def get_app_working_dir():
+    """Returns path to application operational folder.
+
+    Options and local database are stored in this folder.
+    """
     app_name = 'pyjtt'
     if 'linux' in sys.platform:
         return os.path.join(os.environ['HOME'], '.' + app_name)
@@ -118,6 +128,6 @@ def get_app_working_dir():
     else:
         return os.path.abspath('.' + app_name)
 
-
+# global variables, that can be used by other modules
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)

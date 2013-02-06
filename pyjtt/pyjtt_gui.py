@@ -17,23 +17,34 @@ from gui import login_screen, main_window, worklog_window
 
 
 def datetime_to_qtime(timestamp):
+    """Converts Qtime timestamp to Python datetime"""
     return QtCore.QTime(timestamp.hour, timestamp.minute)
 
 
 class BaseThread(QtCore.QThread):
+    """Base class for thread in pyjtt. Not used directly"""
     exception_raised = QtCore.pyqtSignal(Exception)
     status_sent = QtCore.pyqtSignal(str)
     status_cleared = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
+        """Initializes queue and statuses
+
+        queue vairable is a list of functions, which should be run in thread.
+        statuses variavle is a list of strings, that should be shown as status.
+        indexes of queue and status should correspond to each other.
+        Each function should have a status message (at least empty)
+        """
         QtCore.QThread.__init__(self, parent)
         self.queue = deque()
         self.statuses = deque()
 
     def _run(self, func):
+        """Should be implemented in child classees."""
         pass
 
     def run(self):
+        """Prepares execution and handles status messages."""
         while True:
             if len(self.queue):
                 logger.info('Here is a job in queue')
@@ -51,6 +62,7 @@ class BaseThread(QtCore.QThread):
 
 
 class ResultThread(BaseThread):
+    """This thread executed functions, which returns result(JIRAIssue object)."""
     issue_get = QtCore.pyqtSignal(rest_wrapper.JIRAIssue)
     issue_removed = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
@@ -68,6 +80,7 @@ class ResultThread(BaseThread):
 
 
 class IOThread(BaseThread):
+    """Simple thread for I/O opertions which don't return anything"""
     done = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         logger.info('Initialize simple I/O thread')
@@ -81,6 +94,11 @@ class IOThread(BaseThread):
 
 
 class TimeWorker(QtCore.QThread):
+    """Thread for tracking timer.
+
+    It is created when time starts and ended when timer stops.
+    It wakes up every 500 ms
+    """
     timer_updated = QtCore.pyqtSignal(int)
     def __init__(self, parent = None):
         logger.debug('Initialize timer')
