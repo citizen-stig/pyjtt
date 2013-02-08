@@ -121,6 +121,10 @@ class TimeWorker(QtCore.QThread):
 
 
 class WorklogWindow(QtGui.QDialog):
+    """Widget for working with worklog data.
+
+    It allow to set a
+    """
     def __init__(self, title, issue_key, summary, selected_date, start_time=None, end_time=None, comment=None, parent=None):
         logger.debug('Opening worklog window')
         QtGui.QWidget.__init__(self, parent)
@@ -144,8 +148,6 @@ class WorklogWindow(QtGui.QDialog):
         self.ui.timeEndEdit.timeChanged.connect(self._end_time_changed)
         self.ui.buttonBox.accepted.connect(self._save_worklog_data)
         self.ui.buttonBox.rejected.connect(self._user_exit)
-
-
 
     def _start_time_changed(self):
         if self.ui.timeStartEdit.time() >= self.ui.timeEndEdit.time():
@@ -229,8 +231,6 @@ class LoginForm(QtGui.QDialog):
             logger.debug('Login successful')
             if self.ui.checkBoxSaveCredentials.isChecked():
                 self.save_credentials = True
-                #logger.debug('Saving Credentials')
-                #utils.save_settings(self.config_filename, (jirahost,  login, password))
             return True
         except rest_wrapper.urllib2.HTTPError as e:
             if e.code == 401:
@@ -251,13 +251,13 @@ class MainWindow(QtGui.QMainWindow):
 
         # Main dictionary, contains JIRAIssue objects, key is JIRA issue key
         self.jira_issues = {}
-        # Issue which is selected by user. It isud in online tracking
+        # Issue which is selected by user. It is used in online tracking
         self.selected_issue = None
         self.is_tracking_on = False
         # number of worklogid column, which is hidden from user
         self.worklogid_column = 5
-        self.local_db_name = utils.get_db_filename(login, jirahost)
-
+        self.local_db_name = os.path.join(utils.get_app_working_dir(),
+            utils.get_db_filename(login, jirahost))
         if not os.path.isfile(self.local_db_name):
             logger.debug('Local DB does not exist. Creating local database')
             db.create_local_db(self.local_db_name)
@@ -368,7 +368,7 @@ class MainWindow(QtGui.QMainWindow):
         logger.debug('Issues table has been refreshed')
 
     def print_day_worklog(self):
-        logger.info('RefReshing day worklog table')
+        logger.info('Refreshing day worklog table')
         selected_day = self.ui.dateDayWorklogEdit.date().toPyDate()
         day_work = db.get_day_worklog(self.creds[3], selected_day)
         day_summary = datetime.timedelta(seconds=0)
@@ -528,7 +528,7 @@ class MainWindow(QtGui.QMainWindow):
         self.add_window = WorklogWindow(title, issue_key, summary,
             selected_date, start_time=start_time, end_time=end_time, parent=self)
         self.add_window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        self.add_window.show()
+        self.add_window.exec_()
         if self.add_window.exec_() == QtGui.QDialog.Accepted:
             start_time = self.add_window.start_time
             end_time = self.add_window.end_time
@@ -553,7 +553,7 @@ class MainWindow(QtGui.QMainWindow):
                 selected_date, start_time=start_time, end_time=end_time,
                 comment=comment, parent=self)
             self.edit_window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            self.edit_window.show()
+            self.edit_window.exec_()
             if self.edit_window.exec_() == QtGui.QDialog.Accepted:
                 new_start_time = self.edit_window.start_time
                 new_end_time = self.edit_window.end_time
@@ -638,7 +638,6 @@ class MainWindow(QtGui.QMainWindow):
 
     def _clear_tracking_timer(self):
         self.tracking_thread.terminate()
-        self.ui.startStopTracking.setText('Start Tracking')
         self.ui.startStopTracking.setText('Start Tracking')
         self.ui.labelTimeSpent.setText('00:00:00')
         self.is_tracking_on = False
