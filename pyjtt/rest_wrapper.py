@@ -56,8 +56,8 @@ class JIRAIssue(JiraRestBase):
         logger.info('Initialize JIRA Issue %s object' % issue_key)
         JiraRestBase.__init__(self, jirahost, login, password)
         self.issue_key = issue_key
-        self.issue_url = self.jirahost + '/rest/api/2/issue/' + self.issue_key
-        self.add_url = self.jirahost + '/rest/api/2/issue/' +\
+        self.issue_url = self.jirahost + '/rest/api/latest/issue/' + self.issue_key
+        self.add_url = self.jirahost + '/rest/api/latest/issue/' +\
                        self.issue_key + '/worklog'
         self.jira_timeformat = '%Y-%m-%dT%H:%M:%S'
         self.worklog = {}
@@ -106,7 +106,7 @@ class JIRAIssue(JiraRestBase):
         All parameters checks should be done before call this method.
         """
         logger.debug('Removing worklog %s' % worklog_id)
-        remove_url = self.jirahost + '/rest/api/2/issue/' +\
+        remove_url = self.jirahost + '/rest/api/latest/issue/' +\
                      self.issue_key + '/worklog/' + str(worklog_id)
         res = self.rest_req(remove_url, req_type='DELETE')
         if res.code == 204:
@@ -122,7 +122,7 @@ class JIRAIssue(JiraRestBase):
         All parameters checks should be done before call this method.
         """
         logger.debug('Updating worklog %s' % repr(worklog_id))
-        upd_url = self.jirahost + '/rest/api/2/issue/' +\
+        upd_url = self.jirahost + '/rest/api/latest/issue/' +\
                   self.issue_key + '/worklog/' + str(worklog_id)
         if start_date and end_date:
             data = self.__prepare_worklog_data(start_date, end_date, comment)
@@ -177,7 +177,7 @@ class JiraUser(JiraRestBase):
     def __init__(self, jirahost, login, password):
         logger.debug('Jira user object has been called')
         JiraRestBase.__init__(self, jirahost, login, password)
-        self.user_url = str(self.jirahost) + '/rest/api/2/user?username=' + str(self.login)
+        self.user_url = str(self.jirahost) + '/rest/api/latest/user?username=' + str(self.login)
         raw_user_data = self.rest_req(self.user_url)
         self.display_name = raw_user_data['displayName']
         self.email = raw_user_data['emailAddress']
@@ -188,7 +188,7 @@ class JiraUser(JiraRestBase):
         Currently gets only 50 issues
         """
         # TODO: add sorting in JQL
-        assigned_url = '%s/rest/api/2/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed&fields=key' %(self.jirahost, self.login)
+        assigned_url = '%s/rest/api/latest/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed&fields=key' %(self.jirahost, self.login)
         self.assigned_issue_keys = []
         logger.debug('Request assigned issues')
         raw_assigned = self.rest_req(assigned_url)
