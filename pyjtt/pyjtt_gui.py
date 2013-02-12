@@ -528,7 +528,6 @@ class MainWindow(QtGui.QMainWindow):
         self.add_window = WorklogWindow(title, issue_key, summary,
             selected_date, start_time=start_time, end_time=end_time, parent=self)
         self.add_window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        self.add_window.exec_()
         if self.add_window.exec_() == QtGui.QDialog.Accepted:
             start_time = self.add_window.start_time
             end_time = self.add_window.end_time
@@ -553,7 +552,6 @@ class MainWindow(QtGui.QMainWindow):
                 selected_date, start_time=start_time, end_time=end_time,
                 comment=comment, parent=self)
             self.edit_window.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            self.edit_window.exec_()
             if self.edit_window.exec_() == QtGui.QDialog.Accepted:
                 new_start_time = self.edit_window.start_time
                 new_end_time = self.edit_window.end_time
