@@ -10,6 +10,7 @@ import os
 
 __author__ = 'Nikolay Golub'
 
+
 def get_settings(config_filename):
     """Reads setting from configuration file"""
     logger.debug('Getting base options')
@@ -30,6 +31,7 @@ def get_settings(config_filename):
     logger.info('Options have been red')
     return jirahost, login, password
 
+
 def save_settings(config_filename, creds):
     """Saves settings to configuration file"""
     logger.debug('Saving configuration')
@@ -44,16 +46,19 @@ def save_settings(config_filename, creds):
         config.write(configfile)
     logger.debug('Options have been saved')
 
+
 def get_db_filename(login, jirahost):
     """Builds Database filename from user login and JIRA host name"""
     # TODO: add absolute path handling
     return login + '_'\
-           + jirahost.replace('http://', '').replace('https://', '').replace('/','').replace(':', '') \
+           + jirahost.replace('http://', '').replace('https://', '').replace('/', '').replace(':', '') \
            + '.db'
+
 
 def get_local_utc_offset(now, utcnow):
     """Calculates local UTC offset. Returns string"""
     logger.debug('Getting local UTC Offset')
+
     def absolute_offset(bigger_timestamp, smaller_timestamp):
         offset = bigger_timestamp.hour - smaller_timestamp.hour
         minutes = bigger_timestamp.minute - smaller_timestamp.minute
@@ -64,7 +69,8 @@ def get_local_utc_offset(now, utcnow):
             hours_diff = abs(hours_diff - 24)
         offset = '%02d%02d' % ( hours_diff, abs(minutes))
         return offset
-    if (now-utcnow).total_seconds() > 50400 or (now-utcnow).total_seconds() < -43200:
+
+    if (now - utcnow).total_seconds() > 50400 or (now - utcnow).total_seconds() < -43200:
         raise ValueError('Offset is too large')
     if now >= utcnow:
         sign = '+'
@@ -95,6 +101,7 @@ def get_time_spent_string(t_delta):
     spent_str = spent.strip()
     return spent_str
 
+
 def check_jira_issue_key(issue_key):
     """Checks syntax of JIRA issue key"""
     splitted = issue_key.split('-')
@@ -102,6 +109,7 @@ def check_jira_issue_key(issue_key):
         return splitted[1].isdigit() and splitted[0].isalpha() and splitted[0].isupper()
     else:
         return False
+
 
 def check_url_host(url):
     """Simple host availability checker"""
@@ -114,6 +122,7 @@ def check_url_host(url):
     except ValueError as valerr:
         logger.error('URL: "%s" is not an valid url' % url)
     return False
+
 
 def get_app_working_dir():
     """Returns path to application operational folder.
