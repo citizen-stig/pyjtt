@@ -9,6 +9,7 @@ import datetime
 from custom_logging import logger
 import utils
 
+
 class JiraRestBase(object):
     """Wrapper class for making JIRA requests.
 
@@ -19,9 +20,9 @@ class JiraRestBase(object):
         self.jirahost = jirahost
         self.login = login
         self.password = password
-        self.auth_string = 'Basic '+ (self.login + \
-                                      ":" + \
-                                      self.password).encode('base64').rstrip()
+        self.auth_string = 'Basic ' + (self.login +
+                                       ":" +
+                                       self.password).encode('base64').rstrip()
         logger.debug("JiraRestBase object initialization is completed")
 
     def rest_req(self, url, data=None, req_type=None):
@@ -34,8 +35,7 @@ class JiraRestBase(object):
         logger.info("Make a request to %s" % url)
         if data:
             request = urllib2.Request(url,
-                data,
-                {'Content-Type': 'application/json'})
+                                      data, {'Content-Type': 'application/json'})
         else:
             request = urllib2.Request(url)
         request.add_header('Authorization', self.auth_string)
@@ -56,25 +56,25 @@ class JIRAIssue(JiraRestBase):
         logger.info('Initialize JIRA Issue %s object' % issue_key)
         JiraRestBase.__init__(self, jirahost, login, password)
         self.issue_key = issue_key
-        self.issue_url = self.jirahost + '/rest/api/latest/issue/' + self.issue_key
-        self.add_url = self.jirahost + '/rest/api/latest/issue/' +\
+        self.issue_url = self.jirahost + '/rest/api/2/issue/' + self.issue_key
+        self.add_url = self.jirahost + '/rest/api/2/issue/' + \
                        self.issue_key + '/worklog'
         self.jira_timeformat = '%Y-%m-%dT%H:%M:%S'
         self.worklog = {}
-        # If new parameter is set to False, issue is built offline
+        # If new parameter is set to False, issue will build offline
         if new:
             self.get_issue_data()
         logger.debug('Initialization of %s is completed' % self.issue_key)
 
     def get_issue_data(self):
-        """Gets issue data: Summary, ID and worklogs."""
+        """Gets issue data: Summary, ID and work logs."""
         logger.debug('Requesting worklog for issue %s' % self.issue_key)
         raw_issue_data = self.rest_req(self.issue_url)
         logger.debug('Parsing issue %s' % self.issue_key)
         self.summary = raw_issue_data['fields']['summary']
         self.issue_id = int(raw_issue_data['id'])
         if not raw_issue_data['fields']['worklog']['worklogs']:
-            logger.info('Worklog is emtpty for this issue')
+            logger.info('Worklog is empty for this issue')
         else:
             for a in raw_issue_data['fields']['worklog']['worklogs']:
                 if a['author']['name'] == self.login:
@@ -91,14 +91,14 @@ class JIRAIssue(JiraRestBase):
         """
         logger.debug('Adding worklog to issue %s' % self.issue_key)
         json_data = json.dumps(
-            self.__prepare_worklog_data(start_date,end_date,comment))
+            self.__prepare_worklog_data(start_date, end_date, comment))
         new_worklog = self.rest_req(self.add_url, data=json_data)
         self.worklog[int(new_worklog['id'])] = self.__parse_worklog(
             new_worklog['started'],
             new_worklog['timeSpentSeconds'],
             new_worklog.get('comment', ''))
         logger.debug('Worklog has been added')
-        return { int(new_worklog['id']) : self.worklog[int(new_worklog['id'])] }
+        return {int(new_worklog['id']): self.worklog[int(new_worklog['id'])]}
 
     def remove_worklog(self, worklog_id):
         """Removes worklog from the issue.
@@ -106,8 +106,8 @@ class JIRAIssue(JiraRestBase):
         All parameters checks should be done before call this method.
         """
         logger.debug('Removing worklog %s' % worklog_id)
-        remove_url = self.jirahost + '/rest/api/latest/issue/' +\
-                     self.issue_key + '/worklog/' + str(worklog_id)
+        remove_url = self.jirahost + '/rest/api/2/issue/' + \
+            self.issue_key + '/worklog/' + str(worklog_id)
         res = self.rest_req(remove_url, req_type='DELETE')
         if res.code == 204:
             del self.worklog[worklog_id]
@@ -122,12 +122,12 @@ class JIRAIssue(JiraRestBase):
         All parameters checks should be done before call this method.
         """
         logger.debug('Updating worklog %s' % repr(worklog_id))
-        upd_url = self.jirahost + '/rest/api/latest/issue/' +\
-                  self.issue_key + '/worklog/' + str(worklog_id)
+        upd_url = self.jirahost + '/rest/api/2/issue/' + \
+            self.issue_key + '/worklog/' + str(worklog_id)
         if start_date and end_date:
             data = self.__prepare_worklog_data(start_date, end_date, comment)
         elif comment:
-            data = { 'comment' : comment }
+            data = {'comment': comment}
         logger.debug('Update worklog with this data: %s ' % repr(data))
         json_data = json.dumps(data)
         updated_worklog = self.rest_req(upd_url, data=json_data, req_type='PUT')
@@ -153,12 +153,11 @@ class JIRAIssue(JiraRestBase):
     def __prepare_worklog_data(self, start_date, end_date, comment=None):
         """Prepares worklog entry data for JIRA representation"""
         logger.debug('Preparing worklog for sending')
-        started = start_date.strftime(self.jira_timeformat) + '.000' + utils.LOCAL_UTC_OFFSET
+        started = start_date.strftime(self.jira_timeformat) + \
+            '.000' + utils.LOCAL_UTC_OFFSET
         spent = end_date - start_date
-        data = {
-            'started' : started,
-            'timeSpentSeconds' : int(spent.total_seconds())
-        }
+        data = {'started': started,
+                'timeSpentSeconds': int(spent.total_seconds())}
         if comment:
             data['comment'] = comment
         logger.debug('Worklog has been prepared')
@@ -177,7 +176,7 @@ class JiraUser(JiraRestBase):
     def __init__(self, jirahost, login, password):
         logger.debug('Jira user object has been called')
         JiraRestBase.__init__(self, jirahost, login, password)
-        self.user_url = str(self.jirahost) + '/rest/api/latest/user?username=' + str(self.login)
+        self.user_url = str(self.jirahost) + '/rest/api/2/user?username=' + str(self.login)
         raw_user_data = self.rest_req(self.user_url)
         self.display_name = raw_user_data['displayName']
         self.email = raw_user_data['emailAddress']
@@ -188,7 +187,7 @@ class JiraUser(JiraRestBase):
         Currently gets only 50 issues
         """
         # TODO: add sorting in JQL
-        assigned_url = '%s/rest/api/latest/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed&fields=key' %(self.jirahost, self.login)
+        assigned_url = '%s/rest/api/2/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed&fields=key' % (self.jirahost, self.login)
         self.assigned_issue_keys = []
         logger.debug('Request assigned issues')
         raw_assigned = self.rest_req(assigned_url)

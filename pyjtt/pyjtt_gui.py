@@ -15,7 +15,6 @@ import db, utils, rest_wrapper, pyjtt
 from gui import login_screen, main_window, worklog_window
 
 
-
 def datetime_to_qtime(timestamp):
     """Converts Qtime timestamp to Python datetime"""
     return QtCore.QTime(timestamp.hour, timestamp.minute)
@@ -28,10 +27,10 @@ class BaseThread(QtCore.QThread):
     status_cleared = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        """Initializes queue and statuses
+        """Initializes queue and statuses.
 
-        queue vairable is a list of functions, which should be run in thread.
-        statuses variavle is a list of strings, that should be shown as status.
+        queue variable is a list of functions, which should be run in thread.
+        statuses variable is a list of strings, that should be shown as status.
         indexes of queue and status should correspond to each other.
         Each function should have a status message (at least empty)
         """
@@ -62,9 +61,10 @@ class BaseThread(QtCore.QThread):
 
 
 class ResultThread(BaseThread):
-    """This thread executed functions, which returns result(JIRAIssue object)."""
+    """This thread executed functions, which returns result(JIRAIssue object)"""
     issue_get = QtCore.pyqtSignal(rest_wrapper.JIRAIssue)
     issue_removed = QtCore.pyqtSignal(str)
+
     def __init__(self, parent=None):
         logger.info('Initialize result thread')
         BaseThread.__init__(self, parent)
@@ -80,8 +80,9 @@ class ResultThread(BaseThread):
 
 
 class IOThread(BaseThread):
-    """Simple thread for I/O opertions which don't return anything"""
+    """Simple thread for I/O operations which don't return anything"""
     done = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         logger.info('Initialize simple I/O thread')
         BaseThread.__init__(self, parent)
@@ -100,6 +101,7 @@ class TimeWorker(QtCore.QThread):
     It wakes up every 500 ms
     """
     timer_updated = QtCore.pyqtSignal(int)
+
     def __init__(self, parent = None):
         logger.debug('Initialize timer')
         QtCore.QThread.__init__(self, parent)
@@ -123,9 +125,10 @@ class TimeWorker(QtCore.QThread):
 class WorklogWindow(QtGui.QDialog):
     """Widget for working with worklog data.
 
-    It allow to set a
+    It allows to set date, time ranges and comment to JIRA worklog
     """
-    def __init__(self, title, issue_key, summary, selected_date, start_time=None, end_time=None, comment=None, parent=None):
+    def __init__(self, title, issue_key, summary, selected_date,
+                 start_time=None, end_time=None, comment=None, parent=None):
         logger.debug('Opening worklog window')
         QtGui.QWidget.__init__(self, parent)
         self.ui = worklog_window.Ui_WorklogWindow()
@@ -152,7 +155,8 @@ class WorklogWindow(QtGui.QDialog):
     def _start_time_changed(self):
         if self.ui.timeStartEdit.time() >= self.ui.timeEndEdit.time():
             combine = datetime.datetime.combine
-            start_time = (combine(datetime.date.today(), self.ui.timeEndEdit.time().toPyTime())
+            today = datetime.date.today
+            start_time = (combine(today(),  self.ui.timeEndEdit.time().toPyTime())
                           - datetime.timedelta(minutes=1)).time()
             self.ui.timeStartEdit.setTime(datetime_to_qtime(start_time))
         self._refresh_spent()
@@ -160,7 +164,8 @@ class WorklogWindow(QtGui.QDialog):
     def _end_time_changed(self):
         if self.ui.timeStartEdit.time() >= self.ui.timeEndEdit.time():
             combine = datetime.datetime.combine
-            end_time = (combine(datetime.date.today(), self.ui.timeStartEdit.time().toPyTime())
+            today = datetime.date.today
+            end_time = (combine(today(), self.ui.timeStartEdit.time().toPyTime())
                           + datetime.timedelta(minutes=1)).time()
             self.ui.timeEndEdit.setTime(datetime_to_qtime(end_time))
         self._refresh_spent()
@@ -183,8 +188,8 @@ class WorklogWindow(QtGui.QDialog):
 
     def _refresh_spent(self):
         logger.debug('Refresh time spent')
-        spent = 'Time spent: ' +\
-                utils.get_time_spent_string(self.ui.timeEndEdit.dateTime().toPyDateTime() -\
+        spent = 'Time spent: ' + \
+                utils.get_time_spent_string(self.ui.timeEndEdit.dateTime().toPyDateTime() - \
                                             self.ui.timeStartEdit.dateTime().toPyDateTime())
         self.ui.labelSpent.setText(spent)
         logger.debug('Time spent is refreshed')
@@ -205,9 +210,9 @@ class LoginForm(QtGui.QDialog):
         # user interaction
         self.jira_host = str(self.ui.lineEditHostAddress.text())
         self.login = str(self.ui.lineEditLogin.text())
-        self.password =  str(self.ui.lineEditPassword.text())
+        self.password = str(self.ui.lineEditPassword.text())
         if not self.jira_host:
-            QtGui.QMessageBox.warning(self, 'Login error', 'Enter jira host address')
+            QtGui.QMessageBox.warning(self, 'Login error', 'Enter JIRA host address')
         elif not self.login:
             QtGui.QMessageBox.warning(self, 'Login error', 'Enter login')
         elif not self.password:
@@ -218,7 +223,9 @@ class LoginForm(QtGui.QDialog):
                 if self._login(self.login, self.password, self.jira_host):
                     self.accept()
             else:
-                QtGui.QMessageBox.warning(self, 'Login error', 'Host is unavailbale or internet connection is too bad')
+                QtGui.QMessageBox.warning(self, 'Login error',
+                                          'Host is unavailable or'
+                                          'internet connection is too bad')
             logger.debug('Ending Login')
 
     def user_exit(self):
@@ -434,14 +441,14 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.status_msg.show()
         self.ui.spinning_img.start()
         self.status_msg_queue += 1
-        logger.debug('Thread queue for a statusbar is %d ' % self.status_msg_queue)
+        logger.debug('Thread queue for a status bar is %d ' % self.status_msg_queue)
 
     def clear_status_msg(self):
         if self.status_msg_queue == 1:
             self.ui.status_msg.hide()
             self.ui.spinning_label.hide()
         self.status_msg_queue -= 1
-        logger.debug('Thread queue for a statusbar is %d ' % self.status_msg_queue)
+        logger.debug('Thread queue for a status bar is %d ' % self.status_msg_queue)
 
     def _format_seconds_timer(self, seconds):
         days, seconds = divmod(seconds, 86400)
@@ -505,7 +512,6 @@ class MainWindow(QtGui.QMainWindow):
         self.result_thread.queue.append(get_issue_func)
         self.result_thread.statuses.append('Refreshing issue %s ...' % str(issue_key))
 
-
     def _add_issue(self, issue):
         logger.debug('Add issue "%s" to memory' % str(issue))
         self.jira_issues[issue.issue_key] = issue
@@ -514,7 +520,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def _remove_issue(self, issue_key):
         logger.debug('Remove issue %s from memory' % issue_key)
-        self.jira_issues[issue_key]
+        del self.jira_issues[issue_key]
         logger.debug('Issue %s has been removed from memory' % issue_key)
         self._refresh_gui()
 
@@ -537,7 +543,7 @@ class MainWindow(QtGui.QMainWindow):
             stat_message = 'Adding worklog for issue %s' % str(issue_key)
             self._start_io(pyjtt.add_worklog, stat_message, self.creds,
                 self.jira_issues[issue_key],  start_time,
-                end_time, comment )
+                end_time, comment)
 
     def _edit_worklog(self):
         if self.ui.tableDayWorklog.selectedItems():
