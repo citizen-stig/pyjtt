@@ -290,7 +290,7 @@ class MainWindow(QtGui.QMainWindow):
         # GUI customization
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
         #self.ui.tableDayWorklog.sortByColumn(2,0)
-        # Hide worklogid from user
+        # Hide work log id from user
         self.ui.tableDayWorklog.setColumnHidden(self.worklogid_column, True)
         # Add status bar preferences
         self.ui.spinning_img = QtGui.QMovie('spinning-progress.gif')
@@ -302,6 +302,11 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.status_msg.hide()
         self.ui.spinning_label.hide()
         self.status_msg_queue = 0
+
+        self.ui.start_icon = QtGui.QIcon()
+        self.ui.start_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(":/icons/set2/icons/set2/start.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.stop_icon = QtGui.QIcon()
+        self.ui.stop_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(":/icons/set2/icons/set2/stop.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
         # Threads
         self.result_thread = ResultThread(self)
@@ -332,7 +337,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionFull_refresh.triggered.connect(self.full_refresh_action)
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
 
-        # Reqeust assigned issues
+        # Request assigned issues
         for assigned_issue in self.user.assigned_issue_keys:
             if assigned_issue not in self.jira_issues:
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
@@ -371,7 +376,7 @@ class MainWindow(QtGui.QMainWindow):
             QtGui.QHeaderView.Stretch)
         self.ui.tableIssues.horizontalHeader().setResizeMode(0,
             QtGui.QHeaderView.Fixed)
-        self.ui.tableIssues.sortByColumn(0,0)
+        self.ui.tableIssues.sortByColumn(0, 0)
         logger.debug('Issues table has been refreshed')
 
     def print_day_worklog(self):
@@ -592,13 +597,14 @@ class MainWindow(QtGui.QMainWindow):
             io_func()
             self.print_day_worklog()
         else:
-            logger.debug('Adding finction to queue')
+            logger.debug('Adding function to queue')
             self.io_thread.queue.append(io_func)
             self.io_thread.statuses.append(msg)
 
     def _tracking(self):
         if self.selected_issue:
             if self.ui.startStopTracking.isChecked():
+                self.ui.startStopTracking.setIcon(self.ui.stop_icon)
                 self.ui.startStopTracking.setText('Stop Tracking')
                 self.is_tracking_on = True
                 self.tracking_thread = TimeWorker()
@@ -643,6 +649,7 @@ class MainWindow(QtGui.QMainWindow):
     def _clear_tracking_timer(self):
         self.tracking_thread.terminate()
         self.ui.startStopTracking.setText('Start Tracking')
+        self.ui.startStopTracking.setIcon(self.ui.start_icon)
         self.ui.labelTimeSpent.setText('00:00:00')
         self.is_tracking_on = False
 
