@@ -1,0 +1,17 @@
+<RCC>
+  <qresource prefix="/icons/set1">
+    <file>icons/set1/clock.ico</file>
+    <file>icons/set1/start.ico</file>
+    <file>icons/set1/stop.ico</file>
+    <file>spinning-progress.gif</file>
+  </qresource>
+  <qresource prefix="/icons/set2">
+    <file>icons/set2/stop.ico</file>
+    <file>icons/set2/start.ico</file>
+    <file>icons/set2/clock.ico</file>
+  </qresource>
+  <qresource prefix="/icons/set3">
+    <file>icons/set3/Mazenl77-I-Like-Buttons-LH2-Play.ico</file>
+    <file>icons/set3/Mazenl77-I-Like-Buttons-LH2-Stop.ico</file>
+  </qresource>
+</RCC>

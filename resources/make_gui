@@ -1,4 +1,4 @@
 pyuic4 main_window.ui -o ../pyjtt/gui/main_window.py
 pyuic4 login_screen.ui -o ../pyjtt/gui/login_screen.py
 pyuic4 worklog_window.ui -o ../pyjtt/gui/worklog_window.py
-pyrcc4 pyjtt.qrc -o ../pyjtt/gui/pyjtt_rc.py
+pyrcc4 pyjtt_icons.qrc -o ../pyjtt/gui/pyjtt_icons_rc.py

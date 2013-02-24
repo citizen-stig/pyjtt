@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'worklog_window.ui'
 #
-# Created: Fri Feb  8 10:15:17 2013
+# Created: Sun Feb 24 13:29:56 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -35,7 +35,7 @@ class Ui_WorklogWindow(object):
         WorklogWindow.setMinimumSize(QtCore.QSize(320, 260))
         WorklogWindow.setMaximumSize(QtCore.QSize(600, 800))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/clock_apple.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/set1/icons/set1/clock.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         WorklogWindow.setWindowIcon(icon)
         WorklogWindow.setWhatsThis(_fromUtf8(""))
         self.gridLayout = QtGui.QGridLayout(WorklogWindow)
@@ -74,6 +74,7 @@ class Ui_WorklogWindow(object):
         self.formLayout.setFormAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTop|QtCore.Qt.AlignTrailing)
         self.formLayout.setContentsMargins(-1, -1, 3, -1)
         self.formLayout.setHorizontalSpacing(0)
+        self.formLayout.setVerticalSpacing(6)
         self.formLayout.setObjectName(_fromUtf8("formLayout"))
         self.labelStart = QtGui.QLabel(WorklogWindow)
         self.labelStart.setObjectName(_fromUtf8("labelStart"))
@@ -129,4 +130,4 @@ class Ui_WorklogWindow(object):
         self.labelComment.setText(_translate("WorklogWindow", "Comment:", None))
         self.labelSpent.setText(_translate("WorklogWindow", "Time Spent :", None))
 
-import pyjtt_rc
+import pyjtt_icons_rc

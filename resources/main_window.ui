@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>640</width>
-    <height>489</height>
+    <height>480</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,8 +20,8 @@
    <string>Jira Time Tracker</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="pyjtt.qrc">
-    <normaloff>:/icons/clock_apple.ico</normaloff>:/icons/clock_apple.ico</iconset>
+   <iconset resource="pyjtt_icons.qrc">
+    <normaloff>:/icons/set1/icons/set1/clock.ico</normaloff>:/icons/set1/icons/set1/clock.ico</iconset>
   </property>
   <property name="animated">
    <bool>false</bool>
@@ -232,34 +232,6 @@
       <property name="fieldGrowthPolicy">
        <enum>QFormLayout::FieldsStayAtSizeHint</enum>
       </property>
-      <item row="0" column="0">
-       <widget class="QCommandLinkButton" name="startStopTracking">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>168</width>
-          <height>41</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Start Tracking</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="autoDefault">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="QWidget" name="widgetOnlineTracking" native="true">
         <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
@@ -307,6 +279,32 @@
         </layout>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="startStopTracking">
+        <property name="minimumSize">
+         <size>
+          <width>131</width>
+          <height>41</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Start Tracking</string>
+        </property>
+        <property name="icon">
+         <iconset resource="pyjtt_icons.qrc">
+          <normaloff>:/icons/set2/icons/set2/start.ico</normaloff>:/icons/set2/icons/set2/start.ico</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -317,7 +315,7 @@
      <x>0</x>
      <y>0</y>
      <width>640</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -329,14 +327,7 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
-    <property name="title">
-     <string>Help</string>
-    </property>
-    <addaction name="actionAbout"/>
-   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionReresh_issue">
@@ -366,7 +357,6 @@
   </action>
  </widget>
  <tabstops>
-  <tabstop>startStopTracking</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>dateDayWorklogEdit</tabstop>
   <tabstop>tableDayWorklog</tabstop>
@@ -376,7 +366,7 @@
   <tabstop>FindIssue</tabstop>
  </tabstops>
  <resources>
-  <include location="pyjtt.qrc"/>
+  <include location="pyjtt_icons.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -390,8 +380,8 @@
      <y>123</y>
     </hint>
     <hint type="destinationlabel">
-     <x>550</x>
-     <y>121</y>
+     <x>619</x>
+     <y>146</y>
     </hint>
    </hints>
   </connection>

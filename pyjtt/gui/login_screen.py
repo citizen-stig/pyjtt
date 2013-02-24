@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'login_screen.ui'
 #
-# Created: Fri Feb  8 10:15:17 2013
+# Created: Sun Feb 24 13:29:56 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -30,7 +30,7 @@ class Ui_loginWindow(object):
         loginWindow.setMinimumSize(QtCore.QSize(340, 200))
         loginWindow.setMaximumSize(QtCore.QSize(340, 200))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/clock_apple.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/set1/icons/set1/clock.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         loginWindow.setWindowIcon(icon)
         self.gridLayout = QtGui.QGridLayout(loginWindow)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
@@ -79,4 +79,4 @@ class Ui_loginWindow(object):
         self.checkBoxSaveCredentials.setToolTip(_translate("loginWindow", "Credentials will be saved in plain text!", None))
         self.checkBoxSaveCredentials.setText(_translate("loginWindow", "Save Credentials", None))
 
-import pyjtt_rc
+import pyjtt_icons_rc

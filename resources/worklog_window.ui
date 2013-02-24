@@ -32,8 +32,8 @@
    <string>Some Worklog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="pyjtt.qrc">
-    <normaloff>:/icons/clock_apple.ico</normaloff>:/icons/clock_apple.ico</iconset>
+   <iconset resource="pyjtt_icons.qrc">
+    <normaloff>:/icons/set1/icons/set1/clock.ico</normaloff>:/icons/set1/icons/set1/clock.ico</iconset>
   </property>
   <property name="whatsThis">
    <string/>
@@ -111,7 +111,7 @@
           <number>0</number>
          </property>
          <property name="verticalSpacing">
-          <number>-1</number>
+          <number>6</number>
          </property>
          <property name="rightMargin">
           <number>3</number>
@@ -202,7 +202,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="pyjtt.qrc"/>
+  <include location="pyjtt_icons.qrc"/>
  </resources>
  <connections/>
 </ui>

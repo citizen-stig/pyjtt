@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Fri Feb  8 10:15:17 2013
+# Created: Sun Feb 24 13:29:56 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,10 +26,10 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(640, 489)
+        MainWindow.resize(640, 480)
         MainWindow.setMinimumSize(QtCore.QSize(640, 480))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/clock_apple.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/set1/icons/set1/clock.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setAnimated(False)
         MainWindow.setTabShape(QtGui.QTabWidget.Rounded)
@@ -124,18 +124,6 @@ class Ui_MainWindow(object):
         self.formLayout.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
         self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.FieldsStayAtSizeHint)
         self.formLayout.setObjectName(_fromUtf8("formLayout"))
-        self.startStopTracking = QtGui.QCommandLinkButton(self.centralwidget)
-        self.startStopTracking.setEnabled(True)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.startStopTracking.sizePolicy().hasHeightForWidth())
-        self.startStopTracking.setSizePolicy(sizePolicy)
-        self.startStopTracking.setMinimumSize(QtCore.QSize(168, 41))
-        self.startStopTracking.setCheckable(True)
-        self.startStopTracking.setAutoDefault(False)
-        self.startStopTracking.setObjectName(_fromUtf8("startStopTracking"))
-        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.startStopTracking)
         self.widgetOnlineTracking = QtGui.QWidget(self.centralwidget)
         self.widgetOnlineTracking.setObjectName(_fromUtf8("widgetOnlineTracking"))
         self.verticalLayout = QtGui.QVBoxLayout(self.widgetOnlineTracking)
@@ -159,15 +147,22 @@ class Ui_MainWindow(object):
         self.labelTimeSpent.setObjectName(_fromUtf8("labelTimeSpent"))
         self.verticalLayout.addWidget(self.labelTimeSpent)
         self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.widgetOnlineTracking)
+        self.startStopTracking = QtGui.QPushButton(self.centralwidget)
+        self.startStopTracking.setMinimumSize(QtCore.QSize(131, 41))
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/set2/icons/set2/start.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.startStopTracking.setIcon(icon1)
+        self.startStopTracking.setIconSize(QtCore.QSize(32, 32))
+        self.startStopTracking.setCheckable(True)
+        self.startStopTracking.setObjectName(_fromUtf8("startStopTracking"))
+        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.startStopTracking)
         self.gridLayout.addLayout(self.formLayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 640, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 640, 22))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
-        self.menuHelp = QtGui.QMenu(self.menubar)
-        self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -186,15 +181,12 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionFull_refresh)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
-        self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
-        self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QObject.connect(self.lineIssueKey, QtCore.SIGNAL(_fromUtf8("returnPressed()")), self.FindIssue.click)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        MainWindow.setTabOrder(self.startStopTracking, self.tabWidget)
         MainWindow.setTabOrder(self.tabWidget, self.dateDayWorklogEdit)
         MainWindow.setTabOrder(self.dateDayWorklogEdit, self.tableDayWorklog)
         MainWindow.setTabOrder(self.tableDayWorklog, self.editWorklog)
@@ -228,15 +220,14 @@ class Ui_MainWindow(object):
         item = self.tableDayWorklog.horizontalHeaderItem(5)
         item.setText(_translate("MainWindow", "worklog_id", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWorklogs), _translate("MainWindow", "Worklogs", None))
-        self.startStopTracking.setText(_translate("MainWindow", "Start Tracking", None))
         self.labelSelectedIssue.setText(_translate("MainWindow", "No issue selected", None))
         self.labelTimeSpent.setText(_translate("MainWindow", "00:00:00", None))
+        self.startStopTracking.setText(_translate("MainWindow", "Start Tracking", None))
         self.menuFile.setTitle(_translate("MainWindow", "File", None))
-        self.menuHelp.setTitle(_translate("MainWindow", "Help", None))
         self.actionReresh_issue.setText(_translate("MainWindow", "Reresh issue", None))
         self.actionFull_refresh.setText(_translate("MainWindow", "Full refresh", None))
         self.actionExit.setText(_translate("MainWindow", "Exit", None))
         self.actionRefresh.setText(_translate("MainWindow", "refresh!", None))
         self.actionAbout.setText(_translate("MainWindow", "About", None))
 
-import pyjtt_rc
+import pyjtt_icons_rc
