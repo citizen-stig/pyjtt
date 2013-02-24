@@ -35,7 +35,10 @@ from collections import deque
 from PyQt4 import QtCore, QtGui
 from urllib2 import URLError
 
-import db, utils, rest_wrapper, pyjtt
+import db
+import utils
+import rest_wrapper
+import pyjtt
 from gui import login_screen, main_window, worklog_window
 
 
