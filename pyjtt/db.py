@@ -1,14 +1,39 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# This file is part of PyJTT.
+#
+#    PyJTT is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    any later version.
+#
+#    PyJTT is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with PyJTT.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    This module handles access to sqlite database in cache role.
+#
+#
+
 from __future__ import unicode_literals
-__author__ = 'Nikolay Golub'
+
+__author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
+__copyright__ = "Copyright 2012 - 2013, Nikolay Golub"
+__license__ = "GPL"
+
 import datetime
 import sqlite3
 from custom_logging import logger
 
+
 def convert_to_datetime(datetime_string):
     timeformat = '%Y-%m-%d %H:%M:%S'
     return datetime.datetime.strptime(datetime_string, timeformat)
+
 
 def create_local_db(db_filename):
     logger.debug('Creating db %s' % db_filename)
@@ -30,12 +55,14 @@ def create_local_db(db_filename):
     logger.debug('Tables created')
     return db_conn, cursor
 
+
 def connect_to_db(db_filename):
     logger.debug('Connecting to local DB: %s' % db_filename)
     db_conn = sqlite3.connect(db_filename)
     cursor = db_conn.cursor()
     logger.debug('Connection has been successfull')
     return db_conn, cursor
+
 
 def add_issue(db_filename, issue_id, issue_key, issue_summary):
     logger.debug('Saving issue %s in local DB' % issue_key)
@@ -46,6 +73,7 @@ def add_issue(db_filename, issue_id, issue_key, issue_summary):
     db_conn.commit()
     db_conn.close()
     logger.debug('Issue %s has been saved in local DB')
+
 
 def remove_issue(db_filename, issue_key):
     logger.debug('Removing issue %s from local DB' % issue_key)
@@ -59,6 +87,7 @@ def remove_issue(db_filename, issue_key):
     db_conn.commit()
     db_conn.close()
     logger.debug('Issue %s has been remove from local DB' % issue_key)
+
 
 def get_issue(db_filename, issue_key):
     logger.debug('Getting issue %s from local DB' % issue_key)
@@ -85,6 +114,7 @@ def get_issue_worklog(db_filename, issue_id):
     logger.debug('Worklogs have been fetched from local DB for issue with id %s' % str(issue_id))
     return worklog
 
+
 def add_issue_worklog(db_filename, worklog, issue_id):
     logger.debug('Add new worklog to local DB for issue with id %s' % str(issue_id))
     if worklog:
@@ -98,6 +128,7 @@ def add_issue_worklog(db_filename, worklog, issue_id):
     else:
         logger.debug('Worklog is empty, nothing to save')
 
+
 def remove_issue_worklog(db_filename, worklog_id):
     logger.debug('Deleting worklog %s from local DB' % str(worklog_id))
     db_conn, cursor = connect_to_db(db_filename)
@@ -105,6 +136,7 @@ def remove_issue_worklog(db_filename, worklog_id):
     db_conn.commit()
     db_conn.close()
     logger.debug('Worklog has been deleted from local DB')
+
 
 def update_issue_worklog(db_filename, worklog_id, start_date, end_date, comment):
     logger.debug('Updating worklog %s in local db' % str(worklog_id))
@@ -121,6 +153,7 @@ def update_issue_worklog(db_filename, worklog_id, start_date, end_date, comment)
     db_conn.commit()
     db_conn.close()
     logger.debug('Worklog %s has been updated in local DB' % str(worklog_id))
+
 
 def get_day_worklog(db_filename, selected_day):
     logger.debug('Getting worklog for %s from local DB' % selected_day)
@@ -148,6 +181,7 @@ def get_day_worklog(db_filename, selected_day):
     logger.debug('Day worklog has been returned for %s' % selected_day)
     # TODO: return tuple
     return worklog
+
 
 def get_all_issues(db_filename):
     logger.debug('Getting all issues from local DB')

@@ -1,14 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# This file is part of PyJTT.
+#
+#    PyJTT is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    any later version.
+#
+#    PyJTT is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with PyJTT.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    This is module with a small utils functions
+#
+#
+
 from __future__ import unicode_literals
+
+__author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
+__copyright__ = "Copyright 2012, Nikolay Golub"
+__license__ = "GPL"
+
 from datetime import datetime, timedelta
 import ConfigParser
 from custom_logging import logger
 import urllib2
 import sys
 import os
-
-__author__ = 'Nikolay Golub'
 
 
 def get_settings(config_filename):
@@ -79,6 +101,7 @@ def get_local_utc_offset(now, utcnow):
         sign ='-'
         offset = absolute_offset(utcnow, now)
     return sign + offset
+
 
 def get_timedelta_from_utc_offset(time_string):
     """Defines timedelta object from utc offset string"""
