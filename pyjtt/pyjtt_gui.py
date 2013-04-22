@@ -34,6 +34,7 @@ from functools import partial
 from collections import deque
 from PyQt4 import QtCore, QtGui
 from urllib2 import URLError
+import Queue
 
 import db
 import utils
@@ -53,7 +54,7 @@ class BaseThread(QtCore.QThread):
     status_sent = QtCore.pyqtSignal(str)
     status_cleared = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, queue, parent=None):
         """Initializes queue and statuses.
 
         queue variable is a list of functions, which should be run in thread.
@@ -62,8 +63,9 @@ class BaseThread(QtCore.QThread):
         Each function should have a status message (at least empty)
         """
         QtCore.QThread.__init__(self, parent)
-        self.queue = deque()
-        self.statuses = deque()
+        self.queue = queue
+        #self.queue = deque()
+        #self.statuses = deque()
 
     def _run(self, func):
         """Should be implemented in child classees."""
@@ -72,18 +74,17 @@ class BaseThread(QtCore.QThread):
     def run(self):
         """Prepares execution and handles status messages."""
         while True:
-            if len(self.queue):
-                logger.info('Here is a job in queue')
-                try:
-                    f = self.queue.popleft()
-                    msg = self.statuses.popleft()
-                    self.status_sent.emit(msg)
-                    self._run(f)
-                except Exception as exc:
-                    self.exception_raised.emit(exc)
-                finally:
-                    self.status_cleared.emit()
-            else:
+            try:
+                f, msg = self.queue.get()
+                self.status_sent.emit(msg)
+                self._run(f)
+            except Queue.Empty:
+                pass
+            except Exception as exc:
+                self.exception_raised.emit(exc)
+            finally:
+                self.status_cleared.emit()
+                self.queue.task_done()
                 time.sleep(0.2)
 
 
@@ -92,9 +93,9 @@ class ResultThread(BaseThread):
     issue_get = QtCore.pyqtSignal(rest_wrapper.JIRAIssue)
     issue_removed = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, queue, parent=None):
         logger.info('Initialize result thread')
-        BaseThread.__init__(self, parent)
+        BaseThread.__init__(self, queue, parent)
         logger.debug('Result thread has been initialized')
 
     def _run(self, func):
@@ -110,9 +111,9 @@ class IOThread(BaseThread):
     """Simple thread for I/O operations which don't return anything"""
     done = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, queue, parent=None):
         logger.info('Initialize simple I/O thread')
-        BaseThread.__init__(self, parent)
+        BaseThread.__init__(self, queue, parent)
         logger.debug('I/O thread initialized')
 
     def _run(self, func):
@@ -306,7 +307,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.jira_issues[issue.issue_key] = issue
         logger.debug('Issues have been loaded')
         # Build tuple with credentials
-        self.creds = ( str(jirahost), str(login), str(password), self.local_db_name )
+        self.creds = (str(jirahost), str(login), str(password), self.local_db_name )
 
         # Get assigned issues keys
         try:
@@ -328,6 +329,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.statusbar.addWidget(self.ui.status_msg)
         self.ui.status_msg.hide()
         self.ui.spinning_label.hide()
+        self.io_queue = Queue.Queue()
+        self.result_queue = Queue.Queue()
         self.status_msg_queue = 0
 
         self.ui.start_icon = QtGui.QIcon()
@@ -336,10 +339,22 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.stop_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(":/icons/set2/icons/set2/stop.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
         # Threads
-        self.result_thread = ResultThread(self)
-        self.result_thread.start()
-        self.io_thread = IOThread(self)
-        self.io_thread.start()
+        num_of_threads = 10
+        for i in range(num_of_threads):
+            result_thread = ResultThread(self.result_queue, parent=self)
+            result_thread.start()
+            result_thread.exception_raised.connect(self.print_exception)
+            result_thread.status_sent.connect(self.set_status_message)
+            result_thread.status_cleared.connect(self.clear_status_msg)
+            result_thread.issue_get.connect(self._add_issue)
+            result_thread.issue_removed.connect(self._remove_issue)
+
+            io_thread = IOThread(self.io_queue, parent=self)
+            io_thread.start()
+            io_thread.exception_raised.connect(self.print_exception)
+            io_thread.status_sent.connect(self.set_status_message)
+            io_thread.status_cleared.connect(self.clear_status_msg)
+            io_thread.done.connect(self.print_day_worklog)
 
         # SIGNALS
         self.ui.FindIssue.clicked.connect(self._get_issue)
@@ -351,15 +366,15 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.tableIssues.clicked.connect(self.select_issue)
         self.ui.tableIssues.doubleClicked.connect(self.add_worklog)
         self.ui.startStopTracking.clicked.connect(self._tracking)
-        self.io_thread.exception_raised.connect(self.print_exception)
-        self.io_thread.status_sent.connect(self.set_status_message)
-        self.io_thread.status_cleared.connect(self.clear_status_msg)
-        self.io_thread.done.connect(self.print_day_worklog)
-        self.result_thread.exception_raised.connect(self.print_exception)
-        self.result_thread.status_sent.connect(self.set_status_message)
-        self.result_thread.status_cleared.connect(self.clear_status_msg)
-        self.result_thread.issue_get.connect(self._add_issue)
-        self.result_thread.issue_removed.connect(self._remove_issue)
+        #self.io_thread.exception_raised.connect(self.print_exception)
+        #self.io_thread.status_sent.connect(self.set_status_message)
+        #self.io_thread.status_cleared.connect(self.clear_status_msg)
+        #self.io_thread.done.connect(self.print_day_worklog)
+        #self.result_thread.exception_raised.connect(self.print_exception)
+        #self.result_thread.status_sent.connect(self.set_status_message)
+        #self.result_thread.status_cleared.connect(self.clear_status_msg)
+        #self.result_thread.issue_get.connect(self._add_issue)
+        #self.result_thread.issue_removed.connect(self._remove_issue)
         self.ui.actionReresh_issue.triggered.connect(self.refresh_issue_action)
         self.ui.actionFull_refresh.triggered.connect(self.full_refresh_action)
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
@@ -370,11 +385,15 @@ class MainWindow(QtGui.QMainWindow):
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
                     self.creds, assigned_issue)
                 logger.debug('Put func to queue')
-                self.result_thread.queue.append(get_issue_func)
-                self.result_thread.statuses.append('Getting issue %s ...' % str(assigned_issue))
+                self.result_queue.put((get_issue_func, 'Getting issue %s ...' % str(assigned_issue)))
+                #self.result_thread.queue.append(get_issue_func)
+                #self.result_thread.statuses.append('Getting issue %s ...' % str(assigned_issue))
         self._refresh_gui()
 
     def print_exception(self, exception):
+        logger.error(str(exception))
+        print exception.args
+        print exception.message
         info_msg = 'Error appears:\n'
         info_msg += str(exception)
         QtGui.QMessageBox.warning(self, 'Warning', info_msg)
@@ -382,7 +401,7 @@ class MainWindow(QtGui.QMainWindow):
 # GUI Methods
     def select_issue(self):
         if not self.is_tracking_on:
-            label_new_width = self.width() - ( self.ui.startStopTracking.width() + 30 )
+            label_new_width = self.width() - (self.ui.startStopTracking.width() + 30)
             issue_key = str(self.ui.tableIssues.selectedItems()[0].text()).upper()
             summary = str(self.ui.tableIssues.selectedItems()[1].text())
             self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
@@ -397,7 +416,7 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.tableIssues.setItem(row, 0,
                 QtGui.QTableWidgetItem(issue_key))
             self.ui.tableIssues.setItem(row, 1,
-                QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
+                                        QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
         self.ui.tableIssues.resizeColumnToContents(0)
         self.ui.tableIssues.horizontalHeader().setResizeMode(1,
             QtGui.QHeaderView.Stretch)
@@ -507,8 +526,9 @@ class MainWindow(QtGui.QMainWindow):
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
                     self.creds, issue_key)
                 logger.debug('Puting funcion to the queue')
-                self.result_thread.queue.append(get_issue_func)
-                self.result_thread.statuses.append('Getting issue %s ...' % str(issue_key))
+                self.result_queue.put((get_issue_func,'Getting issue %s ...' % str(issue_key)) )
+                #self.result_thread.queue.append(get_issue_func)
+                #self.result_thread.statuses.append('Getting issue %s ...' % str(issue_key))
         self.ui.lineIssueKey.clear()
 
     def refresh_issue_action(self):
@@ -537,12 +557,14 @@ class MainWindow(QtGui.QMainWindow):
             db.remove_issue(db_filename, del_issue_key)
             return del_issue_key
         del_issue_func = partial(del_wrapper, self.creds[3], issue_key)
-        self.result_thread.queue.append(del_issue_func)
-        self.result_thread.statuses.append('')
+        self.result_queue.put((del_issue_func, ''))
+        #self.result_thread.queue.append(del_issue_func)
+        #self.result_thread.statuses.append('')
         get_issue_func = partial(pyjtt.get_issue_from_jira,
             self.creds, issue_key)
-        self.result_thread.queue.append(get_issue_func)
-        self.result_thread.statuses.append('Refreshing issue %s ...' % str(issue_key))
+        self.io_queue.put((get_issue_func,'Refreshing issue %s ...' % str(issue_key)) )
+        #self.result_thread.queue.append(get_issue_func)
+        #self.result_thread.statuses.append('Refreshing issue %s ...' % str(issue_key))
 
     def _add_issue(self, issue):
         logger.debug('Add issue "%s" to memory' % str(issue))
@@ -620,13 +642,15 @@ class MainWindow(QtGui.QMainWindow):
         single = False
         logger.debug('Packing function')
         io_func = partial(func, *args)
+        # DEBUG remove it
         if single:
             io_func()
             self.print_day_worklog()
         else:
             logger.debug('Adding function to queue')
-            self.io_thread.queue.append(io_func)
-            self.io_thread.statuses.append(msg)
+            self.io_queue.put((io_func, msg))
+            #self.io_thread.queue.append(io_func)
+            #self.io_thread.statuses.append(msg)
 
     def _tracking(self):
         if self.selected_issue:

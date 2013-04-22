@@ -78,11 +78,13 @@ class JIRAIssue(JiraRestBase):
         logger.info('Initialize JIRA Issue %s object' % issue_key)
         JiraRestBase.__init__(self, jirahost, login, password)
         self.issue_key = issue_key
+        self.jira_timeformat = '%Y-%m-%dT%H:%M:%S'
+        self.issue_link = self.jirahost + '/browse/' + self.issue_key
+        self.worklog = {}
+
         self.issue_url = self.jirahost + '/rest/api/2/issue/' + self.issue_key
         self.add_url = self.jirahost + '/rest/api/2/issue/' + \
                        self.issue_key + '/worklog'
-        self.jira_timeformat = '%Y-%m-%dT%H:%M:%S'
-        self.worklog = {}
         # If new parameter is set to False, issue will build offline
         if new:
             self.get_issue_data()

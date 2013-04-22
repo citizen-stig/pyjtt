@@ -58,7 +58,7 @@ def create_local_db(db_filename):
 
 def connect_to_db(db_filename):
     logger.debug('Connecting to local DB: %s' % db_filename)
-    db_conn = sqlite3.connect(db_filename)
+    db_conn = sqlite3.connect(db_filename,  timeout=30)
     cursor = db_conn.cursor()
     logger.debug('Connection has been successfull')
     return db_conn, cursor
