@@ -1,9 +1,9 @@
 <RCC>
   <qresource prefix="/icons/set1">
+    <file>spinning-progress.gif</file>
     <file>icons/set1/clock.ico</file>
     <file>icons/set1/start.ico</file>
     <file>icons/set1/stop.ico</file>
-    <file>spinning-progress.gif</file>
   </qresource>
   <qresource prefix="/icons/set2">
     <file>icons/set2/stop.ico</file>

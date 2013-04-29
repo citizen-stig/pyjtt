@@ -327,7 +327,8 @@ class MainWindow(QtGui.QMainWindow):
         # Hide work log id from user
         self.ui.tableDayWorklog.setColumnHidden(self.worklog_id_column, True)
         # Add status bar preferences
-        self.ui.spinning_img = QtGui.QMovie('spinning-progress.gif')
+        self.ui.spinning_img = QtGui.QMovie(main_window._fromUtf8(
+            ":/icons/set1/spinning-progress.gif"))
         self.ui.spinning_label = QtGui.QLabel()
         self.ui.spinning_label.setMovie(self.ui.spinning_img)
         self.ui.status_msg = QtGui.QLabel()
