@@ -31,7 +31,6 @@ from custom_logging import logger
 import datetime
 import time
 from functools import partial
-from collections import deque
 from PyQt4 import QtCore, QtGui
 from urllib2 import URLError
 import Queue
@@ -130,17 +129,19 @@ class TimeWorker(QtCore.QThread):
     """
     timer_updated = QtCore.pyqtSignal(int)
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         logger.debug('Initialize timer')
         QtCore.QThread.__init__(self, parent)
         self.exiting = False
+        self.delta = 0
 
     def run(self):
         logger.info('Start tracking timer')
-        self.start = datetime.datetime.now()
+        self.started = datetime.datetime.now()
         while not self.exiting:
             self.current = datetime.datetime.now()
-            self.delta = int(round((self.current - self.start).total_seconds()))
+            self.delta = int(round((self.current -
+                                    self.started).total_seconds()))
             self.timer_updated.emit(self.delta)
             time.sleep(0.5)
 
@@ -289,37 +290,42 @@ class MainWindow(QtGui.QMainWindow):
         # Issue which is selected by user. It is used in online tracking
         self.selected_issue = None
         self.is_tracking_on = False
-        # number of worklogid column, which is hidden from user
-        self.worklogid_column = 5
+        # number of worklog id column, which is hidden from user
+        self.worklog_id_column = 5
         self.local_db_name = os.path.join(utils.get_app_working_dir(),
-            utils.get_db_filename(login, jirahost))
+                                          utils.get_db_filename(login, jirahost)
+                                          )
         if not os.path.isfile(self.local_db_name):
             logger.debug('Local DB does not exist. Creating local database')
             db.create_local_db(self.local_db_name)
         else:
-            # Need to load issueds from db to memory
+            # Need to load issues from db to memory
             raw_issues = db.get_all_issues(self.local_db_name)
             for issue_entry in raw_issues:
-                issue = rest_wrapper.JIRAIssue(jirahost, login, password, issue_entry[1])
+                issue = rest_wrapper.JIRAIssue(jirahost, login, password,
+                                               issue_entry[1])
                 issue.issue_id = issue_entry[0]
                 issue.summary = issue_entry[2]
-                issue.worklog = db.get_issue_worklog(self.local_db_name, issue.issue_id)
+                issue.worklog = db.get_issue_worklog(self.local_db_name,
+                                                     issue.issue_id)
                 self.jira_issues[issue.issue_key] = issue
         logger.debug('Issues have been loaded')
         # Build tuple with credentials
-        self.creds = (str(jirahost), str(login), str(password), self.local_db_name )
+        self.creds = (str(jirahost), str(login), str(password),
+                      self.local_db_name)
 
         # Get assigned issues keys
         try:
-            self.user = rest_wrapper.JiraUser(self.creds[0], self.creds[1], self.creds[2])
+            self.user = rest_wrapper.JiraUser(self.creds[0],
+                                              self.creds[1],
+                                              self.creds[2])
             self.user.get_assigned_issues()
         except URLError:
             logger.error('Connection problems')
         # GUI customization
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
-        #self.ui.tableDayWorklog.sortByColumn(2,0)
         # Hide work log id from user
-        self.ui.tableDayWorklog.setColumnHidden(self.worklogid_column, True)
+        self.ui.tableDayWorklog.setColumnHidden(self.worklog_id_column, True)
         # Add status bar preferences
         self.ui.spinning_img = QtGui.QMovie('spinning-progress.gif')
         self.ui.spinning_label = QtGui.QLabel()
@@ -334,61 +340,66 @@ class MainWindow(QtGui.QMainWindow):
         self.status_msg_queue = 0
 
         self.ui.start_icon = QtGui.QIcon()
-        self.ui.start_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(":/icons/set2/icons/set2/start.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.start_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(
+            ":/icons/set2/icons/set2/start.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.ui.stop_icon = QtGui.QIcon()
-        self.ui.stop_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(":/icons/set2/icons/set2/stop.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.stop_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(
+            ":/icons/set2/icons/set2/stop.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
         # Threads
         num_of_threads = 10
         for i in range(num_of_threads):
             result_thread = ResultThread(self.result_queue, parent=self)
             result_thread.start()
-            result_thread.exception_raised.connect(self.print_exception)
-            result_thread.status_sent.connect(self.set_status_message)
-            result_thread.status_cleared.connect(self.clear_status_msg)
-            result_thread.issue_get.connect(self._add_issue)
-            result_thread.issue_removed.connect(self._remove_issue)
+            result_thread.exception_raised.connect(self._print_exception)
+            result_thread.status_sent.connect(self._set_status_message)
+            result_thread.status_cleared.connect(self._clear_status_msg)
+            result_thread.issue_get.connect(self._add_issue_to_local)
+            result_thread.issue_removed.connect(self._remove_issue_from_local)
 
             io_thread = IOThread(self.io_queue, parent=self)
             io_thread.start()
-            io_thread.exception_raised.connect(self.print_exception)
-            io_thread.status_sent.connect(self.set_status_message)
-            io_thread.status_cleared.connect(self.clear_status_msg)
-            io_thread.done.connect(self.print_day_worklog)
+            io_thread.exception_raised.connect(self._print_exception)
+            io_thread.status_sent.connect(self._set_status_message)
+            io_thread.status_cleared.connect(self._clear_status_msg)
+            io_thread.done.connect(self._print_day_worklog)
 
         # SIGNALS
-        self.ui.FindIssue.clicked.connect(self._get_issue)
-        self.ui.lineIssueKey.returnPressed.connect(self._get_issue)
-        self.ui.dateDayWorklogEdit.dateChanged.connect(self.print_day_worklog)
-        self.ui.editWorklog.clicked.connect(self._edit_worklog)
-        self.ui.tableDayWorklog.doubleClicked.connect(self._edit_worklog)
+        self.ui.FindIssue.clicked.connect(self.request_for_issue_data)
+        self.ui.lineIssueKey.returnPressed.connect(self.request_for_issue_data)
+        self.ui.dateDayWorklogEdit.dateChanged.connect(self._print_day_worklog)
+        self.ui.editWorklog.clicked.connect(self.change_worklog)
+        self.ui.tableDayWorklog.doubleClicked.connect(self.change_worklog)
         self.ui.removeWorklog.clicked.connect(self.remove_worklog)
-        self.ui.tableIssues.clicked.connect(self.select_issue)
-        self.ui.tableIssues.doubleClicked.connect(self.add_worklog)
-        self.ui.startStopTracking.clicked.connect(self._tracking)
-        self.ui.actionReresh_issue.triggered.connect(self.refresh_issue_action)
-        self.ui.actionFull_refresh.triggered.connect(self.full_refresh_action)
+        self.ui.tableIssues.clicked.connect(self.make_issue_selected)
+        self.ui.tableIssues.doubleClicked.connect(self.add_new_worklog)
+        self.ui.startStopTracking.clicked.connect(self.online_tracking)
+        self.ui.actionReresh_issue.triggered.connect(self.force_update_selected_issue)
+        self.ui.actionFull_refresh.triggered.connect(self.force_update_all_issues)
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
 
         # Request assigned issues
         for assigned_issue in self.user.assigned_issue_keys:
             if assigned_issue not in self.jira_issues:
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
-                    self.creds, assigned_issue)
+                                         self.creds, assigned_issue)
                 logger.debug('Put func to queue')
-                self.result_queue.put((get_issue_func, 'Getting issue %s ...' % str(assigned_issue)))
+                self.result_queue.put((get_issue_func, 'Getting issue %s ...' %
+                                                       str(assigned_issue)))
         self._refresh_gui()
 
-    def print_exception(self, exception):
+    # About naming convention:
+    # All methods, that handle user input or works with JIRA (prepare request)
+    # start with letter. Internal or GUI representation methods started from
+    #  underscore
+    def _print_exception(self, exception):
         logger.error(str(exception))
-        print exception.args
-        print exception.message
         info_msg = 'Error appears:\n'
         info_msg += str(exception)
         QtGui.QMessageBox.warning(self, 'Warning', info_msg)
 
-#   GUI Methods
-    def select_issue(self):
+    def make_issue_selected(self):
+        """Makes issue selected on top menu for online tracking."""
         if not self.is_tracking_on:
             label_new_width = self.width() - (self.ui.startStopTracking.width() + 30)
             issue_key = str(self.ui.tableIssues.selectedItems()[0].text()).upper()
@@ -398,28 +409,29 @@ class MainWindow(QtGui.QMainWindow):
             self.selected_issue = self.jira_issues[issue_key]
             logger.debug('Now selected issue %s' % str(self.jira_issues[issue_key]))
 
-    def refresh_issues_table(self):
+    def _refresh_issues_table(self):
+        """Refreshes issues table GUI"""
         logger.debug('Refreshing issues table')
         self.ui.tableIssues.setRowCount(len(self.jira_issues))
         for row, issue_key in enumerate(sorted(self.jira_issues.keys())):
             self.ui.tableIssues.setItem(row, 0,
-                QtGui.QTableWidgetItem(issue_key))
+                                        QtGui.QTableWidgetItem(issue_key))
             self.ui.tableIssues.setItem(row, 1,
                                         QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
         self.ui.tableIssues.resizeColumnToContents(0)
         self.ui.tableIssues.horizontalHeader().setResizeMode(1,
-            QtGui.QHeaderView.Stretch)
+                                                             QtGui.QHeaderView.Stretch)
         self.ui.tableIssues.horizontalHeader().setResizeMode(0,
-            QtGui.QHeaderView.Fixed)
+                                                             QtGui.QHeaderView.Fixed)
         self.ui.tableIssues.sortByColumn(0, 0)
         logger.debug('Issues table has been refreshed')
 
-    def print_day_worklog(self):
+    def _print_day_worklog(self):
+        """Print worklog entries for selected day"""
         logger.info('Refreshing day worklog table')
         selected_day = self.ui.dateDayWorklogEdit.date().toPyDate()
         day_work = db.get_day_worklog(self.creds[3], selected_day)
         day_summary = datetime.timedelta(seconds=0)
-        logger.debug(day_work)
         # preparations
         self.ui.tableDayWorklog.setSortingEnabled(False)
 
@@ -430,67 +442,72 @@ class MainWindow(QtGui.QMainWindow):
             spent = entry[3] - entry[2]
             day_summary += spent
             self.ui.tableDayWorklog.setItem(row, 0,
-                QtGui.QTableWidgetItem(entry[0]))
+                                            QtGui.QTableWidgetItem(entry[0]))
             self.ui.tableDayWorklog.setItem(row, 1,
-                QtGui.QTableWidgetItem(entry[1]))
+                                            QtGui.QTableWidgetItem(entry[1]))
             self.ui.tableDayWorklog.setItem(row, 2,
-                QtGui.QTableWidgetItem(entry[2].strftime('%H:%M')))
+                                            QtGui.QTableWidgetItem(entry[2].strftime('%H:%M')))
             self.ui.tableDayWorklog.setItem(row, 3,
-                QtGui.QTableWidgetItem(entry[3].strftime('%H:%M')))
+                                            QtGui.QTableWidgetItem(entry[3].strftime('%H:%M')))
             self.ui.tableDayWorklog.setItem(row, 4,
-                QtGui.QTableWidgetItem(utils.get_time_spent_string(entry[3] -
-                                                                   entry[2])))
-            self.ui.tableDayWorklog.setItem(row, self.worklogid_column,
-                QtGui.QTableWidgetItem(str(entry[4])))
+                                            QtGui.QTableWidgetItem(utils.get_time_spent_string(entry[3] -
+                                                                                               entry[2])))
+            self.ui.tableDayWorklog.setItem(row, self.worklog_id_column,
+                                            QtGui.QTableWidgetItem(str(entry[4])))
 
         # Filling the table completed
         # Sorting
         self.ui.tableDayWorklog.setSortingEnabled(True)
-        self.ui.tableDayWorklog.sortByColumn(2,QtCore.Qt.AscendingOrder)
+        self.ui.tableDayWorklog.sortByColumn(2, QtCore.Qt.AscendingOrder)
         # Handle the width
         self.ui.tableDayWorklog.horizontalHeader().setResizeMode(1,
-            QtGui.QHeaderView.Stretch)
+                                                                 QtGui.QHeaderView.Stretch)
         for column in (0, 2, 3, 4):
             self.ui.tableDayWorklog.resizeColumnToContents(column)
             self.ui.tableDayWorklog.horizontalHeader().setResizeMode(column,
-                QtGui.QHeaderView.Fixed)
+                                                                     QtGui.QHeaderView.Fixed)
             self.ui.tableDayWorklog.horizontalHeader().setResizeMode(column,
-                QtGui.QHeaderView.Fixed)
+                                                                     QtGui.QHeaderView.Fixed)
         # Print total day work
         if day_summary.total_seconds() > 0:
-            self.ui.labelDaySummary.setText('Total: '
-                                            + utils.get_time_spent_string(day_summary))
+            self.ui.labelDaySummary.setText('Total: ' +
+                                            utils.get_time_spent_string(day_summary))
         else:
             self.ui.labelDaySummary.clear()
         logger.info('Day worklog table has been refreshed')
 
     def _refresh_gui(self):
-        self.refresh_issues_table()
-        self.print_day_worklog()
+        self._refresh_issues_table()
+        self._print_day_worklog()
 
-    def _get_selected_worklog(self):
-        self.ui.tableDayWorklog.setColumnHidden(self.worklogid_column, False)
+    def get_selected_worklog(self):
+        """Returns issue and worklog, which is selected on worklog tab """
+        self.ui.tableDayWorklog.setColumnHidden(self.worklog_id_column, False)
         issue_key = str(self.ui.tableDayWorklog.selectedItems()[0].text())
-        worklog_id = int(self.ui.tableDayWorklog.selectedItems()[self.worklogid_column].text())
-        self.ui.tableDayWorklog.setColumnHidden(self.worklogid_column, True)
+        worklog_id = int(self.ui.tableDayWorklog.selectedItems()[self.worklog_id_column].text())
+        self.ui.tableDayWorklog.setColumnHidden(self.worklog_id_column, True)
         return issue_key, worklog_id
 
-    def set_status_message(self, msg, spin_img=True):
+    def _set_status_message(self, msg, spin_img=True):
+        """Shows status message and spinning image"""
         self.ui.status_msg.setText(msg)
         self.ui.spinning_label.show()
         self.ui.status_msg.show()
         self.ui.spinning_img.start()
         self.status_msg_queue += 1
-        logger.debug('Thread queue for a status bar is %d ' % self.status_msg_queue)
+        logger.debug('Thread queue for a status bar is %d '
+                     % self.status_msg_queue)
 
-    def clear_status_msg(self):
+    def _clear_status_msg(self):
         if self.status_msg_queue == 1:
             self.ui.status_msg.hide()
             self.ui.spinning_label.hide()
         self.status_msg_queue -= 1
-        logger.debug('Thread queue for a status bar is %d ' % self.status_msg_queue)
+        logger.debug('Thread queue for a status bar is %d '
+                     % self.status_msg_queue)
 
-    def _format_seconds_timer(self, seconds):
+    @staticmethod
+    def _format_seconds(seconds):
         days, seconds = divmod(seconds, 86400)
         hours, seconds = divmod(seconds, 3600)
         minutes, seconds = divmod(seconds, 60)
@@ -498,9 +515,9 @@ class MainWindow(QtGui.QMainWindow):
         return time_string
 
     def _update_timer_label(self, seconds):
-        self.ui.labelTimeSpent.setText(self._format_seconds_timer(seconds))
+        self.ui.labelTimeSpent.setText(self._format_seconds(seconds))
 
-    def _get_issue(self):
+    def request_for_issue_data(self):
         """ Function parses user input from find issue line edit and
         Adds required issues to the pyjtt
         """
@@ -513,34 +530,38 @@ class MainWindow(QtGui.QMainWindow):
             if utils.check_jira_issue_key(issue_key) and issue_key not in self.jira_issues:
                 logger.debug('Packing the function')
                 get_issue_func = partial(pyjtt.get_issue_from_jira,
-                    self.creds, issue_key)
-                logger.debug('Puting funcion to the queue')
-                self.result_queue.put((get_issue_func,'Getting issue %s ...' % str(issue_key)) )
-                #self.result_thread.queue.append(get_issue_func)
-                #self.result_thread.statuses.append('Getting issue %s ...' % str(issue_key))
+                                         self.creds, issue_key)
+                logger.debug('Putting function to the queue')
+                self.result_queue.put((get_issue_func,
+                                       'Getting issue %s ...' % str(issue_key)))
         self.ui.lineIssueKey.clear()
 
-    def refresh_issue_action(self):
+    def force_update_selected_issue(self):
+        """Force request to update issue info
+
+        Useful, when issue data changed outside this program"""
         if self.ui.tabWorklogs.isHidden():
             # we on issues tab
             if len(self.ui.tableIssues.selectedItems()):
                 issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
-                self._refresh_issue(issue_key)
+                self.update_issue_info_from_jira(issue_key)
             else:
-                QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select issue first')
+                QtGui.QMessageBox.warning(self, 'Tracking Error',
+                                          'Please, select issue first')
         if self.ui.tableIssues.isHidden():
             # we on worklogs tab
             if len(self.ui.tableDayWorklog.selectedItems()):
-               issue_key = str(self.ui.tableDayWorklog.selectedItems()[0].text())
-               self._refresh_issue(issue_key)
+                issue_key = str(self.ui.tableDayWorklog.selectedItems()[0].text())
+                self.update_issue_info_from_jira(issue_key)
             else:
-                QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select issue first')
+                QtGui.QMessageBox.warning(self, 'Tracking Error',
+                                          'Please, select issue first')
 
-    def full_refresh_action(self):
+    def force_update_all_issues(self):
         for issue_key in self.jira_issues.keys():
-            self._refresh_issue(issue_key)
+            self.update_issue_info_from_jira(issue_key)
 
-    def _refresh_issue(self, issue_key):
+    def update_issue_info_from_jira(self, issue_key):
         logger.debug('Refreshing issue %s' % str(issue_key))
 
         def del_wrapper(db_filename, del_issue_key):
@@ -553,19 +574,19 @@ class MainWindow(QtGui.QMainWindow):
         self.io_queue.put((get_issue_func, 'Refreshing issue %s ...'
                                            % str(issue_key)))
 
-    def _add_issue(self, issue):
+    def _add_issue_to_local(self, issue):
         logger.debug('Add issue "%s" to memory' % str(issue))
         self.jira_issues[issue.issue_key] = issue
         logger.debug('Issue "%s" has been added to memory' % str(issue))
         self._refresh_gui()
 
-    def _remove_issue(self, issue_key):
+    def _remove_issue_from_local(self, issue_key):
         logger.debug('Remove issue %s from memory' % issue_key)
         del self.jira_issues[issue_key]
         logger.debug('Issue %s has been removed from memory' % issue_key)
         self._refresh_gui()
 
-    def add_worklog(self):
+    def add_new_worklog(self):
         title = 'Add worklog'
         issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
         summary = self.jira_issues[issue_key].summary
@@ -581,15 +602,18 @@ class MainWindow(QtGui.QMainWindow):
             end_time = self.add_window.end_time
             comment = self.add_window.comment
             logger.debug('From user: %s, %s, %s' % (str(start_time),
-                                                     str(end_time), comment))
+                                                    str(end_time), comment))
             stat_message = 'Adding worklog for issue %s' % str(issue_key)
-            self._start_io(pyjtt.add_worklog, stat_message, self.creds,
-                           self.jira_issues[issue_key], start_time, end_time,
-                           comment)
+            self._push_task_to_io_threads(pyjtt.add_worklog,
+                                          stat_message,
+                                          self.creds,
+                                          self.jira_issues[issue_key],
+                                          start_time,
+                                          end_time, comment)
 
-    def _edit_worklog(self):
+    def change_worklog(self):
         if self.ui.tableDayWorklog.selectedItems():
-            issue_key, worklog_id = self._get_selected_worklog()
+            issue_key, worklog_id = self.get_selected_worklog()
             title = 'Edit worklog'
             summary = self.jira_issues[issue_key].summary
             start_time = self.jira_issues[issue_key].worklog[worklog_id][0]
@@ -610,7 +634,7 @@ class MainWindow(QtGui.QMainWindow):
                                                         str(new_end_time),
                                                         new_comment))
                 stat_message = 'Edit worklog in issue %s' % str(issue_key)
-                self._start_io(pyjtt.update_worklog, stat_message,
+                self._push_task_to_io_threads(pyjtt.update_worklog, stat_message,
                                self.creds, self.jira_issues[issue_key],
                                worklog_id, new_start_time, new_end_time,
                                new_comment)
@@ -619,7 +643,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def remove_worklog(self):
         if self.ui.tableDayWorklog.selectedItems():
-            issue_key, worklog_id = self._get_selected_worklog()
+            issue_key, worklog_id = self.get_selected_worklog()
             title = 'Remove worklog'
             remove_msg = "Are you sure you want to remove this worklog?"
             reply = QtGui.QMessageBox.question(self, title, remove_msg,
@@ -627,25 +651,25 @@ class MainWindow(QtGui.QMainWindow):
                                                QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 stat_message = 'Removing worklog in issue %s' % issue_key
-                self._start_io(pyjtt.remove_worklog, stat_message, self.creds,
+                self._push_task_to_io_threads(pyjtt.remove_worklog, stat_message, self.creds,
                                self.jira_issues[issue_key], worklog_id)
         else:
             QtGui.QMessageBox.warning(self, 'Tracking Error',
                                       'Please, select worklog first')
 
-    def _start_io(self, func, msg, *args):
-        single = False # TODO: debug, remove it
+    def _push_task_to_io_threads(self, func, msg, *args):
+        single = False  # TODO: debug, remove it
         logger.debug('Packing function')
         io_func = partial(func, *args)
         # TODO: debug remove it
         if single:
             io_func()
-            self.print_day_worklog()
+            self._print_day_worklog()
         else:
             logger.debug('Adding function to queue')
             self.io_queue.put((io_func, msg))
 
-    def _tracking(self):
+    def online_tracking(self):
         if self.selected_issue:
             if self.ui.startStopTracking.isChecked():
                 self.ui.startStopTracking.setIcon(self.ui.stop_icon)
@@ -662,23 +686,28 @@ class MainWindow(QtGui.QMainWindow):
                     Ended: %s
                     Time spent: %s
                     """ % (self.selected_issue.issue_key,
-                           str(self.tracking_thread.start),
+                           str(self.tracking_thread.started),
                            str(self.tracking_thread.current),
-                           utils.get_time_spent_string(self.tracking_thread.current -\
-                               self.tracking_thread.start)
-                          )
+                           utils.get_time_spent_string(self.tracking_thread.current -
+                                                       self.tracking_thread.started))
                     reply = QtGui.QMessageBox.question(self, 'Add worklog',
-                    info_msg    , QtGui.QMessageBox.Yes, QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)
+                                                       info_msg,
+                                                       QtGui.QMessageBox.Yes,
+                                                       QtGui.QMessageBox.No,
+                                                       QtGui.QMessageBox.Cancel)
                     if reply == QtGui.QMessageBox.Yes:
-                        logger.debug('From GUI: %s, %s, %s' % (self.selected_issue.issue_key,
-                                                                str(self.tracking_thread.start),
-                                                                str(self.tracking_thread.current)
-                                                                )
-                                    )
-                        stat_message = 'Adding worklog for issue %s' % str(self.selected_issue.issue_key)
-                        self._start_io(pyjtt.add_worklog, stat_message,
-                            self.creds, self.selected_issue,
-                            self.tracking_thread.start, self.tracking_thread.current)
+                        logger.debug('From GUI: %s, %s, %s'
+                                     % (self.selected_issue.issue_key,
+                                        str(self.tracking_thread.started),
+                                        str(self.tracking_thread.current)))
+                        stat_message = 'Adding worklog for issue %s' \
+                                       % str(self.selected_issue.issue_key)
+                        self._push_task_to_io_threads(pyjtt.add_worklog,
+                                                      stat_message,
+                                                      self.creds,
+                                                      self.selected_issue,
+                                                      self.tracking_thread.started,
+                                                      self.tracking_thread.current)
                         self._clear_tracking_timer()
                     elif reply == QtGui.QMessageBox.No:
                         self._clear_tracking_timer()
@@ -687,7 +716,8 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     self._clear_tracking_timer()
         else:
-            QtGui.QMessageBox.warning(self, 'Tracking Error', 'Please, select issue first')
+            QtGui.QMessageBox.warning(self, 'Tracking Error',
+                                      'Please, select issue first')
             self.ui.startStopTracking.setChecked(False)
 
     def _clear_tracking_timer(self):
