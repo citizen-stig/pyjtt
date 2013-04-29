@@ -34,7 +34,7 @@
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabIssues">
        <attribute name="title">
@@ -126,15 +126,15 @@
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
          <widget class="QDateEdit" name="dateDayWorklogEdit">
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
           <property name="date">
            <date>
             <year>2001</year>
             <month>1</month>
             <day>1</day>
            </date>
-          </property>
-          <property name="calendarPopup">
-           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -315,7 +315,7 @@
      <x>0</x>
      <y>0</y>
      <width>640</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
