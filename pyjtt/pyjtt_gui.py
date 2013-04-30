@@ -200,7 +200,7 @@ class WorklogWindow(QtGui.QDialog):
         self._refresh_spent()
 
     def _save_worklog_data(self):
-        # test
+        # filter_issues_table
         logger.debug('Saving worklog')
         combine = datetime.datetime.combine
         date = self.ui.dateEdit.date().toPyDate()
@@ -378,6 +378,10 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionReresh_issue.triggered.connect(self.force_update_selected_issue)
         self.ui.actionFull_refresh.triggered.connect(self.force_update_all_issues)
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
+        self.ui.lineIssueKey.textChanged.connect(self.filter_issues_table)
+
+
+
 
         # Request assigned issues
         for assigned_issue in self.user.assigned_issue_keys:
@@ -393,6 +397,28 @@ class MainWindow(QtGui.QMainWindow):
     # All methods, that handle user input or works with JIRA (prepare request)
     # start with letter. Internal or GUI representation methods started from
     #  underscore
+    
+    def filter_issues_table(self):
+        current_text = self.ui.lineIssueKey.text()
+        filtered_issues = dict((k, v) for (k, v) in self.jira_issues.iteritems()
+                               if str(current_text).lower() in k.lower() or
+                               str(current_text).lower() in v.summary.lower())
+        self.ui.tableIssues.setRowCount(len(filtered_issues))
+        self._print_issues_table(filtered_issues)
+
+    def _print_issues_table(self, issues_dict):
+        for row, issue_key in enumerate(sorted(issues_dict.keys())):
+            self.ui.tableIssues.setItem(row, 0,
+                                        QtGui.QTableWidgetItem(issue_key))
+            self.ui.tableIssues.setItem(row, 1,
+                                        QtGui.QTableWidgetItem(issues_dict[issue_key].summary))
+        self.ui.tableIssues.resizeColumnToContents(0)
+        self.ui.tableIssues.horizontalHeader().setResizeMode(1,
+                                                             QtGui.QHeaderView.Stretch)
+        self.ui.tableIssues.horizontalHeader().setResizeMode(0,
+                                                             QtGui.QHeaderView.Fixed)
+        self.ui.tableIssues.sortByColumn(0, 0)
+
     def _print_exception(self, exception):
         logger.error(str(exception))
         info_msg = 'Error appears:\n'
@@ -414,17 +440,18 @@ class MainWindow(QtGui.QMainWindow):
         """Refreshes issues table GUI"""
         logger.debug('Refreshing issues table')
         self.ui.tableIssues.setRowCount(len(self.jira_issues))
-        for row, issue_key in enumerate(sorted(self.jira_issues.keys())):
-            self.ui.tableIssues.setItem(row, 0,
-                                        QtGui.QTableWidgetItem(issue_key))
-            self.ui.tableIssues.setItem(row, 1,
-                                        QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
-        self.ui.tableIssues.resizeColumnToContents(0)
-        self.ui.tableIssues.horizontalHeader().setResizeMode(1,
-                                                             QtGui.QHeaderView.Stretch)
-        self.ui.tableIssues.horizontalHeader().setResizeMode(0,
-                                                             QtGui.QHeaderView.Fixed)
-        self.ui.tableIssues.sortByColumn(0, 0)
+        self._print_issues_table(self.jira_issues)
+        #for row, issue_key in enumerate(sorted(self.jira_issues.keys())):
+        #    self.ui.tableIssues.setItem(row, 0,
+        #                                QtGui.QTableWidgetItem(issue_key))
+        #    self.ui.tableIssues.setItem(row, 1,
+        #                                QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
+        #self.ui.tableIssues.resizeColumnToContents(0)
+        #self.ui.tableIssues.horizontalHeader().setResizeMode(1,
+        #                                                     QtGui.QHeaderView.Stretch)
+        #self.ui.tableIssues.horizontalHeader().setResizeMode(0,
+        #                                                     QtGui.QHeaderView.Fixed)
+        #self.ui.tableIssues.sortByColumn(0, 0)
         logger.debug('Issues table has been refreshed')
 
     def _print_day_worklog(self):
