@@ -275,7 +275,7 @@ class LoginForm(QtGui.QDialog):
                 QtGui.QMessageBox.warning(self, 'Login error', 'Error %s %s. Try to login via Web' % (str(e.code), e.reason) )
             else:
                 QtGui.QMessageBox.warning(self, 'Login error', 'Error: %s - %s' % (str(e.code), e.reason))
-        except rest_wrapper.urllib2.URLError as ue:
+        except rest_wrapper.urllib2.URLError:
             QtGui.QMessageBox.warning(self, 'Login error', 'Wrong jira URL')
 
 
@@ -380,9 +380,6 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
         self.ui.lineIssueKey.textChanged.connect(self.filter_issues_table)
 
-
-
-
         # Request assigned issues
         for assigned_issue in self.user.assigned_issue_keys:
             if assigned_issue not in self.jira_issues:
@@ -397,7 +394,7 @@ class MainWindow(QtGui.QMainWindow):
     # All methods, that handle user input or works with JIRA (prepare request)
     # start with letter. Internal or GUI representation methods started from
     #  underscore
-    
+
     def filter_issues_table(self):
         current_text = self.ui.lineIssueKey.text()
         filtered_issues = dict((k, v) for (k, v) in self.jira_issues.iteritems()
