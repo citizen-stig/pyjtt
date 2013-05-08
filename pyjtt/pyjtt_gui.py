@@ -403,10 +403,22 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.tableIssues.setRowCount(len(filtered_issues))
         self._print_issues_table(filtered_issues)
 
+    @staticmethod
+    def _get_issue_link_label(issue):
+        issue_link = '<a href="' + issue.issue_link + \
+                         '"><span style=" text-decoration: underline; color:#0000ff;">'\
+                     + issue.issue_key + \
+                     '</span></a>'
+        issue_link_label = QtGui.QLabel('<qt><html><head/><body><p>' +
+                                        issue_link +
+                                        '</body></html></qt>')
+        issue_link_label.setOpenExternalLinks(True)
+        return issue_link_label
+
     def _print_issues_table(self, issues_dict):
         for row, issue_key in enumerate(sorted(issues_dict.keys())):
-            self.ui.tableIssues.setItem(row, 0,
-                                        QtGui.QTableWidgetItem(issue_key))
+            issue_link_label = self._get_issue_link_label(issues_dict[issue_key])
+            self.ui.tableIssues.setCellWidget(row, 0, issue_link_label)
             self.ui.tableIssues.setItem(row, 1,
                                         QtGui.QTableWidgetItem(issues_dict[issue_key].summary))
         self.ui.tableIssues.resizeColumnToContents(0)
@@ -422,12 +434,28 @@ class MainWindow(QtGui.QMainWindow):
         info_msg += str(exception)
         QtGui.QMessageBox.warning(self, 'Warning', info_msg)
 
+    def _get_selected_issue_details(self):
+        """Returns issue key and summary """
+        if not self.ui.tabIssues.isHidden():
+            table = self.ui.tableIssues
+        else:
+        #elif self.ui.tabWorklogs.isHidden():
+            table = self.ui.tableDayWorklog
+        selected_indexes = table.selectedIndexes()
+        key_coordinates = selected_indexes[0]
+        summary_coordinates = selected_indexes[1]
+
+        doc = QtGui.QTextDocument()
+        doc.setHtml(table.cellWidget(key_coordinates.row(), key_coordinates.column()).text())
+        key = str(doc.toPlainText()).strip()
+        summary = str(table.item(summary_coordinates.row(), summary_coordinates.column()).text())
+        return key, summary
+
     def make_issue_selected(self):
         """Makes issue selected on top menu for online tracking."""
         if not self.is_tracking_on:
             label_new_width = self.width() - (self.ui.startStopTracking.width() + 30)
-            issue_key = str(self.ui.tableIssues.selectedItems()[0].text()).upper()
-            summary = str(self.ui.tableIssues.selectedItems()[1].text())
+            issue_key, summary = self._get_selected_issue_details()
             self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
             self.ui.labelSelectedIssue.setMaximumWidth(label_new_width)
             self.selected_issue = self.jira_issues[issue_key]
@@ -438,17 +466,6 @@ class MainWindow(QtGui.QMainWindow):
         logger.debug('Refreshing issues table')
         self.ui.tableIssues.setRowCount(len(self.jira_issues))
         self._print_issues_table(self.jira_issues)
-        #for row, issue_key in enumerate(sorted(self.jira_issues.keys())):
-        #    self.ui.tableIssues.setItem(row, 0,
-        #                                QtGui.QTableWidgetItem(issue_key))
-        #    self.ui.tableIssues.setItem(row, 1,
-        #                                QtGui.QTableWidgetItem(self.jira_issues[issue_key].summary))
-        #self.ui.tableIssues.resizeColumnToContents(0)
-        #self.ui.tableIssues.horizontalHeader().setResizeMode(1,
-        #                                                     QtGui.QHeaderView.Stretch)
-        #self.ui.tableIssues.horizontalHeader().setResizeMode(0,
-        #                                                     QtGui.QHeaderView.Fixed)
-        #self.ui.tableIssues.sortByColumn(0, 0)
         logger.debug('Issues table has been refreshed')
 
     def _print_day_worklog(self):
@@ -466,8 +483,8 @@ class MainWindow(QtGui.QMainWindow):
         for row, entry in enumerate(day_work):
             spent = entry[3] - entry[2]
             day_summary += spent
-            self.ui.tableDayWorklog.setItem(row, 0,
-                                            QtGui.QTableWidgetItem(entry[0]))
+            issue_link = self._get_issue_link_label(self.jira_issues[entry[0]])
+            self.ui.tableDayWorklog.setCellWidget(row, 0, issue_link)
             self.ui.tableDayWorklog.setItem(row, 1,
                                             QtGui.QTableWidgetItem(entry[1]))
             self.ui.tableDayWorklog.setItem(row, 2,
@@ -507,9 +524,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def get_selected_worklog(self):
         """Returns issue and worklog, which is selected on worklog tab """
+        issue_key = self._get_selected_issue_details()[0]
         self.ui.tableDayWorklog.setColumnHidden(self.worklog_id_column, False)
-        issue_key = str(self.ui.tableDayWorklog.selectedItems()[0].text())
-        worklog_id = int(self.ui.tableDayWorklog.selectedItems()[self.worklog_id_column].text())
+        worklog_id = int(self.ui.tableDayWorklog.selectedItems()[self.worklog_id_column - 1].text()) # - 1 because of issue key is not item it is widget
         self.ui.tableDayWorklog.setColumnHidden(self.worklog_id_column, True)
         return issue_key, worklog_id
 
@@ -568,7 +585,8 @@ class MainWindow(QtGui.QMainWindow):
         if self.ui.tabWorklogs.isHidden():
             # we on issues tab
             if len(self.ui.tableIssues.selectedItems()):
-                issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
+                #issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
+                issue_key = str(self._get_selected_issue_details()[0])
                 self.update_issue_info_from_jira(issue_key)
             else:
                 QtGui.QMessageBox.warning(self, 'Tracking Error',
@@ -589,14 +607,10 @@ class MainWindow(QtGui.QMainWindow):
     def update_issue_info_from_jira(self, issue_key):
         logger.debug('Refreshing issue %s' % str(issue_key))
 
-        def del_wrapper(db_filename, del_issue_key):
-            db.remove_issue(db_filename, del_issue_key)
-            return del_issue_key
-        del_issue_func = partial(del_wrapper, self.creds[3], issue_key)
-        self.result_queue.put((del_issue_func, ''))
+        self._remove_issue_from_local(issue_key)
         get_issue_func = partial(pyjtt.get_issue_from_jira,
                                  self.creds, issue_key)
-        self.io_queue.put((get_issue_func, 'Refreshing issue %s ...'
+        self.result_queue.put((get_issue_func, 'Refreshing issue %s ...'
                                            % str(issue_key)))
 
     def _add_issue_to_local(self, issue):
@@ -607,14 +621,14 @@ class MainWindow(QtGui.QMainWindow):
 
     def _remove_issue_from_local(self, issue_key):
         logger.debug('Remove issue %s from memory' % issue_key)
-        del self.jira_issues[issue_key]
+        del self.jira_issues[str(issue_key)]
+        db.remove_issue(self.creds[3], str(issue_key))
         logger.debug('Issue %s has been removed from memory' % issue_key)
         self._refresh_gui()
 
     def add_new_worklog(self):
         title = 'Add worklog'
-        issue_key = str(self.ui.tableIssues.selectedItems()[0].text())
-        summary = self.jira_issues[issue_key].summary
+        issue_key, summary = self._get_selected_issue_details()
         selected_date = datetime.datetime.now()
         end_time = datetime.datetime.now()
         start_time = end_time - datetime.timedelta(hours=1)
