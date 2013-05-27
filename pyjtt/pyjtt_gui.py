@@ -38,7 +38,7 @@ import Queue
 import db
 import utils
 import rest_wrapper
-import pyjtt
+import core
 from gui import login_screen, main_window, worklog_window
 
 
@@ -100,7 +100,7 @@ class ResultThread(BaseThread):
     def _run(self, func):
         logger.debug('Start I/O function with result')
         result = func()
-        if isinstance(result, pyjtt.JIRAIssue):
+        if isinstance(result, core.JIRAIssue):
             self.issue_get.emit(result)
         elif isinstance(result, str):
             self.issue_removed.emit(result)
@@ -383,7 +383,7 @@ class MainWindow(QtGui.QMainWindow):
         # Request assigned issues
         for assigned_issue in self.user.assigned_issue_keys:
             if assigned_issue not in self.jira_issues:
-                get_issue_func = partial(pyjtt.get_issue_from_jira,
+                get_issue_func = partial(core.get_issue_from_jira,
                                          self.creds, assigned_issue)
                 logger.debug('Put func to queue')
                 self.result_queue.put((get_issue_func, 'Getting issue %s ...' %
@@ -571,7 +571,7 @@ class MainWindow(QtGui.QMainWindow):
             logger.debug('issue key is %s' % issue_key)
             if utils.check_jira_issue_key(issue_key) and issue_key not in self.jira_issues:
                 logger.debug('Packing the function')
-                get_issue_func = partial(pyjtt.get_issue_from_jira,
+                get_issue_func = partial(core.get_issue_from_jira,
                                          self.creds, issue_key)
                 logger.debug('Putting function to the queue')
                 self.result_queue.put((get_issue_func,
@@ -608,7 +608,7 @@ class MainWindow(QtGui.QMainWindow):
         logger.debug('Refreshing issue %s' % str(issue_key))
 
         self._remove_issue_from_local(issue_key)
-        get_issue_func = partial(pyjtt.get_issue_from_jira,
+        get_issue_func = partial(core.get_issue_from_jira,
                                  self.creds, issue_key)
         self.result_queue.put((get_issue_func, 'Refreshing issue %s ...'
                                            % str(issue_key)))
@@ -643,7 +643,7 @@ class MainWindow(QtGui.QMainWindow):
             logger.debug('From user: %s, %s, %s' % (str(start_time),
                                                     str(end_time), comment))
             stat_message = 'Adding worklog for issue %s' % str(issue_key)
-            self._push_task_to_io_threads(pyjtt.add_worklog,
+            self._push_task_to_io_threads(core.add_worklog,
                                           stat_message,
                                           self.creds,
                                           self.jira_issues[issue_key],
@@ -673,7 +673,7 @@ class MainWindow(QtGui.QMainWindow):
                                                         str(new_end_time),
                                                         new_comment))
                 stat_message = 'Edit worklog in issue %s' % str(issue_key)
-                self._push_task_to_io_threads(pyjtt.update_worklog, stat_message,
+                self._push_task_to_io_threads(core.update_worklog, stat_message,
                                self.creds, self.jira_issues[issue_key],
                                worklog_id, new_start_time, new_end_time,
                                new_comment)
@@ -690,7 +690,7 @@ class MainWindow(QtGui.QMainWindow):
                                                QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 stat_message = 'Removing worklog in issue %s' % issue_key
-                self._push_task_to_io_threads(pyjtt.remove_worklog, stat_message, self.creds,
+                self._push_task_to_io_threads(core.remove_worklog, stat_message, self.creds,
                                self.jira_issues[issue_key], worklog_id)
         else:
             QtGui.QMessageBox.warning(self, 'Tracking Error',
@@ -741,7 +741,7 @@ class MainWindow(QtGui.QMainWindow):
                                         str(self.tracking_thread.current)))
                         stat_message = 'Adding worklog for issue %s' \
                                        % str(self.selected_issue.issue_key)
-                        self._push_task_to_io_threads(pyjtt.add_worklog,
+                        self._push_task_to_io_threads(core.add_worklog,
                                                       stat_message,
                                                       self.creds,
                                                       self.selected_issue,
@@ -791,7 +791,7 @@ def main():
     if not os.path.isdir(workdir):
         logger.debug('First start')
         os.mkdir(workdir)
-    config_filename = os.path.join(workdir,'pyjtt.cfg')
+    config_filename = os.path.join(workdir, 'pyjtt.cfg')
     save_credentials = False
     if not os.path.isfile(config_filename):
         jirahost, login, password, save_credentials = perform_login()

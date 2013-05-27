@@ -6,7 +6,7 @@ __author__ = 'Nikolay Golub'
 import urllib2, json, unittest, sys, logging, os, datetime, random
 sys.path.insert(0, os.path.abspath(os.path.join('..','pyjtt')))
 
-import pyjtt
+import core
 
 class pyjttCoreTest(unittest.TestCase):
     def setUp(self):
