@@ -27,7 +27,7 @@ __license__ = "GPL"
 
 import os
 import sys
-from custom_logging import logger
+import start
 import datetime
 import time
 from functools import partial
@@ -35,6 +35,8 @@ from PyQt4 import QtCore, QtGui
 from urllib2 import URLError
 import Queue
 
+import custom_logging
+logger = custom_logging.get_logger()
 import db
 import utils
 import rest_wrapper
@@ -292,7 +294,7 @@ class MainWindow(QtGui.QMainWindow):
         self.is_tracking_on = False
         # number of worklog id column, which is hidden from user
         self.worklog_id_column = 5
-        self.local_db_name = os.path.join(utils.get_app_working_dir(),
+        self.local_db_name = os.path.join(start.get_app_working_dir(),
                                           utils.get_db_filename(login, jirahost)
                                           )
         if not os.path.isfile(self.local_db_name):
@@ -787,7 +789,7 @@ def main():
     logger.debug('Local GMT offset is %s' % utils.LOCAL_UTC_OFFSET)
     # base constants
     app = QtGui.QApplication(sys.argv)
-    workdir = utils.get_app_working_dir()
+    workdir = start.get_app_working_dir()
     if not os.path.isdir(workdir):
         logger.debug('First start')
         os.mkdir(workdir)

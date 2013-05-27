@@ -25,7 +25,8 @@ __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2013, Nikolay Golub"
 __license__ = "GPL"
 
-from custom_logging import logger
+import custom_logging
+logger = custom_logging.get_logger()
 import db
 from rest_wrapper import *
 

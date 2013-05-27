@@ -27,10 +27,10 @@ __license__ = "GPL"
 
 from datetime import datetime, timedelta
 import ConfigParser
-from custom_logging import logger
 import urllib2
-import sys
-import os
+
+import custom_logging
+logger = custom_logging.get_logger()
 
 
 def get_settings(config_filename):
@@ -147,18 +147,18 @@ def check_url_host(url):
     return False
 
 
-def get_app_working_dir():
-    """Returns path to application operational folder.
-
-    Options and local database are stored in this folder.
-    """
-    app_name = 'pyjtt'
-    if 'linux' in sys.platform:
-        return os.path.join(os.environ['HOME'], '.' + app_name)
-    elif 'win' in sys.platform:
-        return os.path.join(os.environ['APPDATA'], app_name)
-    else:
-        return os.path.abspath('.' + app_name)
+# def get_app_working_dir():
+#     """Returns path to application operational folder.
+#
+#     Options and local database are stored in this folder.
+#     """
+#     app_name = 'pyjtt'
+#     if 'linux' in sys.platform:
+#         return os.path.join(os.environ['HOME'], '.' + app_name)
+#     elif 'win' in sys.platform:
+#         return os.path.join(os.environ['APPDATA'], app_name)
+#     else:
+#         return os.path.abspath('.' + app_name)
 
 # global variables, that can be used by other modules
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())

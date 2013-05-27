@@ -27,8 +27,8 @@ __license__ = "GPL"
 
 import datetime
 import sqlite3
-from custom_logging import logger
-
+import custom_logging
+logger = custom_logging.get_logger()
 
 def convert_to_datetime(datetime_string):
     timeformat = '%Y-%m-%d %H:%M:%S'

@@ -28,7 +28,9 @@ __license__ = "GPL"
 import urllib2
 import json
 import datetime
-from custom_logging import logger
+
+import custom_logging
+logger = custom_logging.get_logger()
 import utils
 
 

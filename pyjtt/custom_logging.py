@@ -28,33 +28,45 @@ __license__ = "GPL"
 import logging
 import logging.handlers
 import ConfigParser
+import os
 
-config_filename = 'pyjtt_app.cfg'
-config = ConfigParser.SafeConfigParser({'loglevel': 'INFO'})
-try:
-    config.read(config_filename)
-    loglevel = config.get('main', 'loglevel', 'DEBUG').upper()
-    if loglevel not in ('CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'):
-        loglevel = config.defaults()['loglevel']
-except ConfigParser.NoSectionError:
-    loglevel = config.defaults()['loglevel']
-    config.add_section('main')
-    config.set('main', 'loglevel', loglevel)
-    with open(config_filename, 'wb') as config_file:
-        config.write(config_file)
-except ConfigParser.NoOptionError:
-    loglevel = config.defaults()['loglevel']
-    config.set('main', 'loglevel', loglevel)
-    with open(config_filename, 'wb') as config_file:
-        config.write(config_file)
+import start
 
-LOG_FILENAME = 'pyjtt.log'
-logger = logging.getLogger('pyjtt_logger')
-logger.setLevel(getattr(logging, loglevel))
-formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s %(message)s')
-rotater = logging.handlers.RotatingFileHandler(
+
+def _get_loglevel():
+    DEFAULT_LOGLEVEL = 'INFO'
+    config = ConfigParser.ConfigParser()
+    try:
+        config.read(start.config_filename)
+        loglevel = config.get('main', 'loglevel', DEFAULT_LOGLEVEL).upper()
+        if loglevel not in ('CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'):
+            loglevel = DEFAULT_LOGLEVEL
+    except ConfigParser.NoSectionError:
+        loglevel = DEFAULT_LOGLEVEL
+        config.add_section('main')
+        config.set('main', 'loglevel', loglevel)
+        if not os.path.isdir(start.get_app_working_dir()):
+            os.mkdir(start.get_app_working_dir())
+        with open(start.config_filename, 'wb') as config_file:
+            config.write(config_file)
+    except ConfigParser.NoOptionError:
+        loglevel = DEFAULT_LOGLEVEL
+        config.set('main', 'loglevel', loglevel)
+        if not os.path.isdir(start.get_app_working_dir()):
+            os.mkdir(start.get_app_working_dir())
+        with open(start.config_filename, 'wb') as config_file:
+            config.write(config_file)
+    return loglevel
+
+def get_logger():
+    LOG_FILENAME = os.path.join(start.get_app_working_dir(), 'pyjtt.log')
+    logger = logging.getLogger('pyjtt_logger')
+    loglevel = _get_loglevel()
+    logger.setLevel(getattr(logging, loglevel))
+    formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s %(message)s')
+    rotater = logging.handlers.RotatingFileHandler(
     LOG_FILENAME, mode='a', encoding='utf-8', maxBytes=10485760, backupCount=5)
-rotater.setFormatter(formatter)
-logger.addHandler(rotater)
-
+    rotater.setFormatter(formatter)
+    logger.addHandler(rotater)
+    return logger
 
