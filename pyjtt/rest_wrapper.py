@@ -199,9 +199,10 @@ class JIRAIssue(JiraRestBase):
 
 class JiraUser(JiraRestBase):
     """Class for accessing to user data"""
-    def __init__(self, jirahost, login, password):
+    def __init__(self, jirahost, login, password, custom_jql=None):
         logger.debug('Jira user object has been called')
         JiraRestBase.__init__(self, jirahost, login, password)
+        self.custom_jql = custom_jql
         self.user_url = str(self.jirahost) + '/rest/api/2/user?username=' + str(self.login)
         raw_user_data = self.rest_req(self.user_url)
         self.display_name = raw_user_data['displayName']
@@ -213,10 +214,13 @@ class JiraUser(JiraRestBase):
         Currently gets only 50 issues
         """
         # TODO: add sorting in JQL
-        assigned_url = '%s/rest/api/2/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed&fields=key' % (self.jirahost, self.login)
+        if self.custom_jql:
+            to_retrieve_url = self.jirahost + '/rest/api/2/search?jql' + self.custom_jql
+        else:
+            to_retrieve_url = '%s/rest/api/2/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed&fields=key' % (self.jirahost, self.login)
         self.assigned_issue_keys = []
         logger.debug('Request assigned issues')
-        raw_assigned = self.rest_req(assigned_url)
+        raw_assigned = self.rest_req(to_retrieve_url)
         logger.debug('Parse assigned isses')
         for raw_issue in raw_assigned['issues']:
             self.assigned_issue_keys.append(raw_issue['key'])

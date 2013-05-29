@@ -318,6 +318,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # Get assigned issues keys
         try:
+
             self.user = rest_wrapper.JiraUser(self.creds[0],
                                               self.creds[1],
                                               self.creds[2])
@@ -806,8 +807,6 @@ def main():
     if save_credentials:
         logger.debug('Saving credentials')
         utils.save_settings(config_filename, (jirahost, login, password))
-    else:
-        utils.save_settings(config_filename, (jirahost, '', ''))
     logger.debug('Starting Main Application')
     pyjtt_main_window = MainWindow(jirahost, login, password)
     pyjtt_main_window.show()

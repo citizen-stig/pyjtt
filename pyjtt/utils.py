@@ -36,10 +36,7 @@ logger = custom_logging.get_logger()
 def get_settings(config_filename):
     """Reads setting from configuration file"""
     logger.debug('Getting base options')
-    #config = ConfigParser.ConfigParser()
-    config = ConfigParser.SafeConfigParser({'host': '',
-                                            'login': '',
-                                            'password': ''})
+    config = ConfigParser.ConfigParser()
     config.read(config_filename)
     try:
         jirahost = config.get('jira', 'host', '')
@@ -52,6 +49,16 @@ def get_settings(config_filename):
         return defaults['host'], defaults['login'], defaults['password'],
     logger.info('Options have been red')
     return jirahost, login, password
+
+
+def get_custom_jql(config_filename):
+    config = ConfigParser.ConfigParser()
+    config.read(config_filename)
+    try:
+        custom_jql = config.get('jira', 'ret_jql', None)
+        return custom_jql
+    except ConfigParser.NoSectionError:
+        return None
 
 
 def save_settings(config_filename, creds):

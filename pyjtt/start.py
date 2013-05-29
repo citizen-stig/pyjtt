@@ -16,4 +16,4 @@ def get_app_working_dir():
         return os.path.abspath('.' + app_name)
 
 
-config_filename = os.path.join(get_app_working_dir(),'pyjtt_app.cfg')
+config_filename = os.path.join(get_app_working_dir(),'pyjtt.cfg')
