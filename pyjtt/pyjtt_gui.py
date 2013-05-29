@@ -319,7 +319,6 @@ class MainWindow(QtGui.QMainWindow):
         # Get assigned issues keys
         try:
             custom_jql = utils.get_custom_jql()
-            print custom_jql
             self.user = rest_wrapper.JiraUser(self.creds[0],
                                               self.creds[1],
                                               self.creds[2], custom_jql)

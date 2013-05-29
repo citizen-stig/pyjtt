@@ -32,6 +32,8 @@ import os
 
 import start
 
+logger_instance=None
+
 
 def _get_loglevel():
     DEFAULT_LOGLEVEL = 'INFO'
@@ -58,7 +60,11 @@ def _get_loglevel():
             config.write(config_file)
     return loglevel
 
+
 def get_logger():
+    global logger_instance
+    if logger_instance:
+        return logger_instance
     LOG_FILENAME = os.path.join(start.get_app_working_dir(), 'pyjtt.log')
     logger = logging.getLogger('pyjtt_logger')
     loglevel = _get_loglevel()
@@ -68,5 +74,6 @@ def get_logger():
     LOG_FILENAME, mode='a', encoding='utf-8', maxBytes=10485760, backupCount=5)
     rotater.setFormatter(formatter)
     logger.addHandler(rotater)
+    logger_instance = logger
     return logger
 
