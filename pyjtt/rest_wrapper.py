@@ -218,7 +218,7 @@ class JiraUser(JiraRestBase):
             cleaned_jql = utils.clean_jql_url(self.custom_jql)
             to_retrieve_url = self.jirahost + '/rest/api/2/search?jql=' + cleaned_jql
         else:
-            to_retrieve_url = '%s/rest/api/2/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed&fields=key' % (self.jirahost, self.login)
+            to_retrieve_url = '%s/rest/api/2/search?jql=assignee="%s"+and+status!=Resolved+and+status!=Completed+and+status!=Closed+and+status!=Aborted&fields=key' % (self.jirahost, self.login)
         self.assigned_issue_keys = []
         logger.debug('Request assigned issues')
         raw_assigned = self.rest_req(to_retrieve_url)

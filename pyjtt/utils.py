@@ -60,7 +60,7 @@ def get_custom_jql(config_filename=None):
     try:
         custom_jql = config.get('jira', 'ret_jql', None)
         return custom_jql
-    except ConfigParser.NoSectionError:
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         return None
 
 

@@ -243,7 +243,8 @@ class LoginForm(QtGui.QDialog):
         self.login = str(self.ui.lineEditLogin.text())
         self.password = str(self.ui.lineEditPassword.text())
         if not self.jira_host:
-            QtGui.QMessageBox.warning(self, 'Login error', 'Enter JIRA host address')
+            QtGui.QMessageBox.warning(self, 'Login error',
+                                      'Enter JIRA host address')
         elif not self.login:
             QtGui.QMessageBox.warning(self, 'Login error', 'Enter login')
         elif not self.password:
@@ -265,20 +266,27 @@ class LoginForm(QtGui.QDialog):
     def _login(self, login, password, jirahost):
         logger.debug('Trying to get user info')
         try:
-            user_info = rest_wrapper.JiraUser(str(jirahost), str(login), str(password))
+            rest_wrapper.JiraUser(str(jirahost), str(login),
+                                              str(password))
             logger.debug('Login successful')
             if self.ui.checkBoxSaveCredentials.isChecked():
                 self.save_credentials = True
             return True
         except rest_wrapper.urllib2.HTTPError as e:
             if e.code == 401:
-                QtGui.QMessageBox.warning(self, 'Login error', 'Wrong login or password')
+                QtGui.QMessageBox.warning(self, 'Login error',
+                                          'Wrong login or password')
             elif e.code == 403:
-                QtGui.QMessageBox.warning(self, 'Login error', 'Error %s %s. Try to login via Web' % (str(e.code), e.reason) )
+                QtGui.QMessageBox.warning(self, 'Login error',
+                                          'Error %s %s. Try to login via Web'
+                                          % (str(e.code), e.reason))
             else:
-                QtGui.QMessageBox.warning(self, 'Login error', 'Error: %s - %s' % (str(e.code), e.reason))
+                QtGui.QMessageBox.warning(self, 'Login error',
+                                          'Error: %s - %s' % (str(e.code),
+                                                              e.reason))
         except rest_wrapper.urllib2.URLError:
-            QtGui.QMessageBox.warning(self, 'Login error', 'Wrong jira URL')
+            QtGui.QMessageBox.warning(self, 'Login error',
+                                      'Wrong jira URL')
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -389,8 +397,8 @@ class MainWindow(QtGui.QMainWindow):
                 get_issue_func = partial(core.get_issue_from_jira,
                                          self.creds, assigned_issue)
                 logger.debug('Put func to queue')
-                self.result_queue.put((get_issue_func, 'Getting issue %s ...' %
-                                                       str(assigned_issue)))
+                self.result_queue.put((get_issue_func,
+                                       'Fetching issue from JIRA...'))
         self._refresh_gui()
 
     # About naming convention:
@@ -422,13 +430,14 @@ class MainWindow(QtGui.QMainWindow):
         for row, issue_key in enumerate(sorted(issues_dict.keys())):
             issue_link_label = self._get_issue_link_label(issues_dict[issue_key])
             self.ui.tableIssues.setCellWidget(row, 0, issue_link_label)
-            self.ui.tableIssues.setItem(row, 1,
-                                        QtGui.QTableWidgetItem(issues_dict[issue_key].summary))
+            self.ui.tableIssues.\
+                setItem(row, 1,
+                        QtGui.QTableWidgetItem(issues_dict[issue_key].summary))
         self.ui.tableIssues.resizeColumnToContents(0)
-        self.ui.tableIssues.horizontalHeader().setResizeMode(1,
-                                                             QtGui.QHeaderView.Stretch)
-        self.ui.tableIssues.horizontalHeader().setResizeMode(0,
-                                                             QtGui.QHeaderView.Fixed)
+        self.ui.tableIssues.horizontalHeader().\
+            setResizeMode(1, QtGui.QHeaderView.Stretch)
+        self.ui.tableIssues.horizontalHeader().\
+            setResizeMode(0, QtGui.QHeaderView.Fixed)
         self.ui.tableIssues.sortByColumn(0, 0)
 
     def _print_exception(self, exception):
@@ -449,20 +458,24 @@ class MainWindow(QtGui.QMainWindow):
         summary_coordinates = selected_indexes[1]
 
         doc = QtGui.QTextDocument()
-        doc.setHtml(table.cellWidget(key_coordinates.row(), key_coordinates.column()).text())
+        doc.setHtml(table.cellWidget(key_coordinates.row(),
+                                     key_coordinates.column()).text())
         key = str(doc.toPlainText()).strip()
-        summary = str(table.item(summary_coordinates.row(), summary_coordinates.column()).text())
+        summary = str(table.item(summary_coordinates.row(),
+                                 summary_coordinates.column()).text())
         return key, summary
 
     def make_issue_selected(self):
         """Makes issue selected on top menu for online tracking."""
         if not self.is_tracking_on:
-            label_new_width = self.width() - (self.ui.startStopTracking.width() + 30)
+            label_new_width = self.width() - \
+                              (self.ui.startStopTracking.width() + 30)
             issue_key, summary = self._get_selected_issue_details()
             self.ui.labelSelectedIssue.setText(issue_key + ': ' + summary)
             self.ui.labelSelectedIssue.setMaximumWidth(label_new_width)
             self.selected_issue = self.jira_issues[issue_key]
-            logger.debug('Now selected issue %s' % str(self.jira_issues[issue_key]))
+            logger.debug('Now selected issue %s'
+                         % str(self.jira_issues[issue_key]))
 
     def _refresh_issues_table(self):
         """Refreshes issues table GUI"""
@@ -484,9 +497,15 @@ class MainWindow(QtGui.QMainWindow):
         # Filling the table started
         self.ui.tableDayWorklog.setRowCount(len(day_work))
         for row, entry in enumerate(day_work):
+            if entry[0] not in self.jira_issues:
+                # Multithreading handling
+                logger.debug('Issue %s is still being proccessed'
+                             % str(entry[0]))
+                continue
             spent = entry[3] - entry[2]
             day_summary += spent
-            issue_link = self._get_issue_link_label(self.jira_issues[entry[0]])
+            issue = self.jira_issues[entry[0]]
+            issue_link = self._get_issue_link_label(issue)
             self.ui.tableDayWorklog.setCellWidget(row, 0, issue_link)
             self.ui.tableDayWorklog.setItem(row, 1,
                                             QtGui.QTableWidgetItem(entry[1]))
@@ -578,7 +597,7 @@ class MainWindow(QtGui.QMainWindow):
                                          self.creds, issue_key)
                 logger.debug('Putting function to the queue')
                 self.result_queue.put((get_issue_func,
-                                       'Getting issue %s ...' % str(issue_key)))
+                                       'Fetching issues ...' % str(issue_key)))
         self.ui.lineIssueKey.clear()
 
     def force_update_selected_issue(self):
