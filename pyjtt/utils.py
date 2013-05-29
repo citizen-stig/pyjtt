@@ -32,6 +32,7 @@ import urllib2
 import custom_logging
 logger = custom_logging.get_logger()
 
+CONFIG_FILENAME='pyjtt.cfg'
 
 def get_settings(config_filename):
     """Reads setting from configuration file"""
@@ -51,7 +52,9 @@ def get_settings(config_filename):
     return jirahost, login, password
 
 
-def get_custom_jql(config_filename):
+def get_custom_jql(config_filename=None):
+    if config_filename is None:
+        config_filename = CONFIG_FILENAME
     config = ConfigParser.ConfigParser()
     config.read(config_filename)
     try:
@@ -152,6 +155,11 @@ def check_url_host(url):
     except ValueError as valerr:
         logger.error('URL: "%s" is not an valid url' % url)
     return False
+
+
+def clean_jql_url(raw_jql):
+    cleaned_jql = raw_jql.strip("'").replace(' ', '+')
+    return cleaned_jql
 
 
 # def get_app_working_dir():

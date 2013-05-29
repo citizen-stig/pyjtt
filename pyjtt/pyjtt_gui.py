@@ -318,10 +318,11 @@ class MainWindow(QtGui.QMainWindow):
 
         # Get assigned issues keys
         try:
-
+            custom_jql = utils.get_custom_jql()
+            print custom_jql
             self.user = rest_wrapper.JiraUser(self.creds[0],
                                               self.creds[1],
-                                              self.creds[2])
+                                              self.creds[2], custom_jql)
             self.user.get_assigned_issues()
         except URLError:
             logger.error('Connection problems')
@@ -795,6 +796,7 @@ def main():
         logger.debug('First start')
         os.mkdir(workdir)
     config_filename = os.path.join(workdir, 'pyjtt.cfg')
+    utils.CONFIG_FILENAME = config_filename
     save_credentials = False
     if not os.path.isfile(config_filename):
         jirahost, login, password, save_credentials = perform_login()
