@@ -1,8 +1,8 @@
 import sys
+import os
 from cx_Freeze import setup, Executable
 
-#
-path = sys.path + ["pyjtt"]
+path = ["pyjtt"] + sys.path
 includes = ["custom_logging"]
 build_exe_options = {
 "path": path,
@@ -14,9 +14,10 @@ build_exe_options = {
 base = None
 if sys.platform == "win32":
     base = "Win32GUI"
-
+target_app = os.path.join("pyjtt", "pyjtt_gui.py")
+	
 setup(  name = "pyjtt",
         version = "1.1",
         description = "Jira Time Tracker",
         options = {"build_exe": build_exe_options},
-        executables = [Executable("pyjtt\pyjtt_gui.py", base=base)])
+        executables = [Executable(target_app, base=base)])
