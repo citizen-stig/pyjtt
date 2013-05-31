@@ -597,7 +597,7 @@ class MainWindow(QtGui.QMainWindow):
                                          self.creds, issue_key)
                 logger.debug('Putting function to the queue')
                 self.result_queue.put((get_issue_func,
-                                       'Fetching issues ...' % str(issue_key)))
+                                       'Fetching issues ...'))
         self.ui.lineIssueKey.clear()
 
     def force_update_selected_issue(self):
