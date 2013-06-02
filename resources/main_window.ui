@@ -34,7 +34,7 @@
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabIssues">
        <attribute name="title">
@@ -54,7 +54,7 @@
         <item row="0" column="1">
          <widget class="QPushButton" name="FindIssue">
           <property name="text">
-           <string>Find</string>
+           <string>Add</string>
           </property>
           <property name="flat">
            <bool>false</bool>

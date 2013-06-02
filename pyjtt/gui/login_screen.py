@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'login_screen.ui'
 #
-# Created: Sun Feb 24 13:29:56 2013
-#      by: PyQt4 UI code generator 4.9.6
+# Created: Sun Jun  2 10:05:17 2013
+#      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
 

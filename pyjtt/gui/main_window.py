@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Sun Feb 24 13:29:56 2013
-#      by: PyQt4 UI code generator 4.9.6
+# Created: Sun Jun  2 10:05:17 2013
+#      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -79,8 +79,8 @@ class Ui_MainWindow(object):
         self.gridLayout_2 = QtGui.QGridLayout(self.tabWorklogs)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.dateDayWorklogEdit = QtGui.QDateEdit(self.tabWorklogs)
-        self.dateDayWorklogEdit.setDate(QtCore.QDate(2001, 1, 1))
         self.dateDayWorklogEdit.setCalendarPopup(True)
+        self.dateDayWorklogEdit.setDate(QtCore.QDate(2001, 1, 1))
         self.dateDayWorklogEdit.setObjectName(_fromUtf8("dateDayWorklogEdit"))
         self.gridLayout_2.addWidget(self.dateDayWorklogEdit, 0, 0, 1, 1)
         self.editWorklog = QtGui.QPushButton(self.tabWorklogs)
@@ -159,7 +159,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addLayout(self.formLayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 640, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 640, 19))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -197,7 +197,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "Jira Time Tracker", None))
         self.lineIssueKey.setPlaceholderText(_translate("MainWindow", "Enter issue key...", None))
-        self.FindIssue.setText(_translate("MainWindow", "Find", None))
+        self.FindIssue.setText(_translate("MainWindow", "Add", None))
         self.tableIssues.setSortingEnabled(True)
         item = self.tableIssues.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Key", None))
