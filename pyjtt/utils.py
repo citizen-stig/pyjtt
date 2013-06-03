@@ -26,34 +26,41 @@ __copyright__ = "Copyright 2012, Nikolay Golub"
 __license__ = "GPL"
 
 from datetime import datetime, timedelta
+import os
 import ConfigParser
 import urllib2
+from httplib import BadStatusLine
 
+import start
 import custom_logging
 logger = custom_logging.get_logger()
 
-CONFIG_FILENAME='pyjtt.cfg'
+CONFIG_FILENAME = 'pyjtt.cfg'
 
 def get_settings(config_filename):
     """Reads setting from configuration file"""
     logger.debug('Getting base options')
     config = ConfigParser.ConfigParser()
     config.read(config_filename)
+    jirahost = None
+    login = None
+    password = None
     try:
         jirahost = config.get('jira', 'host', '')
         login = config.get('jira', 'login', '')
         password = config.get('jira', 'password', '')
-    except ConfigParser.NoSectionError as e:
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
         logger.warning('Section %s is missed in configuration file %s' % (e[0], config_filename))
         logger.warning('Return default values')
-        return None, None, None
+        return jirahost, login, password
     logger.info('Options have been red')
     return jirahost, login, password
 
 
 def get_custom_jql(config_filename=None):
     if config_filename is None:
-        config_filename = CONFIG_FILENAME
+        workdir = start.get_app_working_dir()
+        config_filename = os.path.join(workdir, CONFIG_FILENAME)
     config = ConfigParser.ConfigParser()
     config.read(config_filename)
     try:
@@ -76,6 +83,18 @@ def save_settings(config_filename, creds):
     with open(config_filename, 'wb') as configfile:
         config.write(configfile)
     logger.debug('Options have been saved')
+
+
+def save_jirahost(config_filename, host_url):
+    config = ConfigParser.ConfigParser()
+    config.read(config_filename)
+    try:
+        config.set('jira', 'host', host_url)
+    except ConfigParser.NoSectionError:
+        config.add_section('jira')
+        config.set('jira', 'host', host_url)
+    with open(config_filename, 'wb') as configfile:
+        config.write(configfile)
 
 
 def get_db_filename(login, jirahost):
@@ -153,6 +172,8 @@ def check_url_host(url):
         logger.warning('Problem to access URL: "%s": %s' % (str(url), urlerr))
     except ValueError as valerr:
         logger.error('URL: "%s" is not an valid url' % url)
+    except BadStatusLine:
+        logger.error('URL: "%s" has a bad status line' % url)
     return False
 
 
