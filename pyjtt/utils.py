@@ -46,8 +46,7 @@ def get_settings(config_filename):
     except ConfigParser.NoSectionError as e:
         logger.warning('Section %s is missed in configuration file %s' % (e[0], config_filename))
         logger.warning('Return default values')
-        defaults = config.defaults()
-        return defaults['host'], defaults['login'], defaults['password'],
+        return None, None, None
     logger.info('Options have been red')
     return jirahost, login, password
 
