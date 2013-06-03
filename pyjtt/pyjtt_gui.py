@@ -564,7 +564,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def _clear_status_msg(self):
         if self.status_msg_queue == 1:
-            self.ui.status_msg.hide()
+            #self.ui.status_msg.hide()
+            self.ui.status_msg.setText('Synchronized')
             self.ui.spinning_label.hide()
         self.status_msg_queue -= 1
         logger.debug('Thread queue for a status bar is %d '
