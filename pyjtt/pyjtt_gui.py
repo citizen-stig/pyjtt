@@ -287,6 +287,9 @@ class LoginForm(QtGui.QDialog):
         except rest_wrapper.urllib2.URLError:
             QtGui.QMessageBox.warning(self, 'Login error',
                                       'Wrong jira URL')
+        except ValueError as val_err:
+            QtGui.QMessageBox.warning(self, 'Login error',
+                                      '"%s" \nProbably JIRA doesn\'t respond ' % val_err.message)
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -872,6 +875,8 @@ def main():
     if save_credentials:
         logger.debug('Saving credentials')
         utils.save_settings(config_filename, (jirahost, login, password))
+    else:
+        utils.save_jirahost(config_filename, jirahost)
     logger.debug('Starting Main Application')
     pyjtt_main_window = MainWindow(jirahost, login, password)
     pyjtt_main_window.show()
