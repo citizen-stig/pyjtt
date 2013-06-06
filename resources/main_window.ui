@@ -20,8 +20,8 @@
    <string>Jira Time Tracker</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="pyjtt_icons.qrc">
-    <normaloff>:/icons/set1/icons/set1/clock.ico</normaloff>:/icons/set1/icons/set1/clock.ico</iconset>
+   <iconset resource="pyjtt_res.qrc">
+    <normaloff>:/res/icons/clock.ico</normaloff>:/res/icons/clock.ico</iconset>
   </property>
   <property name="animated">
    <bool>false</bool>
@@ -291,8 +291,8 @@
          <string>Start Tracking</string>
         </property>
         <property name="icon">
-         <iconset resource="pyjtt_icons.qrc">
-          <normaloff>:/icons/set2/icons/set2/start.ico</normaloff>:/icons/set2/icons/set2/start.ico</iconset>
+         <iconset resource="pyjtt_res.qrc">
+          <normaloff>:/res/icons/start.ico</normaloff>:/res/icons/start.ico</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -366,7 +366,7 @@
   <tabstop>FindIssue</tabstop>
  </tabstops>
  <resources>
-  <include location="pyjtt_icons.qrc"/>
+  <include location="pyjtt_res.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="res">
+    <file>icons/clock.ico</file>
+    <file>icons/start.ico</file>
+    <file>icons/stop.ico</file>
+    <file>img/spinning-progress.gif</file>
+  </qresource>
+</RCC>

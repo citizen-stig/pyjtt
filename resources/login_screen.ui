@@ -26,8 +26,8 @@
    <string>Login</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="pyjtt_icons.qrc">
-    <normaloff>:/icons/set1/icons/set1/clock.ico</normaloff>:/icons/set1/icons/set1/clock.ico</iconset>
+   <iconset resource="pyjtt_res.qrc">
+    <normaloff>:/res/icons/clock.ico</normaloff>:/res/icons/clock.ico</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -98,7 +98,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="pyjtt_icons.qrc"/>
+  <include location="pyjtt_res.qrc"/>
  </resources>
  <connections/>
 </ui>

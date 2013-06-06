@@ -32,8 +32,8 @@
    <string>Some Worklog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="pyjtt_icons.qrc">
-    <normaloff>:/icons/set1/icons/set1/clock.ico</normaloff>:/icons/set1/icons/set1/clock.ico</iconset>
+   <iconset resource="pyjtt_res.qrc">
+    <normaloff>:/res/icons/clock.ico</normaloff>:/res/icons/clock.ico</iconset>
   </property>
   <property name="whatsThis">
    <string/>
@@ -202,7 +202,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="pyjtt_icons.qrc"/>
+  <include location="pyjtt_res.qrc"/>
  </resources>
  <connections/>
 </ui>

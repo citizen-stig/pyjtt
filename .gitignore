@@ -1,0 +1,11 @@
+*.py[cod]
+
+# build staff
+dist
+build
+
+
+# PyCharm
+# http://www.jetbrains.com/pycharm/webhelp/project.html
+.idea
+.iml

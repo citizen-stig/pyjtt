@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Mon Jun  3 10:15:37 2013
+# Created: Thu Jun  6 09:12:20 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -29,7 +29,7 @@ class Ui_MainWindow(object):
         MainWindow.resize(640, 480)
         MainWindow.setMinimumSize(QtCore.QSize(640, 480))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/set1/icons/set1/clock.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/res/icons/clock.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setAnimated(False)
         MainWindow.setTabShape(QtGui.QTabWidget.Rounded)
@@ -150,7 +150,7 @@ class Ui_MainWindow(object):
         self.startStopTracking = QtGui.QPushButton(self.centralwidget)
         self.startStopTracking.setMinimumSize(QtCore.QSize(131, 41))
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/set2/icons/set2/start.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/res/icons/start.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.startStopTracking.setIcon(icon1)
         self.startStopTracking.setIconSize(QtCore.QSize(32, 32))
         self.startStopTracking.setCheckable(True)
@@ -230,4 +230,4 @@ class Ui_MainWindow(object):
         self.actionRefresh.setText(_translate("MainWindow", "refresh!", None))
         self.actionAbout.setText(_translate("MainWindow", "About", None))
 
-import pyjtt_icons_rc
+import pyjtt_res_rc

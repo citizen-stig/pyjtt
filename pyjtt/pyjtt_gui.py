@@ -292,16 +292,9 @@ class LoginForm(QtGui.QDialog):
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, jirahost, login, password, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self.ui = main_window.Ui_MainWindow()
-        self.ui.setupUi(self)
-
+        self._init_ui()
         # Main dictionary, contains JIRAIssue objects, key is JIRA issue key
         self.jira_issues = {}
-        # Issue which is selected by user. It is used in online tracking
-        self.selected_issue = None
-        self.is_tracking_on = False
-        # number of worklog id column, which is hidden from user
-        self.worklog_id_column = 5
         self.local_db_name = os.path.join(start.get_app_working_dir(),
                                           utils.get_db_filename(login, jirahost)
                                           )
@@ -323,7 +316,6 @@ class MainWindow(QtGui.QMainWindow):
         # Build tuple with credentials
         self.creds = (str(jirahost), str(login), str(password),
                       self.local_db_name)
-
         # Get assigned issues keys
         try:
             custom_jql = utils.get_custom_jql()
@@ -333,30 +325,10 @@ class MainWindow(QtGui.QMainWindow):
             self.user.get_assigned_issues()
         except URLError:
             logger.error('Connection problems')
-        # GUI customization
-        self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
-        # Hide work log id from user
-        self.ui.tableDayWorklog.setColumnHidden(self.worklog_id_column, True)
-        # Add status bar preferences
-        self.ui.spinning_img = QtGui.QMovie(main_window._fromUtf8(
-            ":/icons/set1/spinning-progress.gif"))
-        self.ui.spinning_label = QtGui.QLabel()
-        self.ui.spinning_label.setMovie(self.ui.spinning_img)
-        self.ui.status_msg = QtGui.QLabel()
-        self.ui.statusbar.addWidget(self.ui.spinning_label)
-        self.ui.statusbar.addWidget(self.ui.status_msg)
-        self.ui.status_msg.hide()
-        self.ui.spinning_label.hide()
+
         self.io_queue = Queue.Queue()
         self.result_queue = Queue.Queue()
         self.status_msg_queue = 0
-
-        self.ui.start_icon = QtGui.QIcon()
-        self.ui.start_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(
-            ":/icons/set2/icons/set2/start.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.ui.stop_icon = QtGui.QIcon()
-        self.ui.stop_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(
-            ":/icons/set2/icons/set2/stop.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
         # Threads
         num_of_threads = 10
@@ -390,6 +362,9 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionFull_refresh.triggered.connect(self.force_update_all_issues)
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
         self.ui.lineIssueKey.textChanged.connect(self.filter_issues_table)
+        self.ui.tray_icon.activated.connect(self.tray_click)
+        self.ui.app_exit.triggered.connect(self.app_close)
+        self.ui.show_window.triggered.connect(self._show_window)
 
         # Request assigned issues
         for assigned_issue in self.user.assigned_issue_keys:
@@ -405,6 +380,75 @@ class MainWindow(QtGui.QMainWindow):
     # All methods, that handle user input or works with JIRA (prepare request)
     # start with letter. Internal or GUI representation methods started from
     #  underscore
+
+    def _init_ui(self):
+        self.ui = main_window.Ui_MainWindow()
+        self.ui.setupUi(self)
+        # Issue which is selected by user. It is used in online tracking
+        self.selected_issue = None
+        self.is_tracking_on = False
+        # number of worklog id column, which is hidden from user
+        self.worklog_id_column = 5
+        # GUI customization
+        self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
+        # Hide work log id from user
+        self.ui.tableDayWorklog.setColumnHidden(self.worklog_id_column, True)
+        # Add status bar preferences
+        self.ui.spinning_img = QtGui.QMovie(main_window._fromUtf8(
+            ":/res/img/spinning-progress.gif"))
+        self.ui.spinning_label = QtGui.QLabel()
+        self.ui.spinning_label.setMovie(self.ui.spinning_img)
+        self.ui.spinning_label.hide()
+        self.ui.status_msg = QtGui.QLabel()
+        self.ui.statusbar.addWidget(self.ui.spinning_label)
+        self.ui.statusbar.addWidget(self.ui.status_msg)
+        self.ui.status_msg.hide()
+        self.ui.start_icon = QtGui.QIcon()
+        self.ui.start_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(
+            ":/res/icons/start.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.stop_icon = QtGui.QIcon()
+        self.ui.stop_icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(
+            ":/res/icons/stop.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.tray_icon = QtGui.QSystemTrayIcon()
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(main_window._fromUtf8(":/res/icons/clock.ico")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.ui.tray_icon.setIcon(icon)
+        self.ui.tray_icon.show()
+        self.ui.tray_menu = QtGui.QMenu()
+        self.ui.show_window = self.ui.tray_menu.addAction("pyJTT")
+        self.ui.tray_menu.addSeparator()
+        self.ui.app_exit = self.ui.tray_menu.addAction("Exit")
+        self.ui.tray_icon.setContextMenu(self.ui.tray_menu)
+
+    def hideEvent(self, event):
+        self.hide()
+        self.ui.show_window.setDisabled(False)
+        event.ignore()
+
+    def showEvent(self, event):
+        self.ui.show_window.setDisabled(True)
+        event.ignore()
+
+    def _show_window(self):
+        self.showNormal()
+        self.ui.show_window.setDisabled(True)
+
+    def tray_click(self, reason):
+        if reason != QtGui.QSystemTrayIcon.Context:
+            if self.isMinimized():
+                self.showNormal()
+                self.ui.show_window.setDisabled(True)
+            else:
+                self.showMinimized()
+                self.ui.show_window.setDisabled(False)
+
+    def app_close(self):
+        reply = QtGui.QMessageBox.question(self, 'Message',
+                                           "Are you sure to quit?",
+                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                           QtGui.QMessageBox.No)
+        if reply == QtGui.QMessageBox.Yes:
+            self.close()
 
     def filter_issues_table(self):
         current_text = self.ui.lineIssueKey.text()
