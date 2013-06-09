@@ -22,8 +22,22 @@ shortcut_table = [
      None,                     # IconIndex
      None,                     # ShowCmd
      '%APPDATA%\pyjtt'     # WkDir
+     ),
+	 ("ProgramMenuShortcut",        # Shortcut
+     "ProgramMenuFolder",          # Directory_
+     "pyJTT",           	   # Name
+     "TARGETDIR",              # Component_
+     "[TARGETDIR]pyjtt.exe",   # Target
+     None,                     # Arguments
+     None,                     # Description
+     None,                     # Hotkey
+     None,                     # Icon
+     None,                     # IconIndex
+     None,                     # ShowCmd
+     '%APPDATA%\pyjtt'     # WkDir
      )]
-
+	 
+ 
 # Now create the table dictionary
 msi_data = {"Shortcut": shortcut_table}
 
