@@ -366,8 +366,8 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionRefresh.triggered.connect(self._refresh_gui)
         self.ui.lineIssueKey.textChanged.connect(self.filter_issues_table)
         self.ui.tray_icon.activated.connect(self.tray_click)
-        self.ui.app_exit.triggered.connect(self.app_close)
-        self.ui.show_window.triggered.connect(self._show_window)
+        self.ui.app_exit.triggered.connect(self._app_close)
+        self.ui.show_window.triggered.connect(self._restore_from_tray)
 
         # Request assigned issues
         for assigned_issue in self.user.assigned_issue_keys:
@@ -419,39 +419,47 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.tray_icon.show()
         self.ui.tray_menu = QtGui.QMenu()
         self.ui.show_window = self.ui.tray_menu.addAction("pyJTT")
+        self.ui.show_window.setDisabled(True)
         self.ui.tray_menu.addSeparator()
         self.ui.app_exit = self.ui.tray_menu.addAction("Exit")
         self.ui.tray_icon.setContextMenu(self.ui.tray_menu)
 
-    def hideEvent(self, event):
-        self.hide()
-        self.ui.show_window.setDisabled(False)
+    def closeEvent(self, event):
+        self._hide_to_tray()
         event.ignore()
 
-    def showEvent(self, event):
-        self.ui.show_window.setDisabled(True)
-        event.ignore()
-
-    def _show_window(self):
+    def _restore_from_tray(self):
+        self.setWindowFlags(QtCore.Qt.Window)
         self.showNormal()
+        self.activateWindow()
         self.ui.show_window.setDisabled(True)
+
+    def _hide_to_tray(self):
+        self.setWindowFlags(QtCore.Qt.Tool)
+        self.ui.show_window.setDisabled(False)
 
     def tray_click(self, reason):
         if reason != QtGui.QSystemTrayIcon.Context:
-            if self.isMinimized():
-                self.showNormal()
-                self.ui.show_window.setDisabled(True)
+            if self.isHidden():
+                self._restore_from_tray()
             else:
-                self.showMinimized()
-                self.ui.show_window.setDisabled(False)
+                self._hide_to_tray()
 
-    def app_close(self):
-        reply = QtGui.QMessageBox.question(self, 'Message',
-                                           "Are you sure to quit?",
-                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+    def _app_close(self):
+        info_msg = "Are you sure to quit?"
+        was_hidden = False
+        if self.isHidden():
+            self.setHidden(False)
+            was_hidden = True
+        reply = QtGui.QMessageBox.question(self,
+                                           'Exit',
+                                           info_msg,
+                                           QtGui.QMessageBox.Yes,
                                            QtGui.QMessageBox.No)
         if reply == QtGui.QMessageBox.Yes:
-            self.close()
+            QtGui.QApplication.quit()
+        if was_hidden:
+            self.setHidden(True)
 
     def filter_issues_table(self):
         current_text = self.ui.lineIssueKey.text()
