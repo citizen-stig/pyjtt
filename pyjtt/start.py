@@ -1,5 +1,5 @@
 import os
-import sys
+import platform
 
 
 def get_app_working_dir():
@@ -8,9 +8,10 @@ def get_app_working_dir():
     Options and local database are stored in this folder.
     """
     app_name = 'pyjtt'
-    if 'linux' in sys.platform:
+    current_platform = platform.system()
+    if 'Linux' == current_platform:
         return os.path.join(os.environ['HOME'], '.' + app_name)
-    elif 'win' in sys.platform:
+    elif 'Windows' == current_platform:
         return os.path.join(os.environ['APPDATA'], app_name)
     else:
         return os.path.abspath('.' + app_name)

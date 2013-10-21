@@ -1,7 +1,13 @@
 #!/usr/bin/env python2
 from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
-import sys, unittest, os, datetime, ConfigParser
+import sys
+import unittest
+import os
+import datetime
+
+import StringIO
+
 sys.path.insert(0, os.path.abspath(os.path.join('..','pyjtt')))
 
 import utils
@@ -36,50 +42,35 @@ class pyjttUtilsTest(unittest.TestCase):
         # MSK
         now = datetime.datetime(2013, 01, 04, 16, 35)
         utcnow = datetime.datetime(2013, 01, 04, 12, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'+0400')
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '+0400')
         # PST
         now = datetime.datetime(2013, 01, 04, 04, 35)
         utcnow = datetime.datetime(2013, 01, 04, 12, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'-0800')
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '-0800')
         # Kabul
         now = datetime.datetime(2013, 01, 04, 17, 05)
         utcnow = datetime.datetime(2013, 01, 04, 12, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'+0430')
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '+0430')
         # GMT
         now = datetime.datetime(2013, 01, 04, 12, 35)
         utcnow = datetime.datetime(2013, 01, 04, 12, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'+0000')
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '+0000')
         # UTC -12
         now = datetime.datetime(2013, 01, 04, 00, 35)
         utcnow = datetime.datetime(2013, 01, 04, 12, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'-1200')
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '-1200')
         # UTC +14
-        now = datetime.datetime(2013, 01, 05, 02, 35)
-        utcnow = datetime.datetime(2013, 01, 04, 12, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'+1400')
+        now = datetime.datetime(2013, 01, 05, 2, 35)
+        utcnow = datetime.datetime(2013, 1, 4, 12, 35)
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '+1400')
         # Imaginary -530
-        now = datetime.datetime(2013, 01, 04, 11, 05)
-        utcnow = datetime.datetime(2013, 01, 04, 16, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'-0530')
-
-    def test_get_local_utc_offset_advanced(self):
-        # advanced
-        # MSK
-        now = datetime.datetime(2013, 01, 04, 01, 35)
-        utcnow = datetime.datetime(2013, 01, 03, 21, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'+0400')
-        # PST
-        now = datetime.datetime(2013, 01, 03, 19, 35)
-        utcnow = datetime.datetime(2013, 01, 04, 03, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'-0800')
-        # Kabul
-        now = datetime.datetime(2013, 01, 04, 02, 35)
-        utcnow = datetime.datetime(2013, 01, 03, 22, 05)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'+0430')
-        # Imaginary -530
-        now = datetime.datetime(2013, 01, 03, 21, 05)
-        utcnow = datetime.datetime(2013, 01, 04, 02, 35)
-        self.assertEqual(utils.get_local_utc_offset(now, utcnow),'-0530')
+        now = datetime.datetime(2013, 01, 04, 11, 5)
+        utcnow = datetime.datetime(2013, 1, 4, 16, 35)
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '-0530')
+        # Different minutes MSK
+        now = datetime.datetime(2013, 1, 4, 11, 5)
+        utcnow = datetime.datetime(2013, 1, 4, 7, 6)
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '+0400')
 
     def test_get_local_utc_offset_errors(self):
         # wrong year

@@ -167,7 +167,7 @@ class WorklogWindow(QtGui.QDialog):
         self.setWindowTitle(title)
         self.ui.labelIssue.setText(issue_key + ': ' + summary)
         self.ui.dateEdit.setDate(selected_date)
-        if  start_time and end_time:
+        if start_time and end_time:
             self.ui.timeStartEdit.setTime(datetime_to_qtime(start_time))
             self.ui.timeEndEdit.setTime(datetime_to_qtime(end_time))
         else:

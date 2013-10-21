@@ -110,14 +110,13 @@ def get_local_utc_offset(now, utcnow):
     logger.debug('Getting local UTC Offset')
 
     def absolute_offset(bigger_timestamp, smaller_timestamp):
-        offset = bigger_timestamp.hour - smaller_timestamp.hour
         minutes = bigger_timestamp.minute - smaller_timestamp.minute
         hours_diff = abs(bigger_timestamp.hour - smaller_timestamp.hour)
         if minutes < 0:
             hours_diff -= 1
         if bigger_timestamp.day != smaller_timestamp.day:
             hours_diff = abs(hours_diff - 24)
-        offset = '%02d%02d' % ( hours_diff, abs(minutes))
+        offset = '%02d%02d' % (hours_diff, abs(minutes))
         return offset
 
     if (now - utcnow).total_seconds() > 50400 or (now - utcnow).total_seconds() < -43200:
@@ -126,7 +125,7 @@ def get_local_utc_offset(now, utcnow):
         sign = '+'
         offset = absolute_offset(now, utcnow)
     else:
-        sign ='-'
+        sign = '-'
         offset = absolute_offset(utcnow, now)
     return sign + offset
 
@@ -170,7 +169,7 @@ def check_url_host(url):
         return True
     except urllib2.URLError as urlerr:
         logger.warning('Problem to access URL: "%s": %s' % (str(url), urlerr))
-    except ValueError as valerr:
+    except ValueError:
         logger.error('URL: "%s" is not an valid url' % url)
     except BadStatusLine:
         logger.error('URL: "%s" has a bad status line' % url)
