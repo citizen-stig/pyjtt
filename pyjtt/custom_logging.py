@@ -27,7 +27,7 @@ __license__ = "GPL"
 
 import logging
 import logging.handlers
-import ConfigParser
+import configparser
 import os
 
 import start
@@ -37,13 +37,13 @@ logger_instance=None
 
 def _get_loglevel():
     DEFAULT_LOGLEVEL = 'INFO'
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     try:
         config.read(start.config_filename)
-        loglevel = config.get('main', 'loglevel', DEFAULT_LOGLEVEL).upper()
+        loglevel = config.get('main', 'loglevel').upper()
         if loglevel not in ('CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'):
             loglevel = DEFAULT_LOGLEVEL
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         loglevel = DEFAULT_LOGLEVEL
         config.add_section('main')
         config.set('main', 'loglevel', loglevel)
@@ -51,7 +51,7 @@ def _get_loglevel():
             os.mkdir(start.get_app_working_dir())
         with open(start.config_filename, 'wb') as config_file:
             config.write(config_file)
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         loglevel = DEFAULT_LOGLEVEL
         config.set('main', 'loglevel', loglevel)
         if not os.path.isdir(start.get_app_working_dir()):

@@ -19,7 +19,6 @@
 #    other modules.
 #
 
-from __future__ import unicode_literals
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2013, Nikolay Golub"
@@ -31,9 +30,9 @@ import start
 import datetime
 import time
 from functools import partial
-from PyQt4 import QtCore, QtGui
-from urllib2 import URLError
-import Queue
+from PyQt5 import QtCore, QtGui
+from urllib.error import URLError
+import queue
 
 import custom_logging
 logger = custom_logging.get_logger()
@@ -41,7 +40,7 @@ import db
 import utils
 import rest_wrapper
 import core
-from gui import login_screen, main_window, worklog_window
+from .gui import login_screen, main_window, worklog_window
 
 
 def datetime_to_qtime(timestamp):
@@ -79,7 +78,7 @@ class BaseThread(QtCore.QThread):
                 f, msg = self.queue.get()
                 self.status_sent.emit(msg)
                 self._run(f)
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             except Exception as exc:
                 self.exception_raised.emit(exc)
@@ -329,8 +328,8 @@ class MainWindow(QtGui.QMainWindow):
         except URLError:
             logger.error('Connection problems')
 
-        self.io_queue = Queue.Queue()
-        self.result_queue = Queue.Queue()
+        self.io_queue = queue.Queue()
+        self.result_queue = queue.Queue()
         self.status_msg_queue = 0
 
         # Threads
@@ -463,7 +462,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def filter_issues_table(self):
         current_text = self.ui.lineIssueKey.text()
-        filtered_issues = dict((k, v) for (k, v) in self.jira_issues.iteritems()
+        filtered_issues = dict((k, v) for (k, v) in self.jira_issues.items()
                                if str(current_text).lower() in k.lower() or
                                str(current_text).lower() in v.summary.lower())
         self.ui.tableIssues.setRowCount(len(filtered_issues))
@@ -679,7 +678,7 @@ class MainWindow(QtGui.QMainWindow):
                                           'Please, select issue first')
 
     def force_update_all_issues(self):
-        for issue_key in self.jira_issues.keys():
+        for issue_key in list(self.jira_issues.keys()):
             self.update_issue_info_from_jira(issue_key)
 
     def update_issue_info_from_jira(self, issue_key):

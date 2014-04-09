@@ -25,16 +25,16 @@ __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2013, Nikolay Golub"
 __license__ = "GPL"
 
-import custom_logging
+from . import custom_logging
 logger = custom_logging.get_logger()
-import db
-from rest_wrapper import *
+from . import db
+from . import rest_wrapper
 
 
 def get_issue_from_jira(creds, issue_key):
     """Makes request for a issue info and stores it in db."""
     logger.info('Fetching issue with key "%s"' % issue_key)
-    issue = JIRAIssue(creds[0], creds[1], creds[2], issue_key, new=True)
+    issue = rest_wrapper.JIRAIssue(creds[0], creds[1], creds[2], issue_key, new=True)
     db.add_issue(creds[3], issue.issue_id, issue.issue_key, issue.summary)
     db.add_issue_worklog(creds[3], issue.worklog, issue.issue_id)
     logger.info('Issue "%s" has been fetched from JIRA and stored in local db'

@@ -16,10 +16,7 @@
 #    along with PyJTT.  If not, see <http://www.gnu.org/licenses/>.
 #
 #    This is module with a small utils functions
-#
-#
 
-from __future__ import unicode_literals
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012, Nikolay Golub"
@@ -27,20 +24,20 @@ __license__ = "GPL"
 
 from datetime import datetime, timedelta
 import os
-import ConfigParser
-import urllib2
-from httplib import BadStatusLine
+import configparser
+import urllib.request, urllib.error, urllib.parse
+from http.client import BadStatusLine
 
 import start
-import custom_logging
-logger = custom_logging.get_logger()
+import logging
+logger = logging.getLogger(__name__)
 
 CONFIG_FILENAME = 'pyjtt.cfg'
 
 def get_settings(config_filename):
     """Reads setting from configuration file"""
     logger.debug('Getting base options')
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(config_filename)
     jirahost = None
     login = None
@@ -49,7 +46,7 @@ def get_settings(config_filename):
         jirahost = config.get('jira', 'host', '')
         login = config.get('jira', 'login', '')
         password = config.get('jira', 'password', '')
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError) as e:
+    except (configparser.NoSectionError, configparser.NoOptionError) as e:
         logger.warning('Section %s is missed in configuration file %s' % (e[0], config_filename))
         logger.warning('Return default values')
         return jirahost, login, password
@@ -61,7 +58,7 @@ def get_custom_jql(config_filename=None):
     if config_filename is None:
         workdir = start.get_app_working_dir()
         config_filename = os.path.join(workdir, CONFIG_FILENAME)
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(config_filename)
     try:
         custom_jql = config.get('jira', 'ret_jql', None)
@@ -75,7 +72,7 @@ def save_settings(config_filename, creds):
     logger.debug('Saving configuration')
     if len(creds) != 3:
         raise ValueError('Credentials tuple is incomplete')
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.add_section('jira')
     config.set('jira', 'host', creds[0])
     config.set('jira', 'login', creds[1])
@@ -86,11 +83,11 @@ def save_settings(config_filename, creds):
 
 
 def save_jirahost(config_filename, host_url):
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(config_filename)
     try:
         config.set('jira', 'host', host_url)
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         config.add_section('jira')
         config.set('jira', 'host', host_url)
     with open(config_filename, 'wb') as configfile:
@@ -164,10 +161,10 @@ def check_jira_issue_key(issue_key):
 def check_url_host(url):
     """Simple host availability checker"""
     try:
-        urllib2.urlopen(url,timeout=3)
+        urllib.request.urlopen(url,timeout=3)
         logger.info('Host %s is ok and accessible' % str(url))
         return True
-    except urllib2.URLError as urlerr:
+    except urllib.error.URLError as urlerr:
         logger.warning('Problem to access URL: "%s": %s' % (str(url), urlerr))
     except ValueError:
         logger.error('URL: "%s" is not an valid url' % url)

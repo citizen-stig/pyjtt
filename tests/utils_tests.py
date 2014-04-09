@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 from __future__ import unicode_literals
 __author__ = 'Nikolay Golub'
 import sys
@@ -6,11 +6,10 @@ import unittest
 import os
 import datetime
 
-import StringIO
 
 sys.path.insert(0, os.path.abspath(os.path.join('..','pyjtt')))
 
-import utils
+from . import utils
 
 def _write_sample_file(filename, data):
     sample_file = open(filename, 'w')
