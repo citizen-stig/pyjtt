@@ -19,85 +19,19 @@
 
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
-__copyright__ = "Copyright 2012, Nikolay Golub"
+__copyright__ = "Copyright 2014, Nikolay Golub"
 __license__ = "GPL"
 
 from datetime import datetime, timedelta
-import os
-import configparser
-import urllib.request, urllib.error, urllib.parse
-from http.client import BadStatusLine
 
-import start
 import logging
 logger = logging.getLogger(__name__)
-
-CONFIG_FILENAME = 'pyjtt.cfg'
-
-def get_settings(config_filename):
-    """Reads setting from configuration file"""
-    logger.debug('Getting base options')
-    config = configparser.ConfigParser()
-    config.read(config_filename)
-    jirahost = None
-    login = None
-    password = None
-    try:
-        jirahost = config.get('jira', 'host', '')
-        login = config.get('jira', 'login', '')
-        password = config.get('jira', 'password', '')
-    except (configparser.NoSectionError, configparser.NoOptionError) as e:
-        logger.warning('Section %s is missed in configuration file %s' % (e[0], config_filename))
-        logger.warning('Return default values')
-        return jirahost, login, password
-    logger.info('Options have been red')
-    return jirahost, login, password
-
-
-def get_custom_jql(config_filename=None):
-    if config_filename is None:
-        workdir = start.get_app_working_dir()
-        config_filename = os.path.join(workdir, CONFIG_FILENAME)
-    config = configparser.ConfigParser()
-    config.read(config_filename)
-    try:
-        custom_jql = config.get('jira', 'ret_jql', None)
-        return custom_jql
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-        return None
-
-
-def save_settings(config_filename, creds):
-    """Saves settings to configuration file"""
-    logger.debug('Saving configuration')
-    if len(creds) != 3:
-        raise ValueError('Credentials tuple is incomplete')
-    config = configparser.ConfigParser()
-    config.add_section('jira')
-    config.set('jira', 'host', creds[0])
-    config.set('jira', 'login', creds[1])
-    config.set('jira', 'password', creds[2])
-    with open(config_filename, 'wb') as configfile:
-        config.write(configfile)
-    logger.debug('Options have been saved')
-
-
-def save_jirahost(config_filename, host_url):
-    config = configparser.ConfigParser()
-    config.read(config_filename)
-    try:
-        config.set('jira', 'host', host_url)
-    except configparser.NoSectionError:
-        config.add_section('jira')
-        config.set('jira', 'host', host_url)
-    with open(config_filename, 'wb') as configfile:
-        config.write(configfile)
 
 
 def get_db_filename(login, jirahost):
     """Builds Database filename from user login and JIRA host name"""
     # TODO: add absolute path handling
-    return login + '_'\
+    return login + '_' \
            + jirahost.replace('http://', '').replace('https://', '').replace('/', '').replace(':', '') \
            + '.db'
 
@@ -157,39 +91,6 @@ def check_jira_issue_key(issue_key):
     else:
         return False
 
-
-def check_url_host(url):
-    """Simple host availability checker"""
-    try:
-        urllib.request.urlopen(url,timeout=3)
-        logger.info('Host %s is ok and accessible' % str(url))
-        return True
-    except urllib.error.URLError as urlerr:
-        logger.warning('Problem to access URL: "%s": %s' % (str(url), urlerr))
-    except ValueError:
-        logger.error('URL: "%s" is not an valid url' % url)
-    except BadStatusLine:
-        logger.error('URL: "%s" has a bad status line' % url)
-    return False
-
-
-def clean_jql_url(raw_jql):
-    cleaned_jql = raw_jql.strip("'").replace(' ', '+')
-    return cleaned_jql
-
-
-# def get_app_working_dir():
-#     """Returns path to application operational folder.
-#
-#     Options and local database are stored in this folder.
-#     """
-#     app_name = 'pyjtt'
-#     if 'linux' in sys.platform:
-#         return os.path.join(os.environ['HOME'], '.' + app_name)
-#     elif 'win' in sys.platform:
-#         return os.path.join(os.environ['APPDATA'], app_name)
-#     else:
-#         return os.path.abspath('.' + app_name)
 
 # global variables, that can be used by other modules
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())

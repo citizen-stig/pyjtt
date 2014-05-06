@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 from urllib.parse import urljoin
 
+
 class JiraIssue(object):
 
     def __init__(self, issue_id, key, summary):
@@ -12,7 +13,8 @@ class JiraIssue(object):
     def get_url(self, jira_url):
         return urljoin(urljoin(jira_url, '/rest/api/2/issue/'), self.key)
 
-class JiraWorklog(object):
+
+class JiraWorklogEntry(object):
 
     def __init__(self, issue, started, ended, comment, worklog_id=''):
         self.worklog_id = worklog_id
@@ -29,4 +31,5 @@ class JiraWorklog(object):
             + self.ended.strftime('%d-%m-%Y %H:%M:%S')
 
     def get_timespent(self):
+        # TODO: Move get_timespent from utils
         pass

@@ -750,7 +750,7 @@ class MainWindow(QtGui.QMainWindow):
                                                         str(new_end_time),
                                                         new_comment))
                 stat_message = 'Edit worklog in issue %s' % str(issue_key)
-                self._push_task_to_io_threads(core.update_worklog, stat_message,
+                self._push_task_to_io_threads(core.update_worklog_entry, stat_message,
                                self.creds, self.jira_issues[issue_key],
                                worklog_id, new_start_time, new_end_time,
                                new_comment)
@@ -767,7 +767,7 @@ class MainWindow(QtGui.QMainWindow):
                                                QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 stat_message = 'Removing worklog in issue %s' % issue_key
-                self._push_task_to_io_threads(core.remove_worklog, stat_message, self.creds,
+                self._push_task_to_io_threads(core.remove_worklog_entry, stat_message, self.creds,
                                self.jira_issues[issue_key], worklog_id)
         else:
             QtGui.QMessageBox.warning(self, 'Tracking Error',

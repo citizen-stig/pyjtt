@@ -10,7 +10,7 @@ import httpretty
 
 sys.path.insert(0, os.path.abspath(os.path.join('..', 'pyjtt')))
 
-import rest_wrapper
+import jira_accessor
 import base_classes
 
 
@@ -24,13 +24,23 @@ class SimpleWrapperTests(unittest.TestCase):
                                                    'summary')
 
     def test_create_accessor(self):
-        accessor = rest_wrapper.JiraRESTAccessor(self.jira_url,
-                                                 'login',
-                                                 'password')
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
+                                                  'login',
+                                                  'password')
         self.assertIsNotNone(accessor)
 
     def test_get_issues(self):
-        pass
+        raise AssertionError
+
+    def test_get_assigned_issues(self):
+        raise AssertionError
+
+    def test_get_custom_jql(self):
+        raise AssertionError
+
+    def test_get_more_than_50(self):
+        raise AssertionError
+
 
     @httpretty.activate
     def test_get_worklog(self):
@@ -62,14 +72,14 @@ class SimpleWrapperTests(unittest.TestCase):
         httpretty.register_uri(httpretty.GET,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue_key,
                                body=response)
-        accessor = rest_wrapper.JiraRESTAccessor(self.jira_url,
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
                                                  'login',
                                                  'password')
-        worklogs = accessor.get_worklogs_for_issue(self.sample_issue)
+        worklogs = accessor.get_worklog_for_issue(self.sample_issue)
         self.assertEqual(len(worklogs), 1)
 
     def test_get_empty_worklog(self):
-        pass
+        raise AssertionError
 
     @httpretty.activate
     def test_add_worklog(self):
@@ -95,13 +105,13 @@ class SimpleWrapperTests(unittest.TestCase):
         httpretty.register_uri(httpretty.POST,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue.key + '/worklog/',
                                body=response)
-        accessor = rest_wrapper.JiraRESTAccessor(self.jira_url,
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
                                                  'login',
                                                  'password')
         start_timestamp = datetime.datetime.now() - datetime.timedelta(hours=2)
         end_timestamp =datetime.datetime.now()
         comment = 'This is from python'
-        worklog = base_classes.JiraWorklog(self.sample_issue,
+        worklog = base_classes.JiraWorklogEntry(self.sample_issue,
                                            start_timestamp,
                                            end_timestamp,
                                            comment)
@@ -133,7 +143,7 @@ class SimpleWrapperTests(unittest.TestCase):
         end_timestamp =datetime.datetime.now()
         comment = 'This is from python'
         worklog_id = '31337'
-        worklog = base_classes.JiraWorklog(self.sample_issue,
+        worklog = base_classes.JiraWorklogEntry(self.sample_issue,
                                            start_timestamp,
                                            end_timestamp,
                                            comment,
@@ -141,10 +151,10 @@ class SimpleWrapperTests(unittest.TestCase):
         httpretty.register_uri(httpretty.PUT,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue.key + '/worklog/' + worklog_id,
                                body=response)
-        accessor = rest_wrapper.JiraRESTAccessor(self.jira_url,
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
                                                  'login',
                                                  'password')
-        updated_worklog = accessor.update_worklog(worklog)
+        updated_worklog = accessor.update_worklog_entry(worklog)
         self.assertIsNotNone(updated_worklog)
         self.assertEqual(updated_worklog.comment, comment)
 
@@ -154,15 +164,15 @@ class SimpleWrapperTests(unittest.TestCase):
         end_timestamp =datetime.datetime.now()
         comment = 'This is from python'
         worklog_id = '31337'
-        worklog = base_classes.JiraWorklog(self.sample_issue,
+        worklog = base_classes.JiraWorklogEntry(self.sample_issue,
                                            start_timestamp,
                                            end_timestamp,
                                            comment,
                                            worklog_id)
         httpretty.register_uri(httpretty.DELETE,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue.key + '/worklog/' + worklog_id)
-        accessor = rest_wrapper.JiraRESTAccessor(self.jira_url,
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
                                                  'login',
                                                  'password')
-        accessor.remove_worklog(worklog)
+        accessor.remove_worklog_entry(worklog)
         # nothing to check, at first glance
