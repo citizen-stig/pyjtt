@@ -122,25 +122,17 @@ class JiraRESTAccessor(object):
         return self._parse_worklog(worklog.issue, new_worklog_data)
 
     def update_worklog_entry(self, worklog):
-        if worklog.worklog_id is not None:
-            update_url = worklog.get_url(self.jirahost)
-            json_data = json.dumps(self._serialize_worklog(worklog)).encode(self.encoding)
-            updated_worklog_data = self._make_request(update_url,
-                                                      data=json_data,
-                                                      req_type='PUT')
-            return self._parse_worklog(worklog.issue, updated_worklog_data)
-        else:
-            # TODO: add custom exception
-            logger.error('Cannot update worklog without id in JIRA')
+        update_url = worklog.get_url(self.jirahost)
+        json_data = json.dumps(self._serialize_worklog(worklog)).encode(self.encoding)
+        updated_worklog_data = self._make_request(update_url,
+                                                  data=json_data,
+                                                  req_type='PUT')
+        return self._parse_worklog(worklog.issue, updated_worklog_data)
 
     def remove_worklog_entry(self, worklog):
-        if worklog.worklog_id is not None:
-            remove_url = worklog.get_url(self.jirahost)
-            self._make_request(remove_url, req_type='DELETE')
-            logger.debug('Worklog has been deleted')
-        else:
-            # TODO: add custom exception
-            logger.error('Cannot remove worklog without id in JIRA')
+        remove_url = worklog.get_url(self.jirahost)
+        self._make_request(remove_url, req_type='DELETE')
+        logger.debug('Worklog has been deleted')
 
     def get_user_assigned_issue(self, username):
         pass
