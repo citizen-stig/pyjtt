@@ -40,7 +40,7 @@ import db
 import utils
 import rest_wrapper
 import core
-from .gui import login_screen, main_window, worklog_window
+from .widgets import login_window, main_window, worklog_window
 
 
 def datetime_to_qtime(timestamp):
@@ -228,7 +228,7 @@ class WorklogWindow(QtGui.QDialog):
 class LoginForm(QtGui.QDialog):
     def __init__(self, jirahost=None, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self.ui = login_screen.Ui_loginWindow()
+        self.ui = login_window.Ui_loginWindow()
         self.save_credentials = False
         self.ui.setupUi(self)
         if jirahost:
@@ -884,6 +884,7 @@ def main():
         utils.save_settings(config_filename, (jirahost, login, password))
     else:
         utils.save_jirahost(config_filename, jirahost)
+
     logger.debug('Starting Main Application')
     pyjtt_main_window = MainWindow(jirahost, login, password)
     pyjtt_main_window.show()

@@ -5,6 +5,8 @@ import sys
 import os
 import unittest
 import datetime
+from urllib import parse
+import json
 
 import httpretty
 
@@ -29,18 +31,98 @@ class SimpleWrapperTests(unittest.TestCase):
                                                   'password')
         self.assertIsNotNone(accessor)
 
-    def test_get_issues(self):
-        raise AssertionError
+    @httpretty.activate
+    def test_get_issue_by_key(self):
+        response = b'{"id": "10806", "fields": ' \
+                   b'{' \
+                   b'"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
+                   b'"summary": "\xd0\xa2\xd0\xb5\xd1\x81\xd1\x82\xd1\x89 and english"' \
+                   b'}, ' \
+                   b'"expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog", ' \
+                   b'"key": "TST-123", ' \
+                   b'"self": "https://example.com/rest/api/2/issue/10806"}'
+        httpretty.register_uri(httpretty.GET,
+                               self.jira_url + '/rest/api/2/issue/' + self.sample_issue_key,
+                               body=response)
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
+                                                  'login',
+                                                  'password')
+        issue, _ = accessor.get_issue_by_key(self.sample_issue_key)
+        self.assertEqual(issue.key, self.sample_issue_key)
 
+    @httpretty.activate
     def test_get_assigned_issues(self):
-        raise AssertionError
+        response = b'{"expand": "schema,names", "total": 5, "startAt": 0, ' \
+                   b'"issues": [' \
+                   b'{"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
+                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
+                   b' "summary": "Test1"}, "key": "TST-101", ' \
+                   b'"self": "https://example.com/rest/api/2/issue/10502", "id": "10502"},' \
+                   b' {"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
+                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
+                   b' "summary": "Test2"}, "key": "TST-102", ' \
+                   b'"self": "https://example.com/rest/api/2/issue/10500", "id": "10500"},' \
+                   b' {"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
+                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
+                   b' "summary": "Test3"}, "key": "TST-103", ' \
+                   b'"self": "https://example.com/rest/api/2/issue/10443", "id": "10443"},' \
+                   b' {"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
+                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
+                   b' "summary": "Test4"}, "key": "TST-104", ' \
+                   b'"self": "https://example.com/rest/api/2/issue/10442", "id": "10442"},' \
+                   b' {"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
+                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
+                   b' "summary": "Test5"}, "key": "TST-105", ' \
+                   b'"self": "https://example.com/rest/api/2/issue/10441", "id": "10441"}' \
+                   b'], "maxResults": 50}'
+        httpretty.register_uri(httpretty.GET,
+                               self.jira_url + '/rest/api/2/search',
+                               body=response)
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
+                                                  'login',
+                                                  'password')
+        issues = accessor.get_user_assigned_issues()
+        self.assertEqual(len(issues), 5)
 
-    def test_get_custom_jql(self):
-        raise AssertionError
+    @httpretty.activate
+    def test_get_more_than_50_issues(self):
+        def request_callback(method, uri, headers):
+            start = 0
+            end = 50
+            if 'startAt' in uri:
+                parsed_uri = parse.urlparse(uri)
+                query = parse.parse_qs(parsed_uri.query)
+                start_at = int(query['startAt'][0])
+                start += start_at
+                end += start_at
+            else:
+                start_at = 0
+            issues = []
+            for i in range(start, end):
+                issue = {"expand": "editmeta,renderedFields,transitions,changelog,operations",
+                         "fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},
+                                    "summary": "Test%s" % i},
+                         "key": "TST-%s" % (100 + i),
+                         "self": "https://example.com/rest/api/2/issue/10%s" % (100 + i), "id": "10%s" % (100 + i)}
+                issues.append(issue)
+            response_dict = {
+                'issues': issues,
+                'total': 150,
+                'startAt': start_at,
+                'expand': 'schema,names',
+                'maxResults': 50
+            }
+            response = json.dumps(response_dict).encode('utf-8')
+            return 200, headers, response
 
-    def test_get_more_than_50(self):
-        raise AssertionError
-
+        httpretty.register_uri(httpretty.GET,
+                               self.jira_url + '/rest/api/2/search',
+                               body=request_callback)
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
+                                                  'login',
+                                                  'password')
+        issues = accessor.get_user_assigned_issues()
+        self.assertEqual(len(issues), 150)
 
     @httpretty.activate
     def test_get_worklog(self):
@@ -70,16 +152,30 @@ class SimpleWrapperTests(unittest.TestCase):
                    b'"started":"2014-04-07T21:29:00.000+0400","timeSpent":"1h",' \
                    b'"timeSpentSeconds":3600,"id":"10000"}]}}}'
         httpretty.register_uri(httpretty.GET,
-                               self.jira_url + '/rest/api/2/issue/' + self.sample_issue_key,
+                               self.jira_url + '/rest/api/2/issue/' + self.sample_issue_key + '/worklog',
                                body=response)
         accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
-                                                 'login',
-                                                 'password')
-        worklogs = accessor.get_worklog_for_issue(self.sample_issue)
-        self.assertEqual(len(worklogs), 1)
+                                                  'login',
+                                                  'password')
+        worklog = accessor.get_worklog_for_issue(self.sample_issue)
+        self.assertEqual(len(worklog), 1)
 
+    @httpretty.activate
     def test_get_empty_worklog(self):
-        raise AssertionError
+        response = b'{"expand":"renderedFields,names,schema,transitions,' \
+                   b'operations,editmeta,changelog","id":"10432",' \
+                   b'"self":"http://example.com/rest/api/2/issue/10432",' \
+                   b'"key":"TST-123","fields":{' \
+                   b'"worklog":{"startAt":0,"maxResults":20,"total":0,' \
+                   b'"worklogs":[]}}}'
+        httpretty.register_uri(httpretty.GET,
+                               self.jira_url + '/rest/api/2/issue/' + self.sample_issue_key + '/worklog',
+                               body=response)
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
+                                                  'login',
+                                                  'password')
+        worklog = accessor.get_worklog_for_issue(self.sample_issue)
+        self.assertEqual(len(worklog), 0)
 
     @httpretty.activate
     def test_add_worklog(self):
@@ -109,13 +205,13 @@ class SimpleWrapperTests(unittest.TestCase):
                                                  'login',
                                                  'password')
         start_timestamp = datetime.datetime.now() - datetime.timedelta(hours=2)
-        end_timestamp =datetime.datetime.now()
+        end_timestamp = datetime.datetime.now()
         comment = 'This is from python'
         worklog = base_classes.JiraWorklogEntry(self.sample_issue,
-                                           start_timestamp,
-                                           end_timestamp,
-                                           comment)
-        new_worklog = accessor.add_worklog(worklog)
+                                                start_timestamp,
+                                                end_timestamp,
+                                                comment)
+        new_worklog = accessor.add_worklog_entry(worklog)
         self.assertIsNotNone(new_worklog)
         self.assertEqual(comment, new_worklog.comment)
 
@@ -172,7 +268,7 @@ class SimpleWrapperTests(unittest.TestCase):
         httpretty.register_uri(httpretty.DELETE,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue.key + '/worklog/' + worklog_id)
         accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
-                                                 'login',
-                                                 'password')
+                                                  'login',
+                                                  'password')
         accessor.remove_worklog_entry(worklog)
         # nothing to check, at first glance

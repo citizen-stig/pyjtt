@@ -19,21 +19,30 @@
 
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
-__copyright__ = "Copyright 2014, Nikolay Golub"
+__copyright__ = "Copyright 2012 - 2014, Nikolay Golub"
 __license__ = "GPL"
 
+import os
+import platform
 from datetime import datetime, timedelta
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-def get_db_filename(login, jirahost):
-    """Builds Database filename from user login and JIRA host name"""
-    # TODO: add absolute path handling
-    return login + '_' \
-           + jirahost.replace('http://', '').replace('https://', '').replace('/', '').replace(':', '') \
-           + '.db'
+def get_app_working_dir():
+    """Returns path to application operational folder.
+
+    Options and local database are stored in this folder.
+    """
+    app_name = 'pyjtt'
+    current_platform = platform.system()
+    if 'Linux' == current_platform:
+        return os.path.join(os.environ['HOME'], '.' + app_name)
+    elif 'Windows' == current_platform:
+        return os.path.join(os.environ['APPDATA'], app_name)
+    else:
+        return os.path.abspath('.' + app_name)
 
 
 def get_local_utc_offset(now, utcnow):
@@ -95,3 +104,4 @@ def check_jira_issue_key(issue_key):
 # global variables, that can be used by other modules
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)
+
