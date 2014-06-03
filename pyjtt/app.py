@@ -53,9 +53,9 @@ def main():
     # initialize Qt application
     app = QApplication([])
     # Checking credentials
-    login_form = gui.LoginForm('https://complexis.atlassian.net/',
-                               'golub',
-                               'lv4FZV65-trp',
+    login_form = gui.LoginForm('http://example.com',
+                               'user',
+                               'password',
                                False)
     login_form.show()
     if login_form.exec_() == QDialog.Accepted:
