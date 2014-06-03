@@ -53,8 +53,8 @@ def main():
     # initialize Qt application
     app = QApplication([])
     # Checking credentials
-    login_form = gui.LoginForm('http://example.com',
-                               'user',
+    login_form = gui.LoginForm('https://complexis.atlassian.net',
+                               'golub',
                                'password',
                                False)
     login_form.show()
