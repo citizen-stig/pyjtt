@@ -42,6 +42,7 @@ def main():
     workdir = utils.get_app_working_dir()
     if not path.isdir(workdir):
         mkdir(workdir)
+    print(workdir)
     # obtain configuration
     config_filename = path.join(workdir, 'pyjtt.cfg')
     config = configparser.ConfigParser()
@@ -52,8 +53,8 @@ def main():
     # initialize Qt application
     app = QApplication([])
     # Checking credentials
-    login_form = gui.LoginForm('http://jira.example.com',
-                               'login',
+    login_form = gui.LoginForm('http://example.com',
+                               'user',
                                'password',
                                False)
     login_form.show()
@@ -65,15 +66,13 @@ def main():
             # TODO: add saving credentials
             pass
     else:
-        app.quit()
-        sys.exit()
+        print('Exit motherfucker')
+        sys.exit(app.exec_())
     # Initialize main window
     main_window = gui.MainWindow(jira_host, login, password)
     main_window.show()
     # exit application
-    app.quit()
-    sys.exit()
-
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()

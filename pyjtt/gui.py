@@ -123,12 +123,35 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.lineIssueKey.returnPressed.connect(self.get_issue)
         self.ui.tableIssues.clicked.connect(self.set_issue_selected)
         self.ui.dateDayWorklogEdit.dateChanged.connect(self.print_worklog_table)
+        self.ui.actionReresh_issue.triggered.connect(self.refresh_issue)
 
         # Request assigned issues
         get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
         self.tasks_queue.put(get_assigned_issues_job)
 
+    # Names convention:
+    # Underscore for auxiliary methods which aren't called by singals
+
     # Core stuff
+    def closeEvent(self, event):
+        for thread in self.worker_threads:
+            thread.quit()
+        self.tracking_thread.quit()
+        event.accept()
+
+    def _extract_issue_from_table(self):
+        if self.ui.tableIssues.selectedItems():
+            selected_indexes = self.ui.tableIssues.selectedIndexes()
+            container_coordinates = selected_indexes[0]
+            issue_container = self.ui.tableIssues.item(container_coordinates.row(),
+                                                       container_coordinates.column())
+            issue = issue_container.issue
+            return issue
+        else:
+            QtWidgets.QMessageBox.warning(self,
+                                          'Refresh error',
+                                          'Please, select issue first')
+
     def get_issue(self):
         issue_keys = str(self.ui.lineIssueKey.text())
         for issue_key in issue_keys.split(','):
@@ -138,11 +161,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.tasks_queue.put(get_issue_task)
         self.ui.lineIssueKey.clear()
 
-    def closeEvent(self, event):
-        for thread in self.worker_threads:
-            thread.quit()
-        self.tracking_thread.quit()
-        event.accept()
+    def refresh_issue(self):
+        if not self.ui.tableIssues.isHidden():
+            issue = self._extract_issue_from_table()
+            refresh_job = partial(self.app.refresh_issue, issue)
+            self.tasks_queue.put(refresh_job)
+        else:
+            #TODO: add extraction from worklog table
+            pass
 
     # GUI stuff
     def init_ui(self):
@@ -234,12 +260,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def set_issue_selected(self):
         if not self.ui.startStopTracking.isChecked():
             if not self.ui.tabIssues.isHidden():
-                selected_indexes = self.ui.tableIssues.selectedIndexes()
-                container_coordinates = selected_indexes[0]
-                issue_container = self.ui.tableIssues.item(container_coordinates.row(),
-                                                           container_coordinates.column())
-                issue = issue_container.issue
+                issue = self._extract_issue_from_table()
                 self.ui.labelSelectedIssue.setText(issue.key + ': ' + issue.summary)
 
-    def refresh_issue(self):
-        pass
