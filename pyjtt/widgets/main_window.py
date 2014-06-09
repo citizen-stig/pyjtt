@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Mon Jun  2 22:43:48 2014
+# Created: Thu Jun  5 19:07:03 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(640, 480)
+        MainWindow.resize(703, 566)
         MainWindow.setMinimumSize(QtCore.QSize(640, 480))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/res/icons/clock.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -134,8 +134,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.startStopTracking.sizePolicy().hasHeightForWidth())
         self.startStopTracking.setSizePolicy(sizePolicy)
-        self.startStopTracking.setMinimumSize(QtCore.QSize(160, 72))
-        self.startStopTracking.setMaximumSize(QtCore.QSize(160, 72))
+        self.startStopTracking.setMinimumSize(QtCore.QSize(160, 64))
+        self.startStopTracking.setMaximumSize(QtCore.QSize(160, 64))
         self.startStopTracking.setLayoutDirection(QtCore.Qt.LeftToRight)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(":/res/icons/start.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -169,10 +169,12 @@ class Ui_MainWindow(object):
         self.gridLayout.addLayout(self.verticalLayout_4, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 640, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 703, 18))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
+        self.menuHelp = QtWidgets.QMenu(self.menubar)
+        self.menuHelp.setObjectName("menuHelp")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -189,15 +191,22 @@ class Ui_MainWindow(object):
         self.actionAbout.setObjectName("actionAbout")
         self.actionLogout = QtWidgets.QAction(MainWindow)
         self.actionLogout.setObjectName("actionLogout")
+        self.actionAbout_pyJTT = QtWidgets.QAction(MainWindow)
+        self.actionAbout_pyJTT.setObjectName("actionAbout_pyJTT")
+        self.actionAbout_Qt = QtWidgets.QAction(MainWindow)
+        self.actionAbout_Qt.setObjectName("actionAbout_Qt")
         self.menuFile.addAction(self.actionReresh_issue)
         self.menuFile.addAction(self.actionFull_refresh)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionLogout)
         self.menuFile.addAction(self.actionExit)
+        self.menuHelp.addAction(self.actionAbout_pyJTT)
+        self.menuHelp.addAction(self.actionAbout_Qt)
         self.menubar.addAction(self.menuFile.menuAction())
+        self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.lineIssueKey.returnPressed.connect(self.FindIssue.click)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.tabWidget, self.dateDayWorklogEdit)
@@ -236,11 +245,14 @@ class Ui_MainWindow(object):
         self.labelTimeSpent.setText(_translate("MainWindow", "00:00:00"))
         self.labelSelectedIssue.setText(_translate("MainWindow", "No issue selected"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
+        self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.actionReresh_issue.setText(_translate("MainWindow", "Reresh issue"))
         self.actionFull_refresh.setText(_translate("MainWindow", "Full refresh"))
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionRefresh.setText(_translate("MainWindow", "refresh!"))
         self.actionAbout.setText(_translate("MainWindow", "About"))
         self.actionLogout.setText(_translate("MainWindow", "Logout"))
+        self.actionAbout_pyJTT.setText(_translate("MainWindow", "About pyJTT"))
+        self.actionAbout_Qt.setText(_translate("MainWindow", "About Qt"))
 
 from . import pyjtt_res_rc

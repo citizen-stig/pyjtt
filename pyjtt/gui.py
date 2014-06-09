@@ -115,8 +115,8 @@ class MainWindow(QtWidgets.QMainWindow):
             worker.task_done.connect(self.refresh_ui)
             worker.task_done.connect(self.dec_status)
             worker.exception_raised.connect(self.show_error)
-        self.tracking_thread = workers.TrackingWorker()
-        self.tracking_thread.start()
+        #self.tracking_thread = workers.TrackingWorker()
+        #self.tracking_thread.start()
 
         # Signals
         self.ui.FindIssue.clicked.connect(self.get_issue)

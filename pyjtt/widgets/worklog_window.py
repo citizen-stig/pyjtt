@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'worklog_window.ui'
 #
-# Created: Mon Jun  2 22:43:48 2014
+# Created: Thu Jun  5 19:07:03 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
