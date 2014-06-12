@@ -55,9 +55,10 @@ def main():
     login_form = gui.LoginWindow('http://example.com',
                                'user',
                                'password',
-                               False)
+                               False,)
     login_form.show()
-    if login_form.exec_() == QDialog.Accepted:
+    login_result = login_form.exec_()
+    if login_result == QDialog.Accepted:
         jira_host = login_form.ui.lineEditHostAddress.text()
         login = login_form.ui.lineEditLogin.text()
         password = login_form.ui.lineEditPassword.text()
@@ -65,11 +66,14 @@ def main():
             # TODO: add saving credentials
             pass
     else:
-        sys.exit(app.exec_())
+        app.quit()
+        #sys.exit(app.exec_())
+        sys.exit()
     # Initialize main window
     main_window = gui.MainWindow(jira_host, login, password)
     main_window.show()
     # exit application
+    app.quit()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
