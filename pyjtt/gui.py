@@ -200,6 +200,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.dateDayWorklogEdit.dateChanged.connect(self.print_worklog_table)
         self.ui.actionReresh_issue.triggered.connect(self.refresh_issue)
         self.ui.startStopTracking.clicked.connect(self.online_tracking)
+        self.ui.lineIssueKey.textChanged.connect(self.filter_issues_table)
 
         # Request assigned issues
         get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
@@ -236,7 +237,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if utils.check_jira_issue_key(issue_key):
                 get_issue_task = partial(self.app.get_issue, issue_key)
                 self.tasks_queue.put(get_issue_task)
-        self.ui.lineIssueKey.clear()
+        #TODO: think about it.
+        #self.ui.lineIssueKey.clear()
 
     def refresh_issue(self):
         if not self.ui.tableIssues.isHidden():
@@ -257,7 +259,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
 
     def refresh_ui(self):
-        self.print_issues_table()
+        if self.ui.lineIssueKey.text():
+            self.filter_issues_table()
+        else:
+            self.print_issues_table(self.app.get_all_issues())
         self.print_worklog_table()
 
     def show_error(self, exception):
@@ -273,9 +278,14 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.tasks_queue.empty():
             self.ui.statusbar.clearMessage()
 
-    def print_issues_table(self):
+    def filter_issues_table(self):
+        current_text = self.ui.lineIssueKey.text()
+        all_issues = self.app.get_all_issues()
+        issues = [x for x in all_issues if current_text in x.key or current_text in x.summary]
+        self.print_issues_table(issues)
+
+    def print_issues_table(self, issues):
         logger.debug('Refreshing issues table')
-        issues = self.app.get_all_issues()
         self.ui.tableIssues.setRowCount(len(issues))
         self.ui.tableIssues.setSortingEnabled(False)
         for row_num, issue in enumerate(issues):
@@ -432,3 +442,15 @@ class MainWindow(QtWidgets.QMainWindow):
         minutes, seconds = divmod(seconds, 60)
         time_string = '%02d:%02d:%02d' % (hours, minutes, seconds)
         self.ui.labelTimeSpent.setText(time_string)
+
+    def add_worklog_entry(self):
+        pass
+
+    def change_worklog_entry(self):
+        if self.ui.tableDayWorklog.selectedItems():
+            pass
+        else:
+            QtWidgets.QMessageBox.warning(self, 'Tracking Error', 'Please, select worklog first')
+
+    def remove_worklog_entry(self):
+        pass
