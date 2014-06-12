@@ -22,7 +22,7 @@ __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2014, Nikolay Golub"
 __license__ = "GPL"
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 import queue
 from urllib import error
 from functools import partial
@@ -39,7 +39,6 @@ from widgets import login_window, main_window, worklog_window
 
 MINIMUN_WORKLOG_SIZE_MINUTES = 5
 
-class LoginForm(QtWidgets.QDialog):
 
 class PyJTTExcetption(Exception):
     pass
@@ -98,15 +97,18 @@ class LoginWindow(QtWidgets.QDialog):
             app = core.TimeTrackerApp(jira_host, login, password)
             app.get_user_info()
             return True
-        except error.HTTPError as http_error:
+        except (error.HTTPError, error.URLError) as general_error:
             # TODO: add dict with advices, based on return code
             QtWidgets.QMessageBox.warning(self, 'Login Error',
-                                          'Error %s %s. Try to login via Web'
-                                          % (str(http_error.code), http_error.reason))
+                                          'Error %s %s. Check URL or try to login via Web'
+                                          % (str(general_error.code), general_error.reason))
 
 
 class WorklogWindow(QtWidgets.QDialog):
+    """Widget for working with worklog data.
 
+    It allows to set date, time ranges and comment to JIRA worklog
+    """
     def __init__(self, title, worklog_entry, parent=None):
         super(WorklogWindow, self).__init__(parent=parent)
         self.ui = worklog_window.Ui_WorklogWindow()
@@ -122,10 +124,11 @@ class WorklogWindow(QtWidgets.QDialog):
 
     @staticmethod
     def datetime_to_qtime(timestamp):
-        """Converts Qtime timestamp to Python datetime"""
+        """Converts Python datetime timestamp to QTime"""
         return QtCore.QTime(timestamp.hour, timestamp.minute)
 
     def fill_fields(self, worklog_entry):
+        """Set up widget fields with worklog_entry data"""
         self.ui.labelIssue.setText(worklog_entry.issue.key + ': ' + worklog_entry.issue.summary)
         self.ui.dateEdit.setDate(worklog_entry.started)
         self.ui.timeStartEdit.setTime(self.datetime_to_qtime(worklog_entry.started))
@@ -142,11 +145,13 @@ class WorklogWindow(QtWidgets.QDialog):
         self.ui.labelSpent.setText(spent)
 
     def start_time_changed(self):
+        """Control bounds of worklog time ranges"""
         start_time = self.ui.timeStartEdit.time()
         self.ui.timeEndEdit.setMinimumTime(start_time.addSecs(MINIMUN_WORKLOG_SIZE_MINUTES * 60))
         self.refresh_spent()
 
     def end_time_changed(self):
+        """Control bounds of worklog time ranges"""
         end_time = self.ui.timeEndEdit.time()
         self.ui.timeStartEdit.setMaximumTime(end_time.addSecs(MINIMUN_WORKLOG_SIZE_MINUTES * -60))
         self.refresh_spent()
@@ -186,8 +191,6 @@ class MainWindow(QtWidgets.QMainWindow):
             worker.task_done.connect(self.refresh_ui)
             worker.task_done.connect(self.dec_status)
             worker.exception_raised.connect(self.show_error)
-        #self.tracking_thread = workers.TrackingWorker()
-        #self.tracking_thread.start()
         self.tracking_thread = None
 
         # Signals
@@ -372,13 +375,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def stop_online_tracking(self):
         # Get tracked time
         started, ended = self.tracking_thread.started, datetime.now()
-        # Check that tracked more than 5 minutes
+        # Check that tracked more than minimum worklog minutes
         if (ended - started).total_seconds() > (MINIMUN_WORKLOG_SIZE_MINUTES * 60.0):
             # Get issue
             issue = self.ui.labelSelectedIssue.issue
             # Create worklog
             worklog_entry = base_classes.JiraWorklogEntry(issue, started, ended, '')
-
 
             # Ask for options: Add, Cancel, Continue tracking, Open worklog before add
             info_msg = 'Do you want to add this worklog:\n' + \
@@ -402,13 +404,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 edit_window = WorklogWindow('Edit worklog',
                                             worklog_entry,
                                             parent=self)
-                result = edit_window.exec_()
-                if result.accepted():
+                edit_result = edit_window.exec_()
+                if edit_result == QtWidgets.QDialog.Accepted:
                     job = partial(self.app.add_worklog_entry, edit_window.worklog_entry)
                     self.tasks_queue.put(job)
                 else:
+                    # Cancelling stop and continue tracking
                     return
             elif confirmation == QtWidgets.QMessageBox.Cancel:
+                # Cancelling stop and continue tracking
                 return
         # Terminate thread
         self.tracking_thread.terminate()

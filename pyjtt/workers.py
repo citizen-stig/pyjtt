@@ -68,7 +68,7 @@ class BaseThread(QtCore.QThread):
                 self.exception_raised.emit(exc)
             finally:
                 self.task_done.emit()
-                time.sleep(self.sleep_timeout)
+                self.sleep(self.sleep_timeout)
 
 
 class NoResultThread(BaseThread):
@@ -93,7 +93,7 @@ class TrackingWorker(QtCore.QThread):
     """
     timer_updated = QtCore.pyqtSignal(int)
 
-    sleep_timeout = 0.5
+    sleep_timeout = 1
 
     def __init__(self, parent=None):
         super(TrackingWorker, self).__init__(parent)
@@ -107,4 +107,4 @@ class TrackingWorker(QtCore.QThread):
         while True:
             spent_seconds = (datetime.now() - self.started).total_seconds()
             self.timer_updated.emit(int(round(spent_seconds)))
-            self.sleep(1)
+            self.sleep(self.sleep_timeout)

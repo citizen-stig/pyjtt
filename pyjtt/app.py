@@ -52,7 +52,7 @@ def main():
     # initialize Qt application
     app = QApplication([])
     # Checking credentials
-    login_form = gui.LoginForm('http://example.com',
+    login_form = gui.LoginWindow('http://example.com',
                                'user',
                                'password',
                                False)
@@ -65,14 +65,12 @@ def main():
             # TODO: add saving credentials
             pass
     else:
-        app.quit()
-        sys.exit()
+        sys.exit(app.exec_())
     # Initialize main window
     main_window = gui.MainWindow(jira_host, login, password)
     main_window.show()
     # exit application
-    app.quit()
-    sys.exit()
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()

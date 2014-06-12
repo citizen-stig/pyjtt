@@ -174,5 +174,4 @@ class JiraRESTAccessor(object):
     def get_user_info(self):
         user_url = urljoin(self.jirahost, '/rest/api/2/user') + '?username=' + self.login + '&fields=displayName'
         raw_data = self._make_request(user_url)
-        print(raw_data)
         return raw_data

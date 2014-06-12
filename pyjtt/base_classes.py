@@ -26,6 +26,7 @@ from urllib.parse import urljoin
 
 import utils
 
+
 class JiraIssue(object):
 
     def __init__(self, issue_id, key, summary):
