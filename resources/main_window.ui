@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>480</height>
+    <width>703</width>
+    <height>566</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -34,7 +34,7 @@
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabIssues">
        <attribute name="title">
@@ -294,13 +294,13 @@
           <property name="minimumSize">
            <size>
             <width>160</width>
-            <height>72</height>
+            <height>64</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
             <width>160</width>
-            <height>72</height>
+            <height>64</height>
            </size>
           </property>
           <property name="layoutDirection">
@@ -389,8 +389,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>640</width>
-     <height>22</height>
+     <width>703</width>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -403,7 +403,15 @@
     <addaction name="actionLogout"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout_pyJTT"/>
+    <addaction name="actionAbout_Qt"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionReresh_issue">
@@ -434,6 +442,16 @@
   <action name="actionLogout">
    <property name="text">
     <string>Logout</string>
+   </property>
+  </action>
+  <action name="actionAbout_pyJTT">
+   <property name="text">
+    <string>About pyJTT</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
    </property>
   </action>
  </widget>

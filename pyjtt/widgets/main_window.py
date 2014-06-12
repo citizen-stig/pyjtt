@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Jun 12 12:09:54 2014
+# Created: Mon Jun  2 22:43:48 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -134,8 +134,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.startStopTracking.sizePolicy().hasHeightForWidth())
         self.startStopTracking.setSizePolicy(sizePolicy)
-        self.startStopTracking.setMinimumSize(QtCore.QSize(160, 72))
-        self.startStopTracking.setMaximumSize(QtCore.QSize(160, 72))
+        self.startStopTracking.setMinimumSize(QtCore.QSize(160, 64))
+        self.startStopTracking.setMaximumSize(QtCore.QSize(160, 64))
         self.startStopTracking.setLayoutDirection(QtCore.Qt.LeftToRight)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(":/res/icons/start.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -197,7 +197,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.lineIssueKey.returnPressed.connect(self.FindIssue.click)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.tabWidget, self.dateDayWorklogEdit)

@@ -22,7 +22,7 @@ __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2014, Nikolay Golub"
 __license__ = "GPL"
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 import queue
 from urllib import error
 from functools import partial
@@ -39,6 +39,7 @@ from widgets import login_window, main_window, worklog_window
 
 MINIMUN_WORKLOG_SIZE_MINUTES = 5
 
+class LoginForm(QtWidgets.QDialog):
 
 class PyJTTExcetption(Exception):
     pass
@@ -185,6 +186,8 @@ class MainWindow(QtWidgets.QMainWindow):
             worker.task_done.connect(self.refresh_ui)
             worker.task_done.connect(self.dec_status)
             worker.exception_raised.connect(self.show_error)
+        #self.tracking_thread = workers.TrackingWorker()
+        #self.tracking_thread.start()
         self.tracking_thread = None
 
         # Signals
