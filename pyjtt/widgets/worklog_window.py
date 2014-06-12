@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'worklog_window.ui'
 #
-# Created: Mon Jun  2 22:43:48 2014
+# Created: Thu Jun 12 12:09:54 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,13 +12,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WorklogWindow(object):
     def setupUi(self, WorklogWindow):
         WorklogWindow.setObjectName("WorklogWindow")
-        WorklogWindow.resize(331, 260)
+        WorklogWindow.resize(430, 360)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(WorklogWindow.sizePolicy().hasHeightForWidth())
         WorklogWindow.setSizePolicy(sizePolicy)
-        WorklogWindow.setMinimumSize(QtCore.QSize(320, 260))
+        WorklogWindow.setMinimumSize(QtCore.QSize(430, 360))
         WorklogWindow.setMaximumSize(QtCore.QSize(600, 800))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/res/icons/clock.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)

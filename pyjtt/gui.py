@@ -22,22 +22,33 @@ __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2014, Nikolay Golub"
 __license__ = "GPL"
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 import queue
 from urllib import error
 from functools import partial
 import logging
 logger = logging.getLogger(__name__)
 
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 import core
 import utils
 import workers
+import base_classes
 from widgets import login_window, main_window, worklog_window
 
+MINIMUN_WORKLOG_SIZE_MINUTES = 5
 
-class LoginForm(QtWidgets.QDialog):
+
+class PyJTTExcetption(Exception):
+    pass
+
+
+class IssueNotSelectedException(PyJTTExcetption):
+    pass
+
+
+class LoginWindow(QtWidgets.QDialog):
 
     def __init__(self,
                  jirahost,
@@ -45,7 +56,7 @@ class LoginForm(QtWidgets.QDialog):
                  password,
                  save_credentials,
                  parent=None):
-        super(LoginForm, self).__init__(parent)
+        super(LoginWindow, self).__init__(parent)
         self.ui = login_window.Ui_loginWindow()
         self.ui.setupUi(self)
 
@@ -93,6 +104,65 @@ class LoginForm(QtWidgets.QDialog):
                                           % (str(http_error.code), http_error.reason))
 
 
+class WorklogWindow(QtWidgets.QDialog):
+
+    def __init__(self, title, worklog_entry, parent=None):
+        super(WorklogWindow, self).__init__(parent=parent)
+        self.ui = worklog_window.Ui_WorklogWindow()
+        self.ui.setupUi(self)
+        self.setWindowTitle(title)
+        self.worklog_entry = worklog_entry
+        self.fill_fields(self.worklog_entry)
+
+        self.ui.buttonBox.accepted.connect(self.save_worklog_data)
+        self.ui.buttonBox.rejected.connect(self.user_exit)
+        self.ui.timeStartEdit.timeChanged.connect(self.start_time_changed)
+        self.ui.timeEndEdit.timeChanged.connect(self.end_time_changed)
+
+    @staticmethod
+    def datetime_to_qtime(timestamp):
+        """Converts Qtime timestamp to Python datetime"""
+        return QtCore.QTime(timestamp.hour, timestamp.minute)
+
+    def fill_fields(self, worklog_entry):
+        self.ui.labelIssue.setText(worklog_entry.issue.key + ': ' + worklog_entry.issue.summary)
+        self.ui.dateEdit.setDate(worklog_entry.started)
+        self.ui.timeStartEdit.setTime(self.datetime_to_qtime(worklog_entry.started))
+        self.ui.timeEndEdit.setTime(self.datetime_to_qtime(worklog_entry.ended))
+        self.ui.timeEndEdit.setMinimumTime(self.datetime_to_qtime(worklog_entry.started
+                                                                  + timedelta(minutes=MINIMUN_WORKLOG_SIZE_MINUTES)))
+        self.ui.plainTextCommentEdit.setPlainText(worklog_entry.comment)
+        self.refresh_spent()
+
+    def refresh_spent(self):
+        spent = 'Time spent: ' + \
+                utils.get_time_spent_string(self.ui.timeEndEdit.dateTime().toPyDateTime() - \
+                                            self.ui.timeStartEdit.dateTime().toPyDateTime())
+        self.ui.labelSpent.setText(spent)
+
+    def start_time_changed(self):
+        start_time = self.ui.timeStartEdit.time()
+        self.ui.timeEndEdit.setMinimumTime(start_time.addSecs(MINIMUN_WORKLOG_SIZE_MINUTES * 60))
+        self.refresh_spent()
+
+    def end_time_changed(self):
+        end_time = self.ui.timeEndEdit.time()
+        self.ui.timeStartEdit.setMaximumTime(end_time.addSecs(MINIMUN_WORKLOG_SIZE_MINUTES * -60))
+        self.refresh_spent()
+
+    def save_worklog_data(self):
+        date = self.ui.dateEdit.date().toPyDate()
+        start = self.ui.timeStartEdit.time().toPyTime()
+        end = self.ui.timeEndEdit.time().toPyTime()
+        self.worklog_entry.started = datetime.combine(date, start)
+        self.worklog_entry.ended = datetime.combine(date, end)
+        self.worklog_entry.comment = str(self.ui.plainTextCommentEdit.toPlainText())
+        self.accept()
+
+    def user_exit(self):
+        self.reject()
+
+
 class MainWindow(QtWidgets.QMainWindow):
     ui = main_window.Ui_MainWindow()
     number_of_workers = 10
@@ -115,8 +185,7 @@ class MainWindow(QtWidgets.QMainWindow):
             worker.task_done.connect(self.refresh_ui)
             worker.task_done.connect(self.dec_status)
             worker.exception_raised.connect(self.show_error)
-        self.tracking_thread = workers.TrackingWorker()
-        self.tracking_thread.start()
+        self.tracking_thread = None
 
         # Signals
         self.ui.FindIssue.clicked.connect(self.get_issue)
@@ -124,6 +193,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.tableIssues.clicked.connect(self.set_issue_selected)
         self.ui.dateDayWorklogEdit.dateChanged.connect(self.print_worklog_table)
         self.ui.actionReresh_issue.triggered.connect(self.refresh_issue)
+        self.ui.startStopTracking.clicked.connect(self.online_tracking)
 
         # Request assigned issues
         get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
@@ -136,10 +206,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         for thread in self.worker_threads:
             thread.quit()
-        self.tracking_thread.quit()
+        # TODO: Add checking of online tracking
         event.accept()
 
-    def _extract_issue_from_table(self):
+    def _get_selected_issue_from_table(self):
         if self.ui.tableIssues.selectedItems():
             selected_indexes = self.ui.tableIssues.selectedIndexes()
             container_coordinates = selected_indexes[0]
@@ -151,6 +221,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self,
                                           'Refresh error',
                                           'Please, select issue first')
+            raise IssueNotSelectedException('Issue not selected by user')
 
     def get_issue(self):
         issue_keys = str(self.ui.lineIssueKey.text())
@@ -163,9 +234,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def refresh_issue(self):
         if not self.ui.tableIssues.isHidden():
-            issue = self._extract_issue_from_table()
-            refresh_job = partial(self.app.refresh_issue, issue)
-            self.tasks_queue.put(refresh_job)
+            try:
+                issue = self._get_selected_issue_from_table()
+                refresh_job = partial(self.app.refresh_issue, issue)
+                self.tasks_queue.put(refresh_job)
+            except IssueNotSelectedException:
+                pass
         else:
             #TODO: add extraction from worklog table
             pass
@@ -260,6 +334,94 @@ class MainWindow(QtWidgets.QMainWindow):
     def set_issue_selected(self):
         if not self.ui.startStopTracking.isChecked():
             if not self.ui.tabIssues.isHidden():
-                issue = self._extract_issue_from_table()
-                self.ui.labelSelectedIssue.setText(issue.key + ': ' + issue.summary)
+                try:
+                    issue = self._get_selected_issue_from_table()
+                    self.ui.labelSelectedIssue.setText(issue.key + ': ' + issue.summary)
+                except IssueNotSelectedException:
+                    pass
 
+    def online_tracking(self):
+        if self.ui.startStopTracking.isChecked():
+            # Button has been pressed already
+            self.start_online_tracking()
+        else:
+            self.stop_online_tracking()
+
+    def start_online_tracking(self):
+        try:
+            issue = self._get_selected_issue_from_table()
+            self.ui.labelSelectedIssue.issue = issue
+
+            self.tracking_thread = workers.TrackingWorker()
+            self.tracking_thread.timer_updated.connect(self.update_timer)
+            self.tracking_thread.start()
+
+            # Change UI
+            stop_icon = QtGui.QIcon()
+            stop_icon.addPixmap(QtGui.QPixmap(":/res/icons/stop.ico"),
+                                QtGui.QIcon.Normal,
+                                QtGui.QIcon.Off)
+            self.ui.startStopTracking.setText('Stop Tracking')
+            self.ui.startStopTracking.setIcon(stop_icon)
+        except IssueNotSelectedException:
+            self.ui.startStopTracking.setChecked(False)
+
+    def stop_online_tracking(self):
+        # Get tracked time
+        started, ended = self.tracking_thread.started, datetime.now()
+        # Check that tracked more than 5 minutes
+        if (ended - started).total_seconds() > (MINIMUN_WORKLOG_SIZE_MINUTES * 60.0):
+            # Get issue
+            issue = self.ui.labelSelectedIssue.issue
+            # Create worklog
+            worklog_entry = base_classes.JiraWorklogEntry(issue, started, ended, '')
+
+
+            # Ask for options: Add, Cancel, Continue tracking, Open worklog before add
+            info_msg = 'Do you want to add this worklog:\n' + \
+                       'Issue: {issue_key}\n'.format(issue_key=worklog_entry.issue.key) + \
+                       'Started: {started}\n'.format(started=worklog_entry.started) + \
+                       'Ended: {ended}\n'.format(ended=worklog_entry.ended) + \
+                       'Time spent: {spent}\n'.format(spent=worklog_entry.get_timespent_string()) + \
+                       'Or edit before adding?'
+            confirmation = QtWidgets.QMessageBox.question(self,
+                                                          'Add New Worklog',
+                                                          info_msg,
+                                                          buttons=QtWidgets.QMessageBox.Yes
+                                                                  | QtWidgets.QMessageBox.No
+                                                                  | QtWidgets.QMessageBox.Cancel
+                                                                  | QtWidgets.QMessageBox.Open)
+            if confirmation == QtWidgets.QMessageBox.Yes:
+                # Push the job to the queue
+                job = partial(self.app.add_worklog_entry, worklog_entry)
+                self.tasks_queue.put(job)
+            elif confirmation == QtWidgets.QMessageBox.Open:
+                edit_window = WorklogWindow('Edit worklog',
+                                            worklog_entry,
+                                            parent=self)
+                result = edit_window.exec_()
+                if result.accepted():
+                    job = partial(self.app.add_worklog_entry, edit_window.worklog_entry)
+                    self.tasks_queue.put(job)
+                else:
+                    return
+            elif confirmation == QtWidgets.QMessageBox.Cancel:
+                return
+        # Terminate thread
+        self.tracking_thread.terminate()
+        self.tracking_thread = None
+
+        # Clear UI
+        self.ui.startStopTracking.setText('Start Tracking')
+        self.ui.labelTimeSpent.setText('00:00:00')
+        start_icon = QtGui.QIcon()
+        start_icon.addPixmap(QtGui.QPixmap(":/res/icons/start.ico"),
+                             QtGui.QIcon.Normal,
+                             QtGui.QIcon.Off)
+        self.ui.startStopTracking.setIcon(start_icon)
+
+    def update_timer(self, seconds):
+        hours, seconds = divmod(seconds, 3600)
+        minutes, seconds = divmod(seconds, 60)
+        time_string = '%02d:%02d:%02d' % (hours, minutes, seconds)
+        self.ui.labelTimeSpent.setText(time_string)

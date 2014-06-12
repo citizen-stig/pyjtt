@@ -100,7 +100,11 @@ class TrackingWorker(QtCore.QThread):
         logger.debug('Initialize timer')
         self.delta = 0
         self.is_tracking = False
+        self.started = None
 
     def run(self):
-        pass
-
+        self.started = datetime.now()
+        while True:
+            spent_seconds = (datetime.now() - self.started).total_seconds()
+            self.timer_updated.emit(int(round(spent_seconds)))
+            self.sleep(1)

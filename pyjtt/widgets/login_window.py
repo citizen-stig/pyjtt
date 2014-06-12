@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'login_screen.ui'
 #
-# Created: Mon Jun  2 22:43:48 2014
+# Created: Thu Jun 12 12:09:54 2014
 #      by: PyQt5 UI code generator 5.2.1
 #
 # WARNING! All changes made in this file will be lost!
