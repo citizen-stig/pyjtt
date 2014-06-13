@@ -104,4 +104,3 @@ def check_jira_issue_key(issue_key):
 # global variables, that can be used by other modules
 LOCAL_UTC_OFFSET = get_local_utc_offset(datetime.now(), datetime.utcnow())
 LOCAL_UTC_OFFSET_TIMEDELTA = get_timedelta_from_utc_offset(LOCAL_UTC_OFFSET)
-

@@ -8,6 +8,7 @@ import os
 import logging
 import shutil
 import time
+import json
 sys.path.insert(0, os.path.abspath(os.path.join('..', 'pyjtt')))
 
 # 3rd party
@@ -16,6 +17,7 @@ import httpretty
 
 # Application modules
 import gui
+import base_classes
 
 
 class BaseGuiTest(unittest.TestCase):
@@ -26,30 +28,10 @@ class BaseGuiTest(unittest.TestCase):
         LOGGING_FORMAT = '%(asctime)s %(levelname)s - %(name)s - %(message)s'
         logging.basicConfig(format=LOGGING_FORMAT, level=logging.DEBUG)
 
-        # Test stubs
-        response = b'{"expand": "schema,names", "total": 5, "startAt": 0, ' \
-                   b'"issues": [' \
-                   b'{"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
-                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
-                   b' "summary": "Test1"}, "key": "TST-101", ' \
-                   b'"self": "https://example.com/rest/api/2/issue/10502", "id": "10502"},' \
-                   b' {"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
-                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
-                   b' "summary": "Test2"}, "key": "TST-102", ' \
-                   b'"self": "https://example.com/rest/api/2/issue/10500", "id": "10500"},' \
-                   b' {"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
-                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
-                   b' "summary": "Test3"}, "key": "TST-103", ' \
-                   b'"self": "https://example.com/rest/api/2/issue/10443", "id": "10443"},' \
-                   b' {"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
-                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
-                   b' "summary": "Test4"}, "key": "TST-104", ' \
-                   b'"self": "https://example.com/rest/api/2/issue/10442", "id": "10442"},' \
-                   b' {"expand": "editmeta,renderedFields,transitions,changelog,operations", ' \
-                   b'"fields": {"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
-                   b' "summary": "Test5"}, "key": "TST-105", ' \
-                   b'"self": "https://example.com/rest/api/2/issue/10441", "id": "10441"}' \
-                   b'], "maxResults": 50}'
+        # REST API stubs for initialization
+        response_dict = {'maxResults': 50, 'startAt': 0, 'expand': 'schema,names', 'total': 0, 'issues': []}
+        response = json.dumps(response_dict).encode('utf-8')
+
         httpretty.register_uri(httpretty.GET,
                                self.jira_url + '/rest/api/2/search',
                                body=response)
@@ -60,9 +42,6 @@ class BaseGuiTest(unittest.TestCase):
         self.form = gui.MainWindow(self.jira_url,
                                    'login',
                                    'password')
-        # TODO: replace sleep and get smart signal working
-        time.sleep(0.1)
-        self.form.print_issues_table(self.form.app.get_all_issues())
 
     def tearDown(self):
         shutil.rmtree('.pyjtt')
@@ -70,29 +49,31 @@ class BaseGuiTest(unittest.TestCase):
 
 class AccessorGuiTest(BaseGuiTest):
 
-    def test_initial(self):
-        self.assertEqual(self.form.ui.tableIssues.rowCount(), 5)
+    def test_print_issue_table(self):
+        number_of_issues = 5
+        for i in range(number_of_issues):
+            issue = base_classes.JiraIssue('10024' + str(i), 'TST-' + str(i), 'Test summary number ' + str(i))
+            self.form.app.db_accessor.add_issue(issue)
+        self.form.refresh_ui()
+        number_of_rows = self.form.ui.tableIssues.rowCount()
+        self.assertEqual(number_of_issues, number_of_rows)
 
-    @httpretty.activate
-    def test_add_issue(self):
-        sample_issue_key = 'TST-1000'
-        response = b'{"id": "10806", "fields": ' \
-                   b'{' \
-                   b'"worklog": {"total": 0, "startAt": 0, "worklogs": [], "maxResults": 20},' \
-                   b'"summary": "\xd0\xa2\xd0\xb5\xd1\x81\xd1\x82\xd1\x89 and english"' \
-                   b'}, ' \
-                   b'"expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog", ' \
-                   b'"key": "TST-1000", ' \
-                   b'"self": "https://example.com/rest/api/2/issue/10806"}'
-        httpretty.register_uri(httpretty.GET,
-                               self.jira_url + '/rest/api/2/issue/' + sample_issue_key,
-                               body=response)
+    def test_filter_issues_table(self):
+        issue1 = base_classes.JiraIssue('100241', 'TST-1', 'Target summary')
+        self.form.app.db_accessor.add_issue(issue1)
+        issue2 = base_classes.JiraIssue('100242', 'TST-2', 'Just summary')
+        self.form.app.db_accessor.add_issue(issue2)
+        QtTest.QTest.keyClicks(self.form.ui.lineIssueKey, 'Target')
+        self.form.refresh_ui()
+        number_of_rows = self.form.ui.tableIssues.rowCount()
+        self.assertEqual(1, number_of_rows)
+        target_key = self.form.ui.tableIssues.item(0, 0)
+        self.assertEqual(target_key.text(), 'TST-1')
+        time.sleep(5)
 
+    # def test_print_worklog_table(self):
+    #     raise AssertionError
+    #
+    # def test_set_issue_selected(self):
+    #     raise AssertionError
 
-        initial_count = self.form.ui.tableIssues.rowCount()
-        QtTest.QTest.keyClicks(self.form.ui.lineIssueKey, sample_issue_key)
-        QtTest.QTest.mouseClick(self.form.ui.FindIssue, QtCore.Qt.LeftButton)
-        # FIXME: replace sleep with smarter implementation
-        time.sleep(0.1)
-        self.form.print_issues_table(self.form.app.get_all_issues())
-        self.assertEqual(self.form.ui.tableIssues.rowCount(), initial_count + 1)

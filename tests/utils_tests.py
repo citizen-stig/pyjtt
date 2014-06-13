@@ -108,6 +108,11 @@ class pyjttUtilsTest(unittest.TestCase):
         self.assertFalse(utils.check_jira_issue_key('-'))
         self.assertFalse(utils.check_jira_issue_key('sample-123'))
 
+    def test_get_app_workdir(self):
+        workdir = utils.get_app_working_dir()
+        self.assertTrue(os.access(os.path.dirname(workdir), os.W_OK))
+
+
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(pyjttUtilsTest)
     unittest.TextTestRunner(verbosity=2).run(suite)

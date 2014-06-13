@@ -261,6 +261,131 @@ class MainWindow(QtWidgets.QMainWindow):
         #TODO: think about it.
         #self.ui.lineIssueKey.clear()
 
+    def add_worklog_entry(self):
+        issue = self._get_selected_issue_from_table()
+        ended = datetime.now()
+        started = ended - timedelta(hours=1)
+        comment = ''
+        worklog_entry = base_classes.JiraWorklogEntry(issue,
+                                                      started,
+                                                      ended,
+                                                      comment)
+        add_window = WorklogWindow('Add worklog',
+                                   worklog_entry,
+                                   parent=self)
+        edit_result = add_window.exec_()
+        if edit_result == QtWidgets.QDialog.Accepted:
+            job = partial(self.app.add_worklog_entry, add_window.worklog_entry)
+            self.tasks_queue.put(job)
+
+    def change_worklog_entry(self):
+        worklog_entry = self._get_selected_worklog_from_table()
+        edit_window = WorklogWindow('Add worklog',
+                                    worklog_entry,
+                                    parent=self)
+        edit_result = edit_window.exec_()
+        if edit_result == QtWidgets.QDialog.Accepted:
+            job = partial(self.app.update_worklog_entry, edit_window.worklog_entry)
+            self.tasks_queue.put(job)
+
+    def remove_worklog_entry(self):
+        worklog_entry = self._get_selected_worklog_from_table()
+        confirmation = QtWidgets.QMessageBox.question(self,
+                                                      'Remove Worklog',
+                                                      'Are you really want to remove this worklog',
+                                                      buttons=QtWidgets.QMessageBox.Yes
+                                                              | QtWidgets.QMessageBox.No)
+
+        if confirmation == QtWidgets.QMessageBox.Yes:
+            # Push the job to the queue
+            job = partial(self.app.remove_worklog_entry, worklog_entry)
+            self.tasks_queue.put(job)
+
+    def remove_issue_from_local(self):
+        issue = self._get_selected_issue_from_table()
+        confirmation = QtWidgets.QMessageBox.question(self,
+                                                      'Remove Issue',
+                                                      'Are you really want to remove this issue from local cache',
+                                                      buttons=QtWidgets.QMessageBox.Yes
+                                                              | QtWidgets.QMessageBox.No)
+        if confirmation == QtWidgets.QMessageBox.Yes:
+            job = partial(self.app.remove_issue, issue)
+            self.tasks_queue.put(job)
+
+    def start_online_tracking(self):
+        try:
+            issue = self._get_selected_issue_from_table()
+            self.ui.labelSelectedIssue.issue = issue
+
+            self.tracking_thread = workers.TrackingWorker()
+            self.tracking_thread.timer_updated.connect(self.update_timer)
+            self.tracking_thread.start()
+
+            # Change UI
+            stop_icon = QtGui.QIcon()
+            stop_icon.addPixmap(QtGui.QPixmap(":/res/icons/stop.ico"),
+                                QtGui.QIcon.Normal,
+                                QtGui.QIcon.Off)
+            self.ui.startStopTracking.setText('Stop Tracking')
+            self.ui.startStopTracking.setIcon(stop_icon)
+        except NotSelectedException:
+            self.ui.startStopTracking.setChecked(False)
+
+    def stop_online_tracking(self):
+        # Get tracked time
+        started, ended = self.tracking_thread.started, datetime.now()
+        # Check that tracked more than minimum worklog minutes
+        if (ended - started).total_seconds() > (MINIMUN_WORKLOG_SIZE_MINUTES * 60.0):
+            # Get issue
+            issue = self.ui.labelSelectedIssue.issue
+            # Create worklog
+            worklog_entry = base_classes.JiraWorklogEntry(issue, started, ended, '')
+
+            # Ask for options: Add, Cancel, Continue tracking, Open worklog before add
+            info_msg = 'Do you want to add this worklog:\n' + \
+                       'Issue: {issue_key}\n'.format(issue_key=worklog_entry.issue.key) + \
+                       'Started: {started}\n'.format(started=worklog_entry.started) + \
+                       'Ended: {ended}\n'.format(ended=worklog_entry.ended) + \
+                       'Time spent: {spent}\n'.format(spent=worklog_entry.get_timespent_string()) + \
+                       'Or edit before adding?'
+            confirmation = QtWidgets.QMessageBox.question(self,
+                                                          'Add New Worklog',
+                                                          info_msg,
+                                                          buttons=QtWidgets.QMessageBox.Yes
+                                                                  | QtWidgets.QMessageBox.No
+                                                                  | QtWidgets.QMessageBox.Cancel
+                                                                  | QtWidgets.QMessageBox.Open)
+            if confirmation == QtWidgets.QMessageBox.Yes:
+                # Push the job to the queue
+                job = partial(self.app.add_worklog_entry, worklog_entry)
+                self.tasks_queue.put(job)
+            elif confirmation == QtWidgets.QMessageBox.Open:
+                edit_window = WorklogWindow('Edit worklog',
+                                            worklog_entry,
+                                            parent=self)
+                edit_result = edit_window.exec_()
+                if edit_result == QtWidgets.QDialog.Accepted:
+                    job = partial(self.app.add_worklog_entry, edit_window.worklog_entry)
+                    self.tasks_queue.put(job)
+                else:
+                    # Cancelling stop and continue tracking
+                    return
+            elif confirmation == QtWidgets.QMessageBox.Cancel:
+                # Cancelling stop and continue tracking
+                return
+        # Terminate thread
+        self.tracking_thread.terminate()
+        self.tracking_thread = None
+
+        # Clear UI
+        self.ui.startStopTracking.setText('Start Tracking')
+        self.ui.labelTimeSpent.setText('00:00:00')
+        start_icon = QtGui.QIcon()
+        start_icon.addPixmap(QtGui.QPixmap(":/res/icons/start.ico"),
+                             QtGui.QIcon.Normal,
+                             QtGui.QIcon.Off)
+        self.ui.startStopTracking.setIcon(start_icon)
+
     def refresh_issue(self):
         if not self.ui.tableIssues.isHidden():
             try:
@@ -402,133 +527,10 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.stop_online_tracking()
 
-    def start_online_tracking(self):
-        try:
-            issue = self._get_selected_issue_from_table()
-            self.ui.labelSelectedIssue.issue = issue
-
-            self.tracking_thread = workers.TrackingWorker()
-            self.tracking_thread.timer_updated.connect(self.update_timer)
-            self.tracking_thread.start()
-
-            # Change UI
-            stop_icon = QtGui.QIcon()
-            stop_icon.addPixmap(QtGui.QPixmap(":/res/icons/stop.ico"),
-                                QtGui.QIcon.Normal,
-                                QtGui.QIcon.Off)
-            self.ui.startStopTracking.setText('Stop Tracking')
-            self.ui.startStopTracking.setIcon(stop_icon)
-        except NotSelectedException:
-            self.ui.startStopTracking.setChecked(False)
-
-    def stop_online_tracking(self):
-        # Get tracked time
-        started, ended = self.tracking_thread.started, datetime.now()
-        # Check that tracked more than minimum worklog minutes
-        if (ended - started).total_seconds() > (MINIMUN_WORKLOG_SIZE_MINUTES * 60.0):
-            # Get issue
-            issue = self.ui.labelSelectedIssue.issue
-            # Create worklog
-            worklog_entry = base_classes.JiraWorklogEntry(issue, started, ended, '')
-
-            # Ask for options: Add, Cancel, Continue tracking, Open worklog before add
-            info_msg = 'Do you want to add this worklog:\n' + \
-                       'Issue: {issue_key}\n'.format(issue_key=worklog_entry.issue.key) + \
-                       'Started: {started}\n'.format(started=worklog_entry.started) + \
-                       'Ended: {ended}\n'.format(ended=worklog_entry.ended) + \
-                       'Time spent: {spent}\n'.format(spent=worklog_entry.get_timespent_string()) + \
-                       'Or edit before adding?'
-            confirmation = QtWidgets.QMessageBox.question(self,
-                                                          'Add New Worklog',
-                                                          info_msg,
-                                                          buttons=QtWidgets.QMessageBox.Yes
-                                                                  | QtWidgets.QMessageBox.No
-                                                                  | QtWidgets.QMessageBox.Cancel
-                                                                  | QtWidgets.QMessageBox.Open)
-            if confirmation == QtWidgets.QMessageBox.Yes:
-                # Push the job to the queue
-                job = partial(self.app.add_worklog_entry, worklog_entry)
-                self.tasks_queue.put(job)
-            elif confirmation == QtWidgets.QMessageBox.Open:
-                edit_window = WorklogWindow('Edit worklog',
-                                            worklog_entry,
-                                            parent=self)
-                edit_result = edit_window.exec_()
-                if edit_result == QtWidgets.QDialog.Accepted:
-                    job = partial(self.app.add_worklog_entry, edit_window.worklog_entry)
-                    self.tasks_queue.put(job)
-                else:
-                    # Cancelling stop and continue tracking
-                    return
-            elif confirmation == QtWidgets.QMessageBox.Cancel:
-                # Cancelling stop and continue tracking
-                return
-        # Terminate thread
-        self.tracking_thread.terminate()
-        self.tracking_thread = None
-
-        # Clear UI
-        self.ui.startStopTracking.setText('Start Tracking')
-        self.ui.labelTimeSpent.setText('00:00:00')
-        start_icon = QtGui.QIcon()
-        start_icon.addPixmap(QtGui.QPixmap(":/res/icons/start.ico"),
-                             QtGui.QIcon.Normal,
-                             QtGui.QIcon.Off)
-        self.ui.startStopTracking.setIcon(start_icon)
-
     def update_timer(self, seconds):
         hours, seconds = divmod(seconds, 3600)
         minutes, seconds = divmod(seconds, 60)
         time_string = '%02d:%02d:%02d' % (hours, minutes, seconds)
         self.ui.labelTimeSpent.setText(time_string)
 
-    def add_worklog_entry(self):
-        issue = self._get_selected_issue_from_table()
-        ended = datetime.now()
-        started = ended - timedelta(hours=1)
-        comment = ''
-        worklog_entry = base_classes.JiraWorklogEntry(issue,
-                                                      started,
-                                                      ended,
-                                                      comment)
-        add_window = WorklogWindow('Add worklog',
-                                   worklog_entry,
-                                   parent=self)
-        edit_result = add_window.exec_()
-        if edit_result == QtWidgets.QDialog.Accepted:
-            job = partial(self.app.add_worklog_entry, add_window.worklog_entry)
-            self.tasks_queue.put(job)
 
-    def change_worklog_entry(self):
-        worklog_entry = self._get_selected_worklog_from_table()
-        edit_window = WorklogWindow('Add worklog',
-                                    worklog_entry,
-                                    parent=self)
-        edit_result = edit_window.exec_()
-        if edit_result == QtWidgets.QDialog.Accepted:
-            job = partial(self.app.update_worklog_entry, edit_window.worklog_entry)
-            self.tasks_queue.put(job)
-
-    def remove_worklog_entry(self):
-        worklog_entry = self._get_selected_worklog_from_table()
-        confirmation = QtWidgets.QMessageBox.question(self,
-                                                      'Remove Worklog',
-                                                      'Are you really want to remove this worklog',
-                                                      buttons=QtWidgets.QMessageBox.Yes
-                                                              | QtWidgets.QMessageBox.No)
-
-        if confirmation == QtWidgets.QMessageBox.Yes:
-            # Push the job to the queue
-            job = partial(self.app.remove_worklog_entry, worklog_entry)
-            self.tasks_queue.put(job)
-
-    def remove_issue_from_local(self):
-        issue = self._get_selected_issue_from_table()
-        confirmation = QtWidgets.QMessageBox.question(self,
-                                                      'Remove Issue',
-                                                      'Are you really want to remove this issue from local cache',
-                                                      buttons=QtWidgets.QMessageBox.Yes
-                                                              | QtWidgets.QMessageBox.No)
-        if confirmation == QtWidgets.QMessageBox.Yes:
-            job = partial(self.app.remove_issue, issue)
-            self.tasks_queue.put(job)

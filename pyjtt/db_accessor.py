@@ -117,11 +117,12 @@ class DBAccessor(object):
                        ' FROM JIRAIssues WHERE jira_issue_key = ?', (issue_key,))
         raw_issue = cursor.fetchone()
         db_conn.close()
-        if raw_issue:
+        #if raw_issue:
+        try:
             issue = self._parse_raw_issue(raw_issue)
             logger.debug('Issue %s has been extracted from local DB')
             return issue
-        else:
+        except TypeError:
             logger.debug('Issue is not found in local DB')
 
     def get_worklog_for_issue(self, issue):

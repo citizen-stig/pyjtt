@@ -36,7 +36,8 @@ class DBTest(unittest.TestCase):
         self.assertEqual(len(new_from_db), 1)
 
     def test_get_nonexisted_issue(self):
-        raise AssertionError
+        none = self.accessor.get_issue('TST-969')
+        self.assertIsNone(none)
 
     def test_add_and_get_issue(self):
         issue = base_classes.JiraIssue('12345', 'TST-123', 'Юникод')
