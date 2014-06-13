@@ -62,7 +62,7 @@ class BaseGuiTest(unittest.TestCase):
                                    'password')
         # TODO: replace sleep and get smart signal working
         time.sleep(0.1)
-        self.form.print_issues_table()
+        self.form.print_issues_table(self.form.app.get_all_issues())
 
     def tearDown(self):
         shutil.rmtree('.pyjtt')
@@ -94,5 +94,5 @@ class AccessorGuiTest(BaseGuiTest):
         QtTest.QTest.mouseClick(self.form.ui.FindIssue, QtCore.Qt.LeftButton)
         # FIXME: replace sleep with smarter implementation
         time.sleep(0.1)
-        self.form.print_issues_table()
+        self.form.print_issues_table(self.form.app.get_all_issues())
         self.assertEqual(self.form.ui.tableIssues.rowCount(), initial_count + 1)

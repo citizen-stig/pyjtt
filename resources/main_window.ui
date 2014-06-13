@@ -34,7 +34,7 @@
     <item row="1" column="0">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabIssues">
        <attribute name="title">
@@ -398,12 +398,20 @@
      <string>File</string>
     </property>
     <addaction name="actionReresh_issue"/>
+    <addaction name="actionRemove_issue_from_cache"/>
     <addaction name="actionFull_refresh"/>
     <addaction name="separator"/>
     <addaction name="actionLogout"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout_Qt_2"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionReresh_issue">
@@ -442,6 +450,16 @@
    </property>
   </action>
   <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionRemove_issue_from_cache">
+   <property name="text">
+    <string>Remove issue from cache</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt_2">
    <property name="text">
     <string>About Qt</string>
    </property>

@@ -44,7 +44,7 @@ class PyJTTExcetption(Exception):
     pass
 
 
-class IssueNotSelectedException(PyJTTExcetption):
+class NotSelectedException(PyJTTExcetption):
     pass
 
 
@@ -187,20 +187,26 @@ class MainWindow(QtWidgets.QMainWindow):
             worker = workers.NoResultThread(self.tasks_queue)
             self.worker_threads.append(worker)
             worker.start()
-            worker.task_started.connect(self.inc_status)
+            worker.task_started.connect(self.set_status)
             worker.task_done.connect(self.refresh_ui)
-            worker.task_done.connect(self.dec_status)
+            worker.task_done.connect(self.clear_status)
             worker.exception_raised.connect(self.show_error)
         self.tracking_thread = None
 
         # Signals
         self.ui.FindIssue.clicked.connect(self.get_issue)
-        self.ui.lineIssueKey.returnPressed.connect(self.get_issue)
         self.ui.tableIssues.clicked.connect(self.set_issue_selected)
         self.ui.dateDayWorklogEdit.dateChanged.connect(self.print_worklog_table)
         self.ui.actionReresh_issue.triggered.connect(self.refresh_issue)
+        self.ui.actionFull_refresh.triggered.connect(self.full_refresh)
         self.ui.startStopTracking.clicked.connect(self.online_tracking)
         self.ui.lineIssueKey.textChanged.connect(self.filter_issues_table)
+        self.ui.tableIssues.doubleClicked.connect(self.add_worklog_entry)
+        self.ui.tableDayWorklog.doubleClicked.connect(self.change_worklog_entry)
+        self.ui.editWorklog.clicked.connect(self.change_worklog_entry)
+        self.ui.removeWorklog.clicked.connect(self.remove_worklog_entry)
+        self.ui.actionRemove_issue_from_cache.triggered.connect(self.remove_issue_from_local)
+
 
         # Request assigned issues
         get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
@@ -226,9 +232,24 @@ class MainWindow(QtWidgets.QMainWindow):
             return issue
         else:
             QtWidgets.QMessageBox.warning(self,
-                                          'Refresh error',
+                                          'Error',
                                           'Please, select issue first')
-            raise IssueNotSelectedException('Issue not selected by user')
+            raise NotSelectedException('Issue is not selected by user')
+
+    def _get_selected_worklog_from_table(self):
+        if self.ui.tableDayWorklog.selectedItems():
+            pass
+            selected_indexes = self.ui.tableDayWorklog.selectedIndexes()
+            container_coordinates = selected_indexes[0]
+            worklog_container = self.ui.tableDayWorklog.item(container_coordinates.row(),
+                                                        container_coordinates.column())
+            worklog_entry = worklog_container.worklog_entry
+            return worklog_entry
+        else:
+            QtWidgets.QMessageBox.warning(self,
+                                          'Error',
+                                          'Please, select worklog first')
+            raise NotSelectedException('Worklog entry is not selected by user')
 
     def get_issue(self):
         issue_keys = str(self.ui.lineIssueKey.text())
@@ -246,17 +267,31 @@ class MainWindow(QtWidgets.QMainWindow):
                 issue = self._get_selected_issue_from_table()
                 refresh_job = partial(self.app.refresh_issue, issue)
                 self.tasks_queue.put(refresh_job)
-            except IssueNotSelectedException:
+            except NotSelectedException:
                 pass
         else:
             #TODO: add extraction from worklog table
             pass
+
+    def full_refresh(self):
+        for issue in self.app.get_all_issues():
+            refresh_job = partial(self.app.refresh_issue, issue)
+            self.tasks_queue.put(refresh_job)
 
     # GUI stuff
     def init_ui(self):
         """Method for UI customization"""
         self.ui.setupUi(self)
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
+        # Status bar customization
+        self.ui.spinning_img = QtGui.QMovie(":/res/img/spinning-progress6.gif")
+        self.ui.spinning_label = QtWidgets.QLabel()
+        self.ui.spinning_label.setMovie(self.ui.spinning_img)
+        self.ui.spinning_label.hide()
+        self.ui.status_msg = QtWidgets.QLabel('Synchronizing...')
+        self.ui.statusbar.addWidget(self.ui.spinning_label)
+        self.ui.statusbar.addWidget(self.ui.status_msg)
+        self.ui.status_msg.hide()
 
     def refresh_ui(self):
         if self.ui.lineIssueKey.text():
@@ -271,12 +306,15 @@ class MainWindow(QtWidgets.QMainWindow):
         info_msg += str(exception)
         QtWidgets.QMessageBox.warning(self, 'Warning', info_msg)
 
-    def inc_status(self):
-        self.ui.statusbar.showMessage('Synchronizing...')
+    def set_status(self):
+        self.ui.spinning_label.show()
+        self.ui.status_msg.show()
+        self.ui.spinning_img.start()
 
-    def dec_status(self):
+    def clear_status(self):
         if self.tasks_queue.empty():
-            self.ui.statusbar.clearMessage()
+            self.ui.spinning_label.hide()
+            self.ui.status_msg.hide()
 
     def filter_issues_table(self):
         current_text = self.ui.lineIssueKey.text()
@@ -353,7 +391,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 try:
                     issue = self._get_selected_issue_from_table()
                     self.ui.labelSelectedIssue.setText(issue.key + ': ' + issue.summary)
-                except IssueNotSelectedException:
+                except NotSelectedException:
+                    # WTF?
                     pass
 
     def online_tracking(self):
@@ -379,7 +418,7 @@ class MainWindow(QtWidgets.QMainWindow):
                                 QtGui.QIcon.Off)
             self.ui.startStopTracking.setText('Stop Tracking')
             self.ui.startStopTracking.setIcon(stop_icon)
-        except IssueNotSelectedException:
+        except NotSelectedException:
             self.ui.startStopTracking.setChecked(False)
 
     def stop_online_tracking(self):
@@ -444,13 +483,52 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.labelTimeSpent.setText(time_string)
 
     def add_worklog_entry(self):
-        pass
+        issue = self._get_selected_issue_from_table()
+        ended = datetime.now()
+        started = ended - timedelta(hours=1)
+        comment = ''
+        worklog_entry = base_classes.JiraWorklogEntry(issue,
+                                                      started,
+                                                      ended,
+                                                      comment)
+        add_window = WorklogWindow('Add worklog',
+                                   worklog_entry,
+                                   parent=self)
+        edit_result = add_window.exec_()
+        if edit_result == QtWidgets.QDialog.Accepted:
+            job = partial(self.app.add_worklog_entry, add_window.worklog_entry)
+            self.tasks_queue.put(job)
 
     def change_worklog_entry(self):
-        if self.ui.tableDayWorklog.selectedItems():
-            pass
-        else:
-            QtWidgets.QMessageBox.warning(self, 'Tracking Error', 'Please, select worklog first')
+        worklog_entry = self._get_selected_worklog_from_table()
+        edit_window = WorklogWindow('Add worklog',
+                                    worklog_entry,
+                                    parent=self)
+        edit_result = edit_window.exec_()
+        if edit_result == QtWidgets.QDialog.Accepted:
+            job = partial(self.app.update_worklog_entry, edit_window.worklog_entry)
+            self.tasks_queue.put(job)
 
     def remove_worklog_entry(self):
-        pass
+        worklog_entry = self._get_selected_worklog_from_table()
+        confirmation = QtWidgets.QMessageBox.question(self,
+                                                      'Remove Worklog',
+                                                      'Are you really want to remove this worklog',
+                                                      buttons=QtWidgets.QMessageBox.Yes
+                                                              | QtWidgets.QMessageBox.No)
+
+        if confirmation == QtWidgets.QMessageBox.Yes:
+            # Push the job to the queue
+            job = partial(self.app.remove_worklog_entry, worklog_entry)
+            self.tasks_queue.put(job)
+
+    def remove_issue_from_local(self):
+        issue = self._get_selected_issue_from_table()
+        confirmation = QtWidgets.QMessageBox.question(self,
+                                                      'Remove Issue',
+                                                      'Are you really want to remove this issue from local cache',
+                                                      buttons=QtWidgets.QMessageBox.Yes
+                                                              | QtWidgets.QMessageBox.No)
+        if confirmation == QtWidgets.QMessageBox.Yes:
+            job = partial(self.app.remove_issue, issue)
+            self.tasks_queue.put(job)

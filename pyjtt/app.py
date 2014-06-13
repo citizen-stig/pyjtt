@@ -52,9 +52,9 @@ def main():
     # initialize Qt application
     app = QApplication([])
     # Checking credentials
-    login_form = gui.LoginWindow('http://example.com',
-                               'user',
-                               'password',
+    login_form = gui.LoginWindow('https://complexis.atlassian.net',
+                               'golub',
+                               'DTL^cotk8ccV--2',
                                False,)
     login_form.show()
     login_result = login_form.exec_()
