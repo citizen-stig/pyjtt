@@ -49,6 +49,7 @@ class NotSelectedException(PyJTTExcetption):
 
 
 class LoginWindow(QtWidgets.QDialog):
+    """Checks user credentials and handles login"""
 
     def __init__(self,
                  jirahost,
@@ -73,7 +74,7 @@ class LoginWindow(QtWidgets.QDialog):
         self.ui.buttonBox.rejected.connect(self.user_exit)
 
     def handle_login_input(self):
-        # user interaction
+        """Initial check of data provided by the user"""
         jira_host = str(self.ui.lineEditHostAddress.text())
         login = str(self.ui.lineEditLogin.text())
         password = str(self.ui.lineEditPassword.text())
@@ -89,9 +90,11 @@ class LoginWindow(QtWidgets.QDialog):
                 self.accept()
 
     def user_exit(self):
+        """Standard exit"""
         self.reject()
 
     def _login(self, jira_host, login, password):
+        """Actual login"""
         logger.debug('Trying to get user info')
         try:
             app = core.TimeTrackerApp(jira_host, login, password)
@@ -157,6 +160,7 @@ class WorklogWindow(QtWidgets.QDialog):
         self.refresh_spent()
 
     def save_worklog_data(self):
+        """Create worklog object from user input"""
         date = self.ui.dateEdit.date().toPyDate()
         start = self.ui.timeStartEdit.time().toPyTime()
         end = self.ui.timeEndEdit.time().toPyTime()
@@ -166,10 +170,12 @@ class WorklogWindow(QtWidgets.QDialog):
         self.accept()
 
     def user_exit(self):
+        """Standard exit"""
         self.reject()
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """Core widget of the GUI"""
     ui = main_window.Ui_MainWindow()
     number_of_workers = 10
     tasks_queue = queue.Queue()
@@ -207,15 +213,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.removeWorklog.clicked.connect(self.remove_worklog_entry)
         self.ui.actionRemove_issue_from_cache.triggered.connect(self.remove_issue_from_local)
 
-
         # Request assigned issues
         get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
         self.tasks_queue.put(get_assigned_issues_job)
 
     # Names convention:
     # Underscore for auxiliary methods which aren't called by singals
-
     # Core stuff
+
     def closeEvent(self, event):
         for thread in self.worker_threads:
             thread.quit()
@@ -242,7 +247,7 @@ class MainWindow(QtWidgets.QMainWindow):
             selected_indexes = self.ui.tableDayWorklog.selectedIndexes()
             container_coordinates = selected_indexes[0]
             worklog_container = self.ui.tableDayWorklog.item(container_coordinates.row(),
-                                                        container_coordinates.column())
+                                                             container_coordinates.column())
             worklog_entry = worklog_container.worklog_entry
             return worklog_entry
         else:
@@ -535,5 +540,3 @@ class MainWindow(QtWidgets.QMainWindow):
         minutes, seconds = divmod(seconds, 60)
         time_string = '%02d:%02d:%02d' % (hours, minutes, seconds)
         self.ui.labelTimeSpent.setText(time_string)
-
-

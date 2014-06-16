@@ -23,7 +23,6 @@ __copyright__ = "Copyright 2012 - 2014, Nikolay Golub"
 __license__ = "GPL"
 
 from datetime import datetime
-import time
 import queue
 import logging
 logger = logging.getLogger(__name__)
@@ -89,7 +88,7 @@ class TrackingWorker(QtCore.QThread):
     """Thread for tracking timer.
 
     It is created when time starts and ended when timer stops.
-    It wakes up every 500 ms
+    It wakes up every self.sleep_timeout seconds
     """
     timer_updated = QtCore.pyqtSignal(int)
 
