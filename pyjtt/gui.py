@@ -403,6 +403,9 @@ class MainWindow(QtWidgets.QMainWindow):
             refresh_job = partial(self.app.refresh_issue, issue)
             self.tasks_queue.put(refresh_job)
 
+    def relogin(self):
+        pass
+
     # GUI stuff
     def init_ui(self):
         """Method for UI customization"""

@@ -35,46 +35,73 @@ import gui
 import utils
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s - %(name)s - %(message)s'
+CONFIG_FILENAME = 'pyjtt.cfg'
+
+
+def init_config(workdir):
+    """
+    Prepares config class for usage
+    """
+    defaults = {'log_level': 'INFO'}
+    for item in ('jirahost', 'login', 'password', 'save_password'):
+        defaults[item] = ''
+
+    config_filename = path.join(workdir, CONFIG_FILENAME)
+    config = configparser.ConfigParser(defaults=defaults)
+    config.read(config_filename)
+
+    if not config.has_section('main'):
+        config.add_section('main')
+    return config
 
 
 def main():
-    # obtain application folder
+    """
+    Application entry point
+    """
     workdir = utils.get_app_working_dir()
     if not path.isdir(workdir):
         mkdir(workdir)
-    # obtain configuration
-    config_filename = path.join(workdir, 'pyjtt.cfg')
-    config = configparser.ConfigParser()
-    config.read(config_filename)
-    # Configure logging
 
-    logging.basicConfig(format=LOGGING_FORMAT, level=logging.DEBUG)
-    # initialize Qt application
+    config = init_config(workdir)
+
+    logging.basicConfig(format=LOGGING_FORMAT, level=config.get('main', 'log_level'))
+
     app = QApplication([])
-    # Checking credentials
-    login_form = gui.LoginWindow('https://complexis.atlassian.net',
-                               'golub',
-                               'DTL^cotk8ccV--2',
-                               False,)
-    login_form.show()
-    login_result = login_form.exec_()
-    if login_result == QDialog.Accepted:
-        jira_host = login_form.ui.lineEditHostAddress.text()
-        login = login_form.ui.lineEditLogin.text()
-        password = login_form.ui.lineEditPassword.text()
-        if login_form.ui.checkBoxSaveCredentials.isChecked():
-            # TODO: add saving credentials
-            pass
-    else:
+
+    def app_quit():
+        """
+        Standard procedures before close application
+        """
+        with open(path.join(workdir, CONFIG_FILENAME), 'w') as configfile:
+            config.write(configfile)
         app.quit()
-        #sys.exit(app.exec_())
-        sys.exit()
-    # Initialize main window
+        sys.exit(app.exec_())
+
+    login_window = gui.LoginWindow(config.get('main', 'jirahost'),
+                                   config.get('main', 'login'),
+                                   config.get('main', 'password'),
+                                   bool(config.get('main', 'save_password')),)
+    login_window.show()
+    login_result = login_window.exec_()
+    if login_result == QDialog.Accepted:
+        jira_host = login_window.ui.lineEditHostAddress.text()
+        login = login_window.ui.lineEditLogin.text()
+        password = login_window.ui.lineEditPassword.text()
+
+        config.set('main', 'jirahost', jira_host)
+        config.set('main', 'login', login)
+
+        if login_window.ui.checkBoxSaveCredentials.isChecked():
+            config.set('main', 'password', password)
+    else:
+        app_quit()
+
     main_window = gui.MainWindow(jira_host, login, password)
     main_window.show()
-    # exit application
-    app.quit()
-    sys.exit(app.exec_())
+
+    app_quit()
+
 
 if __name__ == '__main__':
     main()

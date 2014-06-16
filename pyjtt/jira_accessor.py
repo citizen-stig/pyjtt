@@ -46,6 +46,7 @@ class JiraRESTAccessor(object):
     def __init__(self, jirahost, login, password):
         self.jirahost = jirahost
         self.login = login
+        self.password = password
         credentials = base64.b64encode((login + ':' + password).encode(self.encoding))
         self.auth_string = 'Basic '.encode(self.encoding) + credentials
 
