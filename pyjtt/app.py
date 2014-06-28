@@ -24,17 +24,17 @@ __license__ = "GPL"
 
 
 from os import path, mkdir
-import logging
-logger = logging.getLogger(__name__)
 import sys
 import configparser
+import logging
+logger = logging.getLogger(__name__)
 
 from PyQt5.QtWidgets import QApplication, QDialog
 
 import gui
 import utils
 
-LOGGING_FORMAT = '%(asctime)s %(levelname)s - %(name)s - %(message)s'
+LOGGING_FORMAT = '%(asctime)s %(levelname)s - %(name)s@%(thread)d - %(message)s'
 CONFIG_FILENAME = 'pyjtt.cfg'
 
 
@@ -65,8 +65,8 @@ def main():
 
     config = init_config(workdir)
 
-    logging.basicConfig(format=LOGGING_FORMAT, level=config.get('main', 'log_level'))
-
+    logging.basicConfig(format=LOGGING_FORMAT,
+                        level=config.get('main', 'log_level'))
     app = QApplication([])
 
     def app_quit():
@@ -77,26 +77,28 @@ def main():
             config.write(configfile)
         app.quit()
         sys.exit(app.exec_())
+    jira_host = config.get('main', 'jirahost')
+    login = config.get('main', 'login')
+    password = config.get('main', 'password')
+    if any([x == '' for x in (jira_host, login, password)]):
+        login_window = gui.LoginWindow(jira_host,
+                                       login,
+                                       password,
+                                       bool(config.get('main', 'save_password')),)
+        login_window.show()
+        login_result = login_window.exec_()
+        if login_result == QDialog.Accepted:
+            jira_host = login_window.ui.lineEditHostAddress.text()
+            login = login_window.ui.lineEditLogin.text()
+            password = login_window.ui.lineEditPassword.text()
 
-    login_window = gui.LoginWindow(config.get('main', 'jirahost'),
-                                   config.get('main', 'login'),
-                                   config.get('main', 'password'),
-                                   bool(config.get('main', 'save_password')),)
-    login_window.show()
-    login_result = login_window.exec_()
-    if login_result == QDialog.Accepted:
-        jira_host = login_window.ui.lineEditHostAddress.text()
-        login = login_window.ui.lineEditLogin.text()
-        password = login_window.ui.lineEditPassword.text()
+            config.set('main', 'jirahost', jira_host)
+            config.set('main', 'login', login)
 
-        config.set('main', 'jirahost', jira_host)
-        config.set('main', 'login', login)
-
-        if login_window.ui.checkBoxSaveCredentials.isChecked():
-            config.set('main', 'password', password)
-    else:
-        app_quit()
-
+            if login_window.ui.checkBoxSaveCredentials.isChecked():
+                config.set('main', 'password', password)
+        else:
+            app_quit()
     main_window = gui.MainWindow(jira_host, login, password)
     main_window.show()
 

@@ -69,7 +69,8 @@ class DBAccessor(object):
 
     def _connect_to_db(self):
         logger.debug('Connecting to local DB: %s' % self.db_filename)
-        db_conn = sqlite3.connect(self.db_filename, timeout=10, check_same_thread=False)
+        db_conn = sqlite3.connect(self.db_filename, timeout=10,
+                                  check_same_thread=False)
         cursor = db_conn.cursor()
         logger.debug('Connection has been successful')
         return db_conn, cursor
@@ -87,7 +88,7 @@ class DBAccessor(object):
         return JiraWorklogEntry(issue, started, ended, row[3], str(row[0]))
 
     def add_issue(self, issue):
-        logger.debug('Saving issue %s in local DB' % issue.key)
+        logger.debug('Saving issue "{0}" in local DB. Id: {1}'.format(issue.key, issue.issue_id))
         db_conn, cursor = self._connect_to_db()
         cursor.execute('INSERT OR REPLACE INTO '
                        '{issues_table} (jira_issue_id, jira_issue_key, summary) '
@@ -95,7 +96,7 @@ class DBAccessor(object):
                        (issue.issue_id, issue.key, issue.summary))
         db_conn.commit()
         db_conn.close()
-        logger.debug('Issue %s has been saved in local DB' % issue.key)
+        logger.debug('Issue "{0}" has been saved in local DB'.format(issue.key))
 
     def remove_issue(self, issue):
         logger.debug('Removing issue %s from local DB' % issue.key)
@@ -137,14 +138,24 @@ class DBAccessor(object):
         return worklog
 
     def add_worklog(self, worklog):
-        rows = [(x.worklog_id, x.issue.issue_id, x.started, x.ended, x.comment) for x in worklog]
-        db_conn, cursor = self._connect_to_db()
-        cursor.executemany('INSERT INTO {worklog} (worklog_id, jira_issue_id, start_date, end_date, comment)'
-                           'VALUES (?,?,?,?,?)'.format(worklog=self.WORKLOG_TABLE_NAME), rows)
-        db_conn.commit()
-        db_conn.close()
+
+        rows = [(x.worklog_id, x.issue.issue_id, x.started, x.ended, x.comment)
+                for x in worklog]
+        if rows:
+            logger.debug('Save worklog in local db.'
+                         ' First issue in bulk set is {0}'.format(worklog[0].issue.key))
+            db_conn, cursor = self._connect_to_db()
+            cursor.executemany('INSERT OR REPLACE INTO {worklog}'
+                               ' (worklog_id, jira_issue_id,'
+                               ' start_date, end_date, comment)'
+                               'VALUES (?,?,?,?,?)'.format(worklog=self.WORKLOG_TABLE_NAME), rows)
+            db_conn.commit()
+            db_conn.close()
+            logger.debug('Bulk worklog saving is completed')
 
     def add_worklog_entry(self, worklog_entry):
+        logger.debug('Saving worklog entry '
+                     'for issue {0}'.format(worklog_entry.issue))
         db_conn, cursor = self._connect_to_db()
         cursor.execute('INSERT INTO {worklog} (worklog_id, jira_issue_id, start_date, end_date, comment)'
                        'VALUES (?,?,?,?,?)'.format(worklog=self.WORKLOG_TABLE_NAME),
@@ -164,6 +175,8 @@ class DBAccessor(object):
         db_conn.close()
 
     def update_worklog_entry(self, worklog_entry):
+        logger.debug('Updating worklog entry '
+                     'for issue {0}'.format(worklog_entry.issue))
         db_conn, cursor = self._connect_to_db()
         cursor.execute('UPDATE {worklog} '
                        'SET '

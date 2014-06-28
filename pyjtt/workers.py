@@ -62,8 +62,9 @@ class BaseThread(QtCore.QThread):
             except queue.Empty:
                 pass
             except Exception as exc:
-                logger.error('Exception {msg} raised in thread {thread}'.format(thread=self.currentThreadId(),
-                                                                                msg=str(exc)))
+                logger.error('Exception "{msg}" '
+                             'raised in thread {thread}'.format(thread=self.currentThreadId(),
+                                                                msg=str(exc)))
                 self.exception_raised.emit(exc)
             finally:
                 self.task_done.emit()

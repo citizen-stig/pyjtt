@@ -55,7 +55,7 @@ class LoginWindow(QtWidgets.QDialog):
                  jirahost,
                  login,
                  password,
-                 save_credentials,
+                 save_credentials=False,
                  parent=None):
         super(LoginWindow, self).__init__(parent)
         self.ui = login_window.Ui_loginWindow()
@@ -113,7 +113,7 @@ class WorklogWindow(QtWidgets.QDialog):
     It allows to set date, time ranges and comment to JIRA worklog
     """
     def __init__(self, title, worklog_entry, parent=None):
-        super(WorklogWindow, self).__init__(parent=parent)
+        super(WorklogWindow, self).__init__(parent)
         self.ui = worklog_window.Ui_WorklogWindow()
         self.ui.setupUi(self)
         self.setWindowTitle(title)
@@ -212,6 +212,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.editWorklog.clicked.connect(self.change_worklog_entry)
         self.ui.removeWorklog.clicked.connect(self.remove_worklog_entry)
         self.ui.actionRemove_issue_from_cache.triggered.connect(self.remove_issue_from_local)
+        self.ui.actionLogout.triggered.connect(self.logout)
 
         # Request assigned issues
         get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
@@ -226,6 +227,20 @@ class MainWindow(QtWidgets.QMainWindow):
             thread.quit()
         # TODO: Add checking of online tracking
         event.accept()
+
+    def logout(self):
+        relogin_window = LoginWindow(self.app.jira_accessor.jirahost,
+                                     self.app.jira_accessor.login,
+                                     self.app.jira_accessor.password,
+                                     parent=self)
+        relogin_result = relogin_window.exec_()
+        if relogin_result == QtWidgets.QDialog.Accepted:
+            jira_host = relogin_window.ui.lineEditHostAddress.text()
+            login = relogin_window.ui.lineEditLogin.text()
+            password = relogin_window.ui.lineEditPassword.text()
+            self.app = core.TimeTrackerApp(jira_host, login, password)
+        else:
+            self.close()
 
     def _get_selected_issue_from_table(self):
         if self.ui.tableIssues.selectedItems():

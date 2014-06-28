@@ -112,7 +112,8 @@ class DBTest(unittest.TestCase):
         worklog_from_db = self.accessor.get_worklog_for_issue(issue)
 
         self.assertEqual(len(worklog), len(worklog_from_db))
-        self.assertTrue(worklog_from_db[0].comment in ('Комментарий', 'Комментарий два'))
+        self.assertTrue(worklog_from_db[0].comment in ('Комментарий',
+                                                       'Комментарий два'))
 
     def test_add_and_get_worklog_entry(self):
         issue = base_classes.JiraIssue('12345', 'TST-123', 'Юникод')
@@ -128,25 +129,10 @@ class DBTest(unittest.TestCase):
         self.assertEqual(worklog_entry_from_db.started, worklog_entry.started)
         self.assertEqual(worklog_entry_from_db.ended, worklog_entry.ended)
         self.assertEqual(worklog_entry_from_db.comment, worklog_entry.comment)
-        self.assertEqual(worklog_entry_from_db.worklog_id, worklog_entry.worklog_id)
-        self.assertEqual(worklog_entry_from_db.issue.key, worklog_entry.issue.key)
-
-    def test_add_worklog_same_id(self):
-        issue1 = base_classes.JiraIssue('1111', 'TST-111', 'Юникод')
-        worklog = [
-            base_classes.JiraWorklogEntry(issue1,
-                                          datetime(2014, 1, 1, 12),
-                                          datetime(2014, 1, 1, 13),
-                                          'Комментарий',
-                                          '11111'),
-            base_classes.JiraWorklogEntry(issue1,
-                                          datetime(2014, 1, 2, 12),
-                                          datetime(2014, 1, 2, 13),
-                                          'Комментарий',
-                                          '11111')
-        ]
-        self.accessor.add_issue(issue1)
-        self.assertRaises(sqlite3.IntegrityError, self.accessor.add_worklog, worklog)
+        self.assertEqual(worklog_entry_from_db.worklog_id,
+                         worklog_entry.worklog_id)
+        self.assertEqual(worklog_entry_from_db.issue.key,
+                         worklog_entry.issue.key)
 
     def test_remove_worklog(self):
         issue = base_classes.JiraIssue('12345', 'TST-123', 'Юникод')
@@ -170,7 +156,7 @@ class DBTest(unittest.TestCase):
 
         self.assertEqual(len(worklog) - 1, len(worklog_from_db))
 
-    def test_update_worklog(self):
+    def test_update_worklog_entry(self):
         issue = base_classes.JiraIssue('12345', 'TST-123', 'Юникод')
         worklog_entry = base_classes.JiraWorklogEntry(issue,
                                                       datetime(2014, 1, 1, 12),
@@ -183,6 +169,39 @@ class DBTest(unittest.TestCase):
         self.accessor.update_worklog_entry(worklog_entry)
         worklog_entry_from_db = self.accessor.get_worklog_for_issue(issue)[0]
         self.assertEqual(worklog_entry_from_db.started.year, 2013)
+
+    def test_update_worklog_many(self):
+        issue = base_classes.JiraIssue('12345', 'TST-123', 'Юникод')
+        worklog = [
+            base_classes.JiraWorklogEntry(issue,
+                                          datetime(2014, 1, 1, 12),
+                                          datetime(2014, 1, 1, 13),
+                                          'Комментарий',
+                                          '11111'),
+            base_classes.JiraWorklogEntry(issue,
+                                          datetime(2014, 1, 2, 12),
+                                          datetime(2014, 1, 2, 13),
+                                          'Комментарий два',
+                                          '22222'),
+        ]
+        self.accessor.add_issue(issue)
+        self.accessor.add_worklog(worklog)
+
+        worklog_from_db = self.accessor.get_worklog_for_issue(issue)
+
+        self.assertEqual(len(worklog), len(worklog_from_db))
+        self.assertTrue(worklog_from_db[0].comment in ('Комментарий',
+                                                       'Комментарий два'))
+
+        worklog[0].ended = datetime(2014, 1, 1, 15)
+        worklog[0].comment = 'Обновленный комментарий'
+        self.accessor.add_worklog(worklog)
+
+        updated_worklog_from_db = self.accessor.get_worklog_for_issue(issue)
+        updated_entry_list = [x for x in updated_worklog_from_db
+                              if x.worklog_id == '11111']
+        self.assertEqual(len(updated_entry_list), 1)
+        self.assertEqual(updated_entry_list[0].ended.hour, 15)
 
     def test_get_day_worklog(self):
         issue1 = base_classes.JiraIssue('1111', 'TST-111', 'Юникод')

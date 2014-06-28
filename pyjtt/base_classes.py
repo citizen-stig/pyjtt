@@ -34,6 +34,10 @@ class JiraIssue(object):
         self.key = key
         self.summary = summary
 
+    def __str__(self):
+        return "{key}: {summary}".format(key=self.key,
+                                         summary=self.summary)
+
     @staticmethod
     def _get_url(jira_url, issue_key):
         return urljoin(urljoin(jira_url, '/rest/api/2/issue/'), issue_key)
