@@ -40,10 +40,6 @@ class BaseThread(QtCore.QThread):
     def __init__(self, tasks_queue):
         """Initializes tasks_queue and statuses.
 
-        tasks_queue variable is a list of functions, which should be run in thread.
-        statuses variable is a list of strings, that should be shown as status.
-        indexes of tasks_queue and status should correspond to each other.
-        Each function should have a status message (at least empty)
         """
         super(BaseThread, self).__init__()
         self.queue = tasks_queue
@@ -63,8 +59,9 @@ class BaseThread(QtCore.QThread):
                 pass
             except Exception as exc:
                 logger.error('Exception "{msg}" '
-                             'raised in thread {thread}'.format(thread=self.currentThreadId(),
-                                                                msg=str(exc)))
+                             'raised in thread'
+                             ' {thread}'.format(thread=self.currentThreadId(),
+                                                msg=str(exc)))
                 self.exception_raised.emit(exc)
             finally:
                 self.task_done.emit()
@@ -74,9 +71,9 @@ class BaseThread(QtCore.QThread):
 class NoResultThread(BaseThread):
     """Simple thread for I/O operations which don't return anything"""
 
-    def __init__(self, queue):
+    def __init__(self, queue_instance):
         logger.info('Initialize simple I/O thread')
-        super(NoResultThread, self).__init__(queue)
+        super(NoResultThread, self).__init__(queue_instance)
         logger.debug('I/O thread initialized')
 
     def _run(self, func):

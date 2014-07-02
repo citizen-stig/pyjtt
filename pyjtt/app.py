@@ -27,6 +27,7 @@ from os import path, mkdir
 import sys
 import configparser
 import logging
+import logging.handlers
 logger = logging.getLogger(__name__)
 
 from PyQt5.QtWidgets import QApplication, QDialog
@@ -64,9 +65,15 @@ def main():
         mkdir(workdir)
 
     config = init_config(workdir)
-
+    log_filename = path.join(workdir, 'application.log')
+    log_rotater = logging.handlers.RotatingFileHandler(log_filename,
+                                                       mode='a',
+                                                       encoding='utf-8',
+                                                       maxBytes=10485760,
+                                                       backupCount=5)
     logging.basicConfig(format=LOGGING_FORMAT,
-                        level=config.get('main', 'log_level'))
+                        level=config.get('main', 'log_level'),
+                        handlers=(log_rotater,))
     app = QApplication([])
 
     def app_quit():

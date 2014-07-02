@@ -82,7 +82,8 @@ class JiraRESTAccessor(object):
         return base_classes.JiraWorklogEntry(issue,
                                              local_started,
                                              local_started + time_spent,
-                                             raw_worklog_entry.get('comment', ''),
+                                             raw_worklog_entry.get('comment',
+                                                                   ''),
                                              raw_worklog_entry['id'], )
 
     def _parse_worklog(self, issue, raw_data):

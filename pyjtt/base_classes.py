@@ -47,6 +47,7 @@ class JiraIssue(object):
 
 
 class JiraWorklogEntry(object):
+    time_fmt = '%d-%m-%Y %H:%M:%S'
 
     def __init__(self, issue, started, ended, comment, worklog_id=''):
         self.worklog_id = worklog_id
@@ -56,11 +57,12 @@ class JiraWorklogEntry(object):
         self.issue = issue
 
     def get_url(self, jira_url):
-        return urljoin(self.issue.get_url(jira_url) + '/worklog/', self.worklog_id)
+        return urljoin(self.issue.get_url(jira_url) + '/worklog/',
+                       self.worklog_id)
 
     def __str__(self):
-        return self.worklog_id + '=' + self.started.strftime('%d-%m-%Y %H:%M:%S') + ' - ' \
-            + self.ended.strftime('%d-%m-%Y %H:%M:%S')
+        return self.worklog_id + '=' + self.started.strftime(self.time_fmt) \
+            + ' - ' + self.ended.strftime(self.time_fmt)
 
     def get_timespent(self):
         return self.ended - self.started

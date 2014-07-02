@@ -59,7 +59,8 @@ def get_local_utc_offset(now, utcnow):
         offset = '%02d%02d' % (hours_diff, abs(minutes))
         return offset
 
-    if (now - utcnow).total_seconds() > 50400 or (now - utcnow).total_seconds() < -43200:
+    if (now - utcnow).total_seconds() > 50400 \
+            or (now - utcnow).total_seconds() < -43200:
         raise ValueError('Offset is too large')
     if now >= utcnow:
         sign = '+'
@@ -96,7 +97,8 @@ def check_jira_issue_key(issue_key):
     """Checks syntax of JIRA issue key"""
     splitted = issue_key.split('-')
     if len(splitted) == 2:
-        return splitted[1].isdigit() and splitted[0].isalpha() and splitted[0].isupper()
+        return splitted[1].isdigit() and splitted[0].isalpha() \
+            and splitted[0].isupper()
     else:
         return False
 

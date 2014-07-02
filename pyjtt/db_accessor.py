@@ -15,7 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyJTT.  If not, see <http://www.gnu.org/licenses/>.
 #
-#    This module handles access to sqlite database in cache role.
+#    This module handles access to SQLite database in cache role.
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2014, Nikolay Golub"
@@ -88,7 +88,8 @@ class DBAccessor(object):
         return JiraWorklogEntry(issue, started, ended, row[3], str(row[0]))
 
     def add_issue(self, issue):
-        logger.debug('Saving issue "{0}" in local DB. Id: {1}'.format(issue.key, issue.issue_id))
+        logger.debug('Saving issue "{0}" in local DB. '
+                     'Id: {1}'.format(issue.key, issue.issue_id))
         db_conn, cursor = self._connect_to_db()
         cursor.execute('INSERT OR REPLACE INTO '
                        '{issues_table} (jira_issue_id, jira_issue_key, summary) '
@@ -114,11 +115,10 @@ class DBAccessor(object):
     def get_issue(self, issue_key):
         logger.debug('Getting issue %s from local DB' % issue_key)
         db_conn, cursor = self._connect_to_db()
-        cursor.execute('SELECT jira_issue_id, jira_issue_key, summary'
-                       ' FROM JIRAIssues WHERE jira_issue_key = ?', (issue_key,))
+        cursor.execute('SELECT jira_issue_id, jira_issue_key, summary '
+                       'FROM JIRAIssues WHERE jira_issue_key = ?', (issue_key,))
         raw_issue = cursor.fetchone()
         db_conn.close()
-        #if raw_issue:
         try:
             issue = self._parse_raw_issue(raw_issue)
             logger.debug('Issue %s has been extracted from local DB')
@@ -185,7 +185,8 @@ class DBAccessor(object):
                        'comment = ? '
                        'WHERE '
                        'worklog_id = ?'.format(worklog=self.WORKLOG_TABLE_NAME),
-                       (worklog_entry.started, worklog_entry.ended, worklog_entry.comment, worklog_entry.worklog_id))
+                       (worklog_entry.started, worklog_entry.ended,
+                        worklog_entry.comment, worklog_entry.worklog_id))
         db_conn.commit()
         db_conn.close()
 
