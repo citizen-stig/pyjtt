@@ -50,10 +50,10 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-target_app = os.path.join("pyjtt", "pyjtt_gui.py")
+target_app = os.path.join("pyjtt", "app.py")
 
 setup(  name = "pyjtt",
-        version = "1.1",
+        version = "1.2",
         description = "Jira Time Tracker",
         maintainer="Nikolay Golub",
         maintainer_email="nikolay.v.golub@gmail.com",
