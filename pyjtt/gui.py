@@ -113,6 +113,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         super(SystemTrayIcon, self).__init__(icon, parent)
         menu = QtWidgets.QMenu(parent)
         exitAction = menu.addAction("Exit")
+        exitAction.triggered.connect(parent.close)
         self.setContextMenu(menu)
 
 
@@ -196,6 +197,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Initialize app
         self.app = core.TimeTrackerApp(jirahost, login, password)
 
+
         # Initialize workers
         self.worker_threads = []
         for i in range(self.number_of_workers):
@@ -224,6 +226,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.actionLogout.triggered.connect(self.logout)
         self.ui.tray_icon.activated.connect(self.tray_click)
 
+        # Appear
+        self.show()
+
         # Request assigned issues
         get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
         self.tasks_queue.put(get_assigned_issues_job)
@@ -233,10 +238,19 @@ class MainWindow(QtWidgets.QMainWindow):
     # Core stuff
 
     def closeEvent(self, event):
-        for thread in self.worker_threads:
-            thread.quit()
-        # TODO: Add checking of online tracking
-        event.accept()
+        buttons = QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        message = 'Are you sure you want to close this application?'
+        confirmation = QtWidgets.QMessageBox.question(self,
+                                                      'Exit',
+                                                      message,
+                                                      buttons=buttons)
+        if confirmation == QtWidgets.QMessageBox.Yes:
+            for thread in self.worker_threads:
+                thread.quit()
+            # TODO: Add checking of online tracking
+            super(MainWindow, self).closeEvent(event)
+        else:
+            event.ignore()
 
     def logout(self):
         relogin_window = LoginWindow(self.app.jira_accessor.jirahost,
@@ -248,7 +262,16 @@ class MainWindow(QtWidgets.QMainWindow):
             jira_host = relogin_window.ui.lineEditHostAddress.text()
             login = relogin_window.ui.lineEditLogin.text()
             password = relogin_window.ui.lineEditPassword.text()
+            config = utils.init_config()
+            config.set('main', 'jirahost', jira_host)
+            config.set('main', 'login', login)
+            if relogin_window.ui.checkBoxSaveCredentials.isChecked():
+                config.set('main', 'password', password)
+            else:
+                config.remove_option('main', 'password')
+            utils.write_config(config)
             self.app = core.TimeTrackerApp(jira_host, login, password)
+
         else:
             self.close()
 

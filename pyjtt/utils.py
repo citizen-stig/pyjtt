@@ -23,12 +23,14 @@ __copyright__ = "Copyright 2012 - 2014, Nikolay Golub"
 __license__ = "GPL"
 
 import os
+import configparser
 import platform
 from datetime import datetime, timedelta
 
 import logging
 logger = logging.getLogger(__name__)
 
+CONFIG_FILENAME = 'pyjtt.cfg'
 
 def get_app_working_dir():
     """Returns path to application operational folder.
@@ -44,6 +46,30 @@ def get_app_working_dir():
     else:
         return os.path.abspath('.' + app_name)
 
+
+def init_config(workdir=None):
+    """
+    Prepares config class for usage
+    """
+    if workdir is None:
+        workdir = get_app_working_dir()
+    defaults = {'log_level': 'INFO'}
+    for item in ('jirahost', 'login', 'password', 'save_password'):
+        defaults[item] = ''
+
+    config_filename = os.path.join(workdir, CONFIG_FILENAME)
+    config = configparser.ConfigParser(defaults=defaults)
+    config.read(config_filename)
+
+    if not config.has_section('main'):
+        config.add_section('main')
+    return config
+
+
+def write_config(config):
+    workdir = get_app_working_dir()
+    with open(os.path.join(workdir, CONFIG_FILENAME), 'w') as configfile:
+            config.write(configfile)
 
 def get_local_utc_offset(now, utcnow):
     """Calculates local UTC offset. Returns string"""

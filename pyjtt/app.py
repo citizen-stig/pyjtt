@@ -25,7 +25,7 @@ __license__ = "GPL"
 
 from os import path, mkdir
 import sys
-import configparser
+
 import logging
 import logging.handlers
 logger = logging.getLogger(__name__)
@@ -36,24 +36,6 @@ import gui
 import utils
 
 LOGGING_FORMAT = '%(asctime)s %(levelname)s - %(name)s@%(thread)d - %(message)s'
-CONFIG_FILENAME = 'pyjtt.cfg'
-
-
-def init_config(workdir):
-    """
-    Prepares config class for usage
-    """
-    defaults = {'log_level': 'INFO'}
-    for item in ('jirahost', 'login', 'password', 'save_password'):
-        defaults[item] = ''
-
-    config_filename = path.join(workdir, CONFIG_FILENAME)
-    config = configparser.ConfigParser(defaults=defaults)
-    config.read(config_filename)
-
-    if not config.has_section('main'):
-        config.add_section('main')
-    return config
 
 
 def main():
@@ -64,7 +46,9 @@ def main():
     if not path.isdir(workdir):
         mkdir(workdir)
 
-    config = init_config(workdir)
+    config = utils.init_config()
+
+    # Initialize logging
     log_filename = path.join(workdir, 'application.log')
     log_rotater = logging.handlers.RotatingFileHandler(log_filename,
                                                        mode='a',
@@ -80,8 +64,6 @@ def main():
         """
         Standard procedures before close application
         """
-        with open(path.join(workdir, CONFIG_FILENAME), 'w') as configfile:
-            config.write(configfile)
         app.quit()
         sys.exit(app.exec_())
     jira_host = config.get('main', 'jirahost')
@@ -104,11 +86,12 @@ def main():
 
             if login_window.ui.checkBoxSaveCredentials.isChecked():
                 config.set('main', 'password', password)
+            utils.write_config(config)
         else:
             app_quit()
-    main_window = gui.MainWindow(jira_host, login, password)
-    main_window.show()
+    #TODO: add check that login and password from config are correct
 
+    main_window = gui.MainWindow(jira_host, login, password)
     app_quit()
 
 
