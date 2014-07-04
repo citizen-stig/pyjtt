@@ -107,6 +107,15 @@ class LoginWindow(QtWidgets.QDialog):
                                           % (str(general_error.code), general_error.reason))
 
 
+class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
+
+    def __init__(self, icon, parent=None):
+        super(SystemTrayIcon, self).__init__(icon, parent)
+        menu = QtWidgets.QMenu(parent)
+        exitAction = menu.addAction("Exit")
+        self.setContextMenu(menu)
+
+
 class WorklogWindow(QtWidgets.QDialog):
     """Widget for working with worklog data.
 
@@ -213,6 +222,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.removeWorklog.clicked.connect(self.remove_worklog_entry)
         self.ui.actionRemove_issue_from_cache.triggered.connect(self.remove_issue_from_local)
         self.ui.actionLogout.triggered.connect(self.logout)
+        self.ui.tray_icon.activated.connect(self.tray_click)
 
         # Request assigned issues
         get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
@@ -441,6 +451,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.statusbar.addWidget(self.ui.status_msg)
         self.ui.status_msg.hide()
 
+        #Tray icon
+        self.ui.tray_icon = SystemTrayIcon(QtGui.QIcon(":/res/icons/clock.ico"),
+                                           self)
+        self.ui.tray_icon.show()
+
     def refresh_ui(self):
         if self.ui.lineIssueKey.text():
             self.filter_issues_table()
@@ -555,3 +570,25 @@ class MainWindow(QtWidgets.QMainWindow):
         minutes, seconds = divmod(seconds, 60)
         time_string = '%02d:%02d:%02d' % (hours, minutes, seconds)
         self.ui.labelTimeSpent.setText(time_string)
+
+    def restore_from_tray(self):
+        self.showNormal()
+
+    def hide_to_tray(self):
+        self.hide()
+
+    def tray_click(self, reason):
+        if reason != QtWidgets.QSystemTrayIcon.Context:
+            if self.isHidden():
+                self.restore_from_tray()
+            else:
+                self.hide_to_tray()
+
+    def changeEvent(self, event):
+        if event.type() == QtCore.QEvent.WindowStateChange:
+            if self.windowState() & QtCore.Qt.WindowMinimized:
+                event.ignore()
+                self.hide_to_tray()
+                return
+        super(MainWindow, self).changeEvent(event)
+
