@@ -33,7 +33,7 @@ class DBTest(unittest.TestCase):
         del self.accessor
         new_accessor = db_accessor.DBAccessor(self.filename)
         new_from_db = new_accessor.get_all_issues()
-        self.assertEqual(len(new_from_db), 1)
+        self.assertEqual(len(list(new_from_db)), 1)
 
     def test_get_nonexisted_issue(self):
         none = self.accessor.get_issue('TST-969')
@@ -69,7 +69,7 @@ class DBTest(unittest.TestCase):
         self.accessor.remove_issue(issue2)
 
         rest_issues = self.accessor.get_all_issues()
-        self.assertEqual(len(rest_issues), 1)
+        self.assertEqual(len(list(rest_issues)), 1)
 
     def test_add_and_get_worklog_one(self):
         issue = base_classes.JiraIssue('12345', 'TST-123', 'Юникод')
@@ -83,7 +83,7 @@ class DBTest(unittest.TestCase):
         self.accessor.add_issue(issue)
         self.accessor.add_worklog(worklog)
 
-        worklog_from_db = self.accessor.get_worklog_for_issue(issue)
+        worklog_from_db = list(self.accessor.get_worklog_for_issue(issue))
 
         self.assertEqual(len(worklog), len(worklog_from_db))
         self.assertEqual(worklog_from_db[0].started, worklog[0].started)
@@ -109,11 +109,11 @@ class DBTest(unittest.TestCase):
         self.accessor.add_issue(issue)
         self.accessor.add_worklog(worklog)
 
-        worklog_from_db = self.accessor.get_worklog_for_issue(issue)
+        worklog_from_db = list(self.accessor.get_worklog_for_issue(issue))
 
         self.assertEqual(len(worklog), len(worklog_from_db))
         self.assertTrue(worklog_from_db[0].comment in ('Комментарий',
-                                                       'Комментарий два'))
+                                                          'Комментарий два'))
 
     def test_add_and_get_worklog_entry(self):
         issue = base_classes.JiraIssue('12345', 'TST-123', 'Юникод')
@@ -125,7 +125,7 @@ class DBTest(unittest.TestCase):
         self.accessor.add_issue(issue)
         self.accessor.add_worklog_entry(worklog_entry)
 
-        worklog_entry_from_db = self.accessor.get_worklog_for_issue(issue)[0]
+        worklog_entry_from_db = next(self.accessor.get_worklog_for_issue(issue))
         self.assertEqual(worklog_entry_from_db.started, worklog_entry.started)
         self.assertEqual(worklog_entry_from_db.ended, worklog_entry.ended)
         self.assertEqual(worklog_entry_from_db.comment, worklog_entry.comment)
@@ -154,7 +154,7 @@ class DBTest(unittest.TestCase):
 
         worklog_from_db = self.accessor.get_worklog_for_issue(issue)
 
-        self.assertEqual(len(worklog) - 1, len(worklog_from_db))
+        self.assertEqual(len(list(worklog)) - 1, len(list(worklog_from_db)))
 
     def test_update_worklog_entry(self):
         issue = base_classes.JiraIssue('12345', 'TST-123', 'Юникод')
@@ -167,7 +167,7 @@ class DBTest(unittest.TestCase):
         self.accessor.add_worklog_entry(worklog_entry)
         worklog_entry.started = datetime(2013, 12, 12, 12)
         self.accessor.update_worklog_entry(worklog_entry)
-        worklog_entry_from_db = self.accessor.get_worklog_for_issue(issue)[0]
+        worklog_entry_from_db = next(self.accessor.get_worklog_for_issue(issue))
         self.assertEqual(worklog_entry_from_db.started.year, 2013)
 
     def test_update_worklog_many(self):
@@ -187,7 +187,7 @@ class DBTest(unittest.TestCase):
         self.accessor.add_issue(issue)
         self.accessor.add_worklog(worklog)
 
-        worklog_from_db = self.accessor.get_worklog_for_issue(issue)
+        worklog_from_db = list(self.accessor.get_worklog_for_issue(issue))
 
         self.assertEqual(len(worklog), len(worklog_from_db))
         self.assertTrue(worklog_from_db[0].comment in ('Комментарий',
@@ -254,9 +254,9 @@ class DBTest(unittest.TestCase):
         self.accessor.add_issue(issue2)
         self.accessor.add_worklog(worklog)
         day1_worklog = self.accessor.get_day_worklog(datetime(2014, 1, 2))
-        self.assertEqual(len(day1_worklog), 5)
+        self.assertEqual(len(list(day1_worklog)), 5)
         day2_worklog = self.accessor.get_day_worklog(datetime(2014, 1, 3))
-        self.assertEqual(len(day2_worklog), 2)
+        self.assertEqual(len(list(day2_worklog)), 2)
 
     def test_get_all_issues(self):
         n = 5
@@ -264,7 +264,7 @@ class DBTest(unittest.TestCase):
             issue = base_classes.JiraIssue('1234%s' % i, 'TST-%s' % i, 'Юникод')
             self.accessor.add_issue(issue)
         issues_from_db = self.accessor.get_all_issues()
-        self.assertEqual(len(issues_from_db), n)
+        self.assertEqual(len(list(issues_from_db)), n)
 
 
 if __name__ == '__main__':

@@ -338,7 +338,8 @@ class MainWindow(QtWidgets.QMainWindow):
                                     parent=self)
         edit_result = edit_window.exec_()
         if edit_result == QtWidgets.QDialog.Accepted:
-            job = partial(self.app.update_worklog_entry, edit_window.worklog_entry)
+            job = partial(self.app.update_worklog_entry,
+                          edit_window.worklog_entry)
             self.tasks_queue.put(job)
 
     def remove_worklog_entry(self):
@@ -505,18 +506,23 @@ class MainWindow(QtWidgets.QMainWindow):
     def filter_issues_table(self):
         current_text = self.ui.lineIssueKey.text()
         all_issues = self.app.get_all_issues()
-        issues = [x for x in all_issues if current_text in x.key or current_text in x.summary]
+        issues = (x for x in all_issues if current_text in x.key or
+                                           current_text in x.summary)
         self.print_issues_table(issues)
 
     def print_issues_table(self, issues):
         logger.debug('Refreshing issues table')
-        self.ui.tableIssues.setRowCount(len(issues))
         self.ui.tableIssues.setSortingEnabled(False)
+        row_count = 0
+        self.ui.tableIssues.setRowCount(row_count)
         for row_num, issue in enumerate(issues):
+            row_count += 1
+            self.ui.tableIssues.setRowCount(row_count)
             table_item = QtWidgets.QTableWidgetItem(issue.key)
             table_item.issue = issue
             self.ui.tableIssues.setItem(row_num, 0, table_item)
-            self.ui.tableIssues.setItem(row_num, 1, QtWidgets.QTableWidgetItem(issue.summary))
+            self.ui.tableIssues.setItem(row_num, 1,
+                                        QtWidgets.QTableWidgetItem(issue.summary))
         self.ui.tableIssues.resizeColumnToContents(0)
         self.ui.tableIssues.sortByColumn(0, 0)
         self.ui.tableIssues.setSortingEnabled(True)
@@ -528,8 +534,11 @@ class MainWindow(QtWidgets.QMainWindow):
         day_total = timedelta(seconds=0)
 
         self.ui.tableDayWorklog.setSortingEnabled(False)
-        self.ui.tableDayWorklog.setRowCount(len(day_worklog))
+        row_count = 0
+        self.ui.tableDayWorklog.setRowCount(row_count)
         for row_num, worklog_entry in enumerate(day_worklog):
+            row_count += 1
+            self.ui.tableDayWorklog.setRowCount(row_count)
             issue_key_item = QtWidgets.QTableWidgetItem(worklog_entry.issue.key)
             issue_key_item.worklog_entry = worklog_entry
             self.ui.tableDayWorklog.setItem(row_num,

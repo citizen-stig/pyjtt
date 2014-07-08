@@ -127,15 +127,12 @@ class DBAccessor(object):
             logger.debug('Issue is not found in local DB')
 
     def get_worklog_for_issue(self, issue):
-        worklog = []
         db_conn, cursor = self._connect_to_db()
         cursor.execute('SELECT worklog_id, start_date, end_date, comment '
                        'FROM {worklog} WHERE jira_issue_id = ?'.format(worklog=self.WORKLOG_TABLE_NAME),
                        (issue.issue_id,))
         for raw_worklog_entry in cursor.fetchall():
-            worklog_entry = self._parse_raw_worklog_entry(issue, raw_worklog_entry)
-            worklog.append(worklog_entry)
-        return worklog
+            yield self._parse_raw_worklog_entry(issue, raw_worklog_entry)
 
     def add_worklog(self, worklog):
 
@@ -191,7 +188,6 @@ class DBAccessor(object):
         db_conn.close()
 
     def get_day_worklog(self, day):
-        worklog = []
         db_conn, cursor = self._connect_to_db()
         cursor.execute('SELECT '
                        '{issues}.jira_issue_id,'
@@ -210,14 +206,11 @@ class DBAccessor(object):
                        (day.strftime('%Y-%m-%d') + '%',))
         for raw_entry in cursor.fetchall():
             issue = self._parse_raw_issue(raw_entry[:3])
-            worklog.append(self._parse_raw_worklog_entry(issue, raw_entry[3:]))
-        return worklog
+            yield self._parse_raw_worklog_entry(issue, raw_entry[3:])
 
     def get_all_issues(self):
-        issues = []
         db_conn, cursor = self._connect_to_db()
         cursor.execute('SELECT jira_issue_id, jira_issue_key, summary '
                        'FROM {issues}'.format(issues=self.ISSUES_TABLE_NAME))
         for raw_issue_data in cursor.fetchall():
-            issues.append(self._parse_raw_issue(raw_issue_data))
-        return issues
+            yield self._parse_raw_issue(raw_issue_data)
