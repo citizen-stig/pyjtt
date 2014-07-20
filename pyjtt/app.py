@@ -89,7 +89,7 @@ def main():
             utils.write_config(config)
         else:
             app_quit()
-    gui.MainWindow(jira_host, login, password)
+    main_window = gui.MainWindow(jira_host, login, password)
     app_quit()
 
 
