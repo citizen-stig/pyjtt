@@ -89,9 +89,7 @@ def main():
             utils.write_config(config)
         else:
             app_quit()
-    #TODO: add check that login and password from config are correct
-
-    main_window = gui.MainWindow(jira_host, login, password)
+    gui.MainWindow(jira_host, login, password)
     app_quit()
 
 

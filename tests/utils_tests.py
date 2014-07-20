@@ -47,10 +47,9 @@ class pyjttUtilsTest(unittest.TestCase):
         utcnow = datetime.datetime(2013, 1, 4, 16, 35)
         self.assertEqual(utils.get_local_utc_offset(now, utcnow), '-0530')
         # Different minutes MSK
-        # TODO: Fix this
-        #now = datetime.datetime(2013, 1, 4, 11, 5)
-        #utcnow = datetime.datetime(2013, 1, 4, 7, 4)
-        #self.assertEqual(utils.get_local_utc_offset(now, utcnow), '+0400')
+        now = datetime.datetime(2013, 1, 4, 11, 5)
+        utcnow = datetime.datetime(2013, 1, 4, 7, 4, 59)
+        self.assertEqual(utils.get_local_utc_offset(now, utcnow), '+0400')
 
     def test_get_local_utc_offset_errors(self):
         # wrong year

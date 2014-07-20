@@ -247,7 +247,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if confirmation == QtWidgets.QMessageBox.Yes:
             for thread in self.worker_threads:
                 thread.quit()
-            # TODO: Add checking of online tracking
             super(MainWindow, self).closeEvent(event)
         else:
             event.ignore()
@@ -311,8 +310,6 @@ class MainWindow(QtWidgets.QMainWindow):
             if utils.check_jira_issue_key(issue_key):
                 get_issue_task = partial(self.app.get_issue, issue_key)
                 self.tasks_queue.put(get_issue_task)
-        #TODO: think about it.
-        #self.ui.lineIssueKey.clear()
 
     def add_worklog_entry(self):
         issue = self._get_selected_issue_from_table()

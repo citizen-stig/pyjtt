@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 CONFIG_FILENAME = 'pyjtt.cfg'
 
+
 def get_app_working_dir():
     """Returns path to application operational folder.
 
@@ -71,12 +72,18 @@ def write_config(config):
     with open(os.path.join(workdir, CONFIG_FILENAME), 'w') as configfile:
             config.write(configfile)
 
+
 def get_local_utc_offset(now, utcnow):
     """Calculates local UTC offset. Returns string"""
     logger.debug('Getting local UTC Offset')
 
     def absolute_offset(bigger_timestamp, smaller_timestamp):
         minutes = bigger_timestamp.minute - smaller_timestamp.minute
+        # Case when, minutes can be differ on one minute because
+        # of time gap between now and utcnow. This difference cannot
+        # be more than one minute
+        if minutes == 1:
+            minutes = 0
         hours_diff = abs(bigger_timestamp.hour - smaller_timestamp.hour)
         if minutes < 0:
             hours_diff -= 1
@@ -102,7 +109,6 @@ def get_timedelta_from_utc_offset(time_string):
     utc_offset = time_string[-5:]
     hours = int(utc_offset[0:3])
     minutes = int(utc_offset[3:5])
-    # TODO: add bound values checking
     return timedelta(hours=hours, minutes=minutes)
 
 
