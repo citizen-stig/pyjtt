@@ -2,8 +2,6 @@ import sys
 import os
 from cx_Freeze import setup, Executable
 
-import base_setup
-
 path = ["pyjtt"] + sys.path
 icon_path = os.path.join("resources", "icons", "clock.ico")
 build_exe_options = {"path": path,
