@@ -6,7 +6,11 @@ from cx_Freeze import setup, Executable
 path = ["pyjtt"] + sys.path
 icon_path = os.path.join("resources", "icons", "clock.ico")
 build_exe_options = {"path": path,
-                     "icon": icon_path}
+                     "icon": icon_path,
+                     "include_msvcr": True,   #skip error msvcr100.dll missing,
+                     # Fix error with "This application failed to start because it could not find or load the QT platform plugin "windows"."
+                     "include_files": ['C:\Python34\Lib\site-packages\PyQt5\libEGL.dll']
+                     }
 
 # http://msdn.microsoft.com/en-us/library/windows/desktop/aa371847(v=vs.85).aspx
 shortcut_table = [
