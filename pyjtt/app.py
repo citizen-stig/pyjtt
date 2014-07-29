@@ -60,12 +60,6 @@ def main():
                         handlers=(log_rotater,))
     app = QApplication([])
 
-    def app_quit():
-        """
-        Standard procedures before close application
-        """
-        app.quit()
-        sys.exit(app.exec_())
     jira_host = config.get('main', 'jirahost')
     login = config.get('main', 'login')
     password = config.get('main', 'password')
@@ -87,10 +81,11 @@ def main():
             if login_window.ui.checkBoxSaveCredentials.isChecked():
                 config.set('main', 'password', password)
             utils.write_config(config)
-        else:
-            app_quit()
-    main_window = gui.MainWindow(jira_host, login, password)
-    app_quit()
+            main_window = gui.MainWindow(jira_host, login, password)
+            sys.exit(app.exec_())
+    else:
+        main_window = gui.MainWindow(jira_host, login, password)
+        sys.exit(app.exec_())
 
 
 if __name__ == '__main__':

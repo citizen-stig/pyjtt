@@ -501,10 +501,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.status_msg.hide()
 
     def filter_issues_table(self):
-        current_text = self.ui.lineIssueKey.text()
+        cur_text = self.ui.lineIssueKey.text()
         all_issues = self.app.get_all_issues()
-        issues = (x for x in all_issues if current_text in x.key or
-                                           current_text in x.summary)
+        issues = (x for x in all_issues if cur_text.lower() in x.key.lower() or
+                  cur_text.lower() in x.summary.lower())
         self.print_issues_table(issues)
 
     def print_issues_table(self, issues):

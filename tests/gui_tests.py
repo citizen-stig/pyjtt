@@ -36,12 +36,13 @@ class BaseGuiTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree('.pyjtt')
 
-@unittest.skip("Bug in testing code")
 class AccessorGuiTest(BaseGuiTest):
 
     def setUp(self):
         super(AccessorGuiTest, self).setUp()
 
+
+    @unittest.skip('Bug in test code')
     def test_print_issue_table(self):
         number_of_issues = 5
         for i in range(number_of_issues):
@@ -52,6 +53,7 @@ class AccessorGuiTest(BaseGuiTest):
         self.assertEqual(number_of_issues, number_of_rows)
         time.sleep(5)
 
+    @unittest.skip('Bug in test code')
     def test_filter_issues_table(self):
         issue1 = base_classes.JiraIssue('100241', 'TST-1', 'Target summary')
         self.form.app.db_accessor.add_issue(issue1)
@@ -65,6 +67,7 @@ class AccessorGuiTest(BaseGuiTest):
         self.assertEqual(target_key.text(), 'TST-1')
         time.sleep(5)
 
+    @unittest.skip('Bug in test code')
     def test_print_worklog_table_simple(self):
         issue = base_classes.JiraIssue('100241', 'TST-1', 'Target summary')
         self.form.app.db_accessor.add_issue(issue)
@@ -85,3 +88,19 @@ class AccessorGuiTest(BaseGuiTest):
     # def test_set_issue_selected(self):
     #     raise AssertionError
 
+    def test_filter_with_case_sensitive(self):
+        """
+        Filter of issues should be case insensetive
+        """
+        issue1 = base_classes.JiraIssue('100241', 'TST-1', 'Bug in pyjtt')
+        issue2 = base_classes.JiraIssue('100242', 'TST-2', 'Cant reproduce bug')
+        issue3 = base_classes.JiraIssue('100243', 'TST-3', 'Some test')
+
+        for issue in (issue1, issue2, issue3):
+            self.form.app.db_accessor.add_issue(issue)
+
+        self.form.refresh_ui()
+        self.assertEqual(self.form.ui.tableIssues.rowCount(), 3)
+        self.form.ui.lineIssueKey.setText('bug')
+        self.form.refresh_ui()
+        self.assertEqual(self.form.ui.tableIssues.rowCount(), 2)
