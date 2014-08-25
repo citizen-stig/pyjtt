@@ -37,7 +37,7 @@ import workers
 import base_classes
 from widgets import login_window, main_window, worklog_window
 
-MINIMUN_WORKLOG_SIZE_MINUTES = 5
+MINIMUM_WORKLOG_SIZE_MINUTES = 5
 
 
 class PyJTTExcetption(Exception):
@@ -147,7 +147,7 @@ class WorklogWindow(QtWidgets.QDialog):
         self.ui.timeStartEdit.setTime(self.datetime_to_qtime(worklog_entry.started))
         self.ui.timeEndEdit.setTime(self.datetime_to_qtime(worklog_entry.ended))
         self.ui.timeEndEdit.setMinimumTime(self.datetime_to_qtime(worklog_entry.started
-                                                                  + timedelta(minutes=MINIMUN_WORKLOG_SIZE_MINUTES)))
+                                                                  + timedelta(minutes=MINIMUM_WORKLOG_SIZE_MINUTES)))
         self.ui.plainTextCommentEdit.setPlainText(worklog_entry.comment)
         self.refresh_spent()
 
@@ -160,13 +160,13 @@ class WorklogWindow(QtWidgets.QDialog):
     def start_time_changed(self):
         """Control bounds of worklog time ranges"""
         start_time = self.ui.timeStartEdit.time()
-        self.ui.timeEndEdit.setMinimumTime(start_time.addSecs(MINIMUN_WORKLOG_SIZE_MINUTES * 60))
+        self.ui.timeEndEdit.setMinimumTime(start_time.addSecs(MINIMUM_WORKLOG_SIZE_MINUTES * 60))
         self.refresh_spent()
 
     def end_time_changed(self):
         """Control bounds of worklog time ranges"""
         end_time = self.ui.timeEndEdit.time()
-        self.ui.timeStartEdit.setMaximumTime(end_time.addSecs(MINIMUN_WORKLOG_SIZE_MINUTES * -60))
+        self.ui.timeStartEdit.setMaximumTime(end_time.addSecs(MINIMUM_WORKLOG_SIZE_MINUTES * -60))
         self.refresh_spent()
 
     def save_worklog_data(self):
@@ -197,9 +197,23 @@ class MainWindow(QtWidgets.QMainWindow):
         # Initialize app
         self.app = core.TimeTrackerApp(jirahost, login, password)
 
-
         # Initialize workers
         self.worker_threads = []
+        self.tracking_thread = None
+        self.init_workers()
+
+        self.init_signals()
+
+        # Request assigned issues
+        get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
+        self.tasks_queue.put(get_assigned_issues_job)
+
+    # Names convention:
+    # Underscore for auxiliary methods which aren't called by singals
+    # Core stuff
+
+    def init_workers(self):
+
         for i in range(self.number_of_workers):
             worker = workers.NoResultThread(self.tasks_queue)
             self.worker_threads.append(worker)
@@ -208,8 +222,8 @@ class MainWindow(QtWidgets.QMainWindow):
             worker.task_done.connect(self.refresh_ui)
             worker.task_done.connect(self.clear_status)
             worker.exception_raised.connect(self.show_error)
-        self.tracking_thread = None
 
+    def init_signals(self):
         # Signals
         self.ui.FindIssue.clicked.connect(self.get_issue)
         self.ui.tableIssues.clicked.connect(self.set_issue_selected)
@@ -225,17 +239,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.actionRemove_issue_from_cache.triggered.connect(self.remove_issue_from_local)
         self.ui.actionLogout.triggered.connect(self.logout)
         self.ui.tray_icon.activated.connect(self.tray_click)
-
-        # Appear
-        self.show()
-
-        # Request assigned issues
-        get_assigned_issues_job = partial(self.app.get_user_assigned_issues)
-        self.tasks_queue.put(get_assigned_issues_job)
-
-    # Names convention:
-    # Underscore for auxiliary methods which aren't called by singals
-    # Core stuff
 
     def closeEvent(self, event):
         buttons = QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
@@ -386,7 +389,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Get tracked time
         started, ended = self.tracking_thread.started, datetime.now()
         # Check that tracked more than minimum worklog minutes
-        if (ended - started).total_seconds() > (MINIMUN_WORKLOG_SIZE_MINUTES * 60.0):
+        if (ended - started).total_seconds() > (MINIMUM_WORKLOG_SIZE_MINUTES * 60.0):
             # Get issue
             issue = self.ui.labelSelectedIssue.issue
             # Create worklog

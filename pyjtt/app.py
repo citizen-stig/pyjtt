@@ -82,9 +82,11 @@ def main():
                 config.set('main', 'password', password)
             utils.write_config(config)
             main_window = gui.MainWindow(jira_host, login, password)
+            main_window.show()
             sys.exit(app.exec_())
     else:
         main_window = gui.MainWindow(jira_host, login, password)
+        main_window.show()
         sys.exit(app.exec_())
 
 

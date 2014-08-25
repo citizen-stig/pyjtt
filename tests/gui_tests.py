@@ -19,6 +19,12 @@ import gui
 import base_classes
 
 
+class TestableApp(gui.MainWindow):
+
+    def init_workers(self):
+        pass
+
+
 class BaseGuiTest(unittest.TestCase):
 
     def setUp(self):
@@ -29,20 +35,20 @@ class BaseGuiTest(unittest.TestCase):
         self.jira_url = 'http://example.com'
         self.app = QtWidgets.QApplication([])
         gui.MainWindow.number_of_workers = 1
-        self.form = gui.MainWindow(self.jira_url,
-                                   'login',
-                                   'password')
+
+        self.form = TestableApp(self.jira_url,
+                                'login',
+                                'password')
 
     def tearDown(self):
         shutil.rmtree('.pyjtt')
+
 
 class AccessorGuiTest(BaseGuiTest):
 
     def setUp(self):
         super(AccessorGuiTest, self).setUp()
 
-
-    @unittest.skip('Bug in test code')
     def test_print_issue_table(self):
         number_of_issues = 5
         for i in range(number_of_issues):
@@ -53,7 +59,6 @@ class AccessorGuiTest(BaseGuiTest):
         self.assertEqual(number_of_issues, number_of_rows)
         time.sleep(5)
 
-    @unittest.skip('Bug in test code')
     def test_filter_issues_table(self):
         issue1 = base_classes.JiraIssue('100241', 'TST-1', 'Target summary')
         self.form.app.db_accessor.add_issue(issue1)
@@ -67,7 +72,6 @@ class AccessorGuiTest(BaseGuiTest):
         self.assertEqual(target_key.text(), 'TST-1')
         time.sleep(5)
 
-    @unittest.skip('Bug in test code')
     def test_print_worklog_table_simple(self):
         issue = base_classes.JiraIssue('100241', 'TST-1', 'Target summary')
         self.form.app.db_accessor.add_issue(issue)
