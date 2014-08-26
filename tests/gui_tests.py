@@ -27,7 +27,10 @@ class BaseGuiTest(unittest.TestCase):
     def setUp(self):
         LOGGING_FORMAT = '%(asctime)s %(levelname)s - %(name)s@%(thread)d - %(message)s'
         logging.basicConfig(format=LOGGING_FORMAT, level=logging.ERROR)
-
+        try:
+            shutil.rmtree('.pyjtt')
+        except FileNotFoundError:
+            pass
         os.mkdir('.pyjtt')
         self.jira_url = 'http://example.com'
         self.app = QtWidgets.QApplication([])
