@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 __author__ = 'Nikolay Golub'
 
-import sys
 import os
 from datetime import datetime
 import unittest
-import sqlite3
-sys.path.insert(0, os.path.abspath(os.path.join('..', 'pyjtt')))
 
-import db_accessor
-import base_classes
+from pyjtt import db_accessor, base_classes
 
 
 class DBTest(unittest.TestCase):

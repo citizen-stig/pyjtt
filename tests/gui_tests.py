@@ -3,20 +3,17 @@
 
 # standard library
 import unittest
-import sys
 import os
 import logging
 import shutil
 import time
 from datetime import datetime
-sys.path.insert(0, os.path.abspath(os.path.join('..', 'pyjtt')))
 
 # 3rd party
 from PyQt5 import QtTest, QtWidgets, QtCore
 
 # Application modules
-import gui
-import base_classes
+from pyjtt import gui, base_classes
 
 
 class TestableApp(gui.MainWindow):

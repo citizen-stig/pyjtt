@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-import sys
-import os
 import unittest
 import datetime
 from urllib import parse
@@ -10,10 +8,7 @@ import json
 
 import httpretty
 
-sys.path.insert(0, os.path.abspath(os.path.join('..', 'pyjtt')))
-
-import jira_accessor
-import base_classes
+from pyjtt import jira_accessor, base_classes
 
 
 class SimpleWrapperTests(unittest.TestCase):

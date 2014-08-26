@@ -1,19 +1,15 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
-__author__ = 'Nikolay Golub'
-import sys
+
 import unittest
 import os
 import datetime
 
 
-sys.path.insert(0, os.path.abspath(os.path.join('..','pyjtt')))
-
-import utils
+from pyjtt import utils
 
 
 class pyjttUtilsTest(unittest.TestCase):
-
 
     # utils.get_local_utc_offset
     def test_get_local_utc_offset_simple(self):
