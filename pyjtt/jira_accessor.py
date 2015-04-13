@@ -134,7 +134,11 @@ class JiraRESTAccessor(object):
         add_url = worklog.get_url(self.jirahost)
         new_worklog_data = self._make_request(add_url,
                                               data=json_data)
-        return self._parse_worklog_entry(worklog.issue, new_worklog_data)
+        if 'worklogs' not in new_worklog_data:
+            return self._parse_worklog_entry(worklog.issue, new_worklog_data)
+        else:
+            # We add only one worklog at time
+            return self._parse_worklog_entry(worklog.issue, new_worklog_data['worklogs'][0])
 
     def update_worklog_entry(self, worklog_entry):
         update_url = worklog_entry.get_url(self.jirahost)
@@ -142,7 +146,12 @@ class JiraRESTAccessor(object):
         updated_worklog_data = self._make_request(update_url,
                                                   data=json_data,
                                                   req_type='PUT')
-        return self._parse_worklog_entry(worklog_entry.issue, updated_worklog_data)
+        if 'worklogs' not in updated_worklog_data:
+            return self._parse_worklog_entry(worklog_entry.issue, updated_worklog_data)
+        else:
+            # We update only one worklog at time
+            return self._parse_worklog_entry(worklog_entry.issue,
+                                             updated_worklog_data['worklogs'][0])
 
     def remove_worklog_entry(self, worklog_entry):
         remove_url = worklog_entry.get_url(self.jirahost)

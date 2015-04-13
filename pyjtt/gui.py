@@ -103,8 +103,11 @@ class LoginWindow(QtWidgets.QDialog):
         except (error.HTTPError, error.URLError) as general_error:
             # TODO: add dict with advices, based on return code
             QtWidgets.QMessageBox.warning(self, 'Login Error',
-                                          'Error %s %s. Check URL or try to login via Web'
-                                          % (str(general_error.code), general_error.reason))
+                                          'Error {0} . Check URL or try to '
+                                          'login via Web'.format(general_error))
+            # QtWidgets.QMessageBox.warning(self, 'Login Error',
+            #                               'Error %s %s. Check URL or try to login via Web'
+            #                               % (str(general_error.code), general_error.reason))
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):

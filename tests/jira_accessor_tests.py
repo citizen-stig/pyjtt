@@ -121,31 +121,57 @@ class SimpleWrapperTests(unittest.TestCase):
 
     @httpretty.activate
     def test_get_worklog(self):
-        response = b'{"expand":"renderedFields,names,schema,transitions,' \
-                   b'operations,editmeta,changelog","id":"10432",' \
-                   b'"self":"http://example.com/rest/api/2/issue/10432",' \
-                   b'"key":"TST-123","fields":{' \
-                   b'"worklog":{"startAt":0,"maxResults":20,"total":1,' \
-                   b'"worklogs":[{' \
-                   b'"self":"http://example.com/rest/api/2/issue/10432/worklog/10000",' \
-                   b'"author":{"self":"http://example.com/rest/api/2/user?username=login",' \
-                   b'"name":"login","emailAddress":"login@example.com","avatarUrls":{' \
-                   b'"16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=login&avatarId=10300",' \
-                   b'"24x24":"http://example.com/secure/useravatar?size=small&ownerId=login&avatarId=10300",' \
-                   b'"32x32":"http://example.com/secure/useravatar?size=medium&ownerId=login&avatarId=10300",' \
-                   b'"48x48":"http://example.com/secure/useravatar?ownerId=login&avatarId=10300"},' \
-                   b'"displayName":"Nikolay Golub","active":true},' \
-                   b'"updateAuthor":{' \
-                   b'"self":"http://example.com/rest/api/2/user?username=login",' \
-                   b'"name":"login","emailAddress":"login@example.com","avatarUrls":{' \
-                   b'"16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=login&avatarId=10300",' \
-                   b'"24x24":"http://example.com/secure/useravatar?size=small&ownerId=login&avatarId=10300",' \
-                   b'"32x32":"http://example.com/secure/useravatar?size=medium&ownerId=login&avatarId=10300",' \
-                   b'"48x48":"http://example.com/secure/useravatar?ownerId=login&avatarId=10300"},' \
-                   b'"displayName":"Nikolay Golub","active":true},"comment":"",' \
-                   b'"created":"2014-04-07T22:29:52.413+0400","updated":"2014-04-07T22:29:52.413+0400",' \
-                   b'"started":"2014-04-07T21:29:00.000+0400","timeSpent":"1h",' \
-                   b'"timeSpentSeconds":3600,"id":"10000"}]}}}'
+        response = b"""{
+            "expand":"renderedFields,names,schema,transitions,operations,editmeta,changelog",
+            "id":"10432",
+            "self":"http://example.com/rest/api/2/issue/10432",
+            "key":"TST-123",
+            "fields":{
+                "worklog":{
+                    "startAt":0,
+                    "maxResults":20,
+                    "total":1,
+                    "worklogs":[
+                        {
+                            "self":"http://example.com/rest/api/2/issue/10432/worklog/10000",
+                            "author":{
+                                "self":"http://example.com/rest/api/2/user?username=login",
+                                "name":"login",
+                                "emailAddress":"login@example.com",
+                                "avatarUrls":{
+                                    "16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=login&avatarId=10300",
+                                    "24x24":"http://example.com/secure/useravatar?size=small&ownerId=login&avatarId=10300",
+                                    "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=login&avatarId=10300",
+                                    "48x48":"http://example.com/secure/useravatar?ownerId=login&avatarId=10300"
+                                },
+                                "displayName":"Nikolay Golub",
+                                "active":true
+                            },
+                            "updateAuthor":{
+                                "self":"http://example.com/rest/api/2/user?username=login",
+                                "name":"login",
+                                "emailAddress":"login@example.com",
+                                "avatarUrls":{
+                                    "16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=login&avatarId=10300",
+                                    "24x24":"http://example.com/secure/useravatar?size=small&ownerId=login&avatarId=10300",
+                                    "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=login&avatarId=10300",
+                                    "48x48":"http://example.com/secure/useravatar?ownerId=login&avatarId=10300"
+                                },
+                                "displayName":"Nikolay Golub",
+                                "active":true
+                            },
+                            "comment":"",
+                            "created":"2014-04-07T22:29:52.413+0400",
+                            "updated":"2014-04-07T22:29:52.413+0400",
+                            "started":"2014-04-07T21:29:00.000+0400",
+                            "timeSpent":"1h",
+                            "timeSpentSeconds":3600,
+                            "id":"10000"
+                        }
+                    ]
+                }
+            }
+        }"""
         httpretty.register_uri(httpretty.GET,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue_key + '/worklog',
                                body=response)
@@ -174,31 +200,46 @@ class SimpleWrapperTests(unittest.TestCase):
 
     @httpretty.activate
     def test_add_worklog(self):
-        response = b'{"self":"http://example.com/rest/api/2/issue/10432/worklog/10004",' \
-                   b'"author":{"self":"http://example.com/rest/api/2/user?username=golub",' \
-                   b'"name":"golub","emailAddress":"golub@example.com","avatarUrls":{' \
-                   b'"16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=golub&avatarId=10300",' \
-                   b'"24x24":"http://example.com/secure/useravatar?size=small&ownerId=golub&avatarId=10300",' \
-                   b'"32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",' \
-                   b'"48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"},' \
-                   b'"displayName":"Nikolay Golub","active":true},"updateAuthor":{"self":' \
-                   b'"http://example.com/rest/api/2/user?username=golub",' \
-                   b'"name":"golub","emailAddress":"golub@example.com","avatarUrls":{' \
-                   b'"16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=golub&avatarId=10300",' \
-                   b'"24x24":"http://example.com/secure/useravatar?size=small&ownerId=golub&avatarId=10300",' \
-                   b'"32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",' \
-                   b'"48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"},' \
-                   b'"displayName":"Nikolay Golub","active":true},' \
-                   b'"comment":"This is from python",' \
-                   b'"created":"2014-04-08T21:47:16.376+0400","updated":"2014-04-08T21:47:16.376+0400",' \
-                   b'"started":"2014-04-08T19:47:15.000+0400","timeSpent":"2h","timeSpentSeconds":7200,"id":"10004"}'
-
+        response = b"""{
+            "self":"http://example.com/rest/api/2/issue/10432/worklog/10004",
+            "author":{
+                "self":"http://example.com/rest/api/2/user?username=golub",
+                "name":"golub",
+                "emailAddress":"golub@example.com",
+                "avatarUrls":{
+                    "16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=golub&avatarId=10300",
+                    "24x24":"http://example.com/secure/useravatar?size=small&ownerId=golub&avatarId=10300",
+                    "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",
+                    "48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"
+                },
+                "displayName":"Nikolay Golub",
+                "active":true
+            },
+            "updateAuthor":{
+                "self":"http://example.com/rest/api/2/user?username=golub",
+                "name":"golub",
+                "emailAddress":"golub@example.com",
+                "avatarUrls":{
+                    "16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=golub&avatarId=10300",
+                    "24x24":"http://example.com/secure/useravatar?size=small&ownerId=golub&avatarId=10300",
+                    "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",
+                    "48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"
+                },
+                "displayName":"Nikolay Golub",
+                "active":true
+            },
+            "comment":"This is from python",
+            "created":"2014-04-08T21:47:16.376+0400",
+            "updated":"2014-04-08T21:47:16.376+0400",
+            "started":"2014-04-08T19:47:15.000+0400",
+            "timeSpent":"2h",
+            "timeSpentSeconds":7200,
+            "id":"10004"
+        }"""
         httpretty.register_uri(httpretty.POST,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue.key + '/worklog/',
                                body=response)
-        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
-                                                 'login',
-                                                 'password')
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url, 'login', 'password')
         start_timestamp = datetime.datetime.now() - datetime.timedelta(hours=2)
         end_timestamp = datetime.datetime.now()
         comment = 'This is from python'
@@ -212,39 +253,52 @@ class SimpleWrapperTests(unittest.TestCase):
 
     @httpretty.activate
     def test_update_worklog(self):
-        response = b'{"self":"http://example.com/rest/api/2/issue/10432/worklog/10004",' \
-                   b'"author":{"self":"http://example.com/rest/api/2/user?username=golub",' \
-                   b'"name":"golub","emailAddress":"golub@example.com","avatarUrls":{' \
-                   b'"16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=golub&avatarId=10300",' \
-                   b'"24x24":"http://example.com/secure/useravatar?size=small&ownerId=golub&avatarId=10300",' \
-                   b'"32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",' \
-                   b'"48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"},' \
-                   b'"displayName":"Nikolay Golub","active":true},"updateAuthor":{"self":' \
-                   b'"http://example.com/rest/api/2/user?username=golub",' \
-                   b'"name":"golub","emailAddress":"golub@example.com","avatarUrls":{' \
-                   b'"16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=golub&avatarId=10300",' \
-                   b'"24x24":"http://example.com/secure/useravatar?size=small&ownerId=golub&avatarId=10300",' \
-                   b'"32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",' \
-                   b'"48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"},' \
-                   b'"displayName":"Nikolay Golub","active":true},' \
-                   b'"comment":"This is from python",' \
-                   b'"created":"2014-04-08T21:47:16.376+0400","updated":"2014-04-08T21:47:16.376+0400",' \
-                   b'"started":"2014-04-08T19:47:15.000+0400","timeSpent":"2h","timeSpentSeconds":7200,"id":"10004"}'
+        response = b"""{
+            "self":"http://example.com/rest/api/2/issue/10432/worklog/10004",
+            "author":{
+                "self":"http://example.com/rest/api/2/user?username=golub",
+                "name":"golub",
+                "emailAddress":"golub@example.com",
+                "avatarUrls":{
+                    "16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=golub&avatarId=10300",
+                    "24x24":"http://example.com/secure/useravatar?size=small&ownerId=golub&avatarId=10300",
+                    "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",
+                    "48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"
+                },
+                "displayName":"Nikolay Golub",
+                "active":true
+            },
+            "updateAuthor":{
+                "self":"http://example.com/rest/api/2/user?username=golub",
+                "name":"golub",
+                "emailAddress":"golub@example.com",
+                "avatarUrls":{
+                    "16x16":"http://example.com/secure/useravatar?size=xsmall&ownerId=golub&avatarId=10300",
+                    "24x24":"http://example.com/secure/useravatar?size=small&ownerId=golub&avatarId=10300",
+                    "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",
+                    "48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"
+                },
+                "displayName":"Nikolay Golub",
+                "active":true
+            },
+            "comment":"This is from python",
+            "created":"2014-04-08T21:47:16.376+0400",
+            "updated":"2014-04-08T21:47:16.376+0400",
+            "started":"2014-04-08T19:47:15.000+0400",
+            "timeSpent":"2h",
+            "timeSpentSeconds":7200,
+            "id":"10004"
+        }"""
         start_timestamp = datetime.datetime.now() - datetime.timedelta(hours=2)
-        end_timestamp =datetime.datetime.now()
+        end_timestamp = datetime.datetime.now()
         comment = 'This is from python'
         worklog_id = '31337'
-        worklog = base_classes.JiraWorklogEntry(self.sample_issue,
-                                           start_timestamp,
-                                           end_timestamp,
-                                           comment,
-                                           worklog_id)
+        worklog = base_classes.JiraWorklogEntry(self.sample_issue, start_timestamp, end_timestamp,
+                                                comment, worklog_id)
         httpretty.register_uri(httpretty.PUT,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue.key + '/worklog/' + worklog_id,
                                body=response)
-        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
-                                                 'login',
-                                                 'password')
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url, 'login', 'password')
         updated_worklog = accessor.update_worklog_entry(worklog)
         self.assertIsNotNone(updated_worklog)
         self.assertEqual(updated_worklog.comment, comment)
@@ -252,18 +306,69 @@ class SimpleWrapperTests(unittest.TestCase):
     @httpretty.activate
     def test_remove_worklog(self):
         start_timestamp = datetime.datetime.now() - datetime.timedelta(hours=2)
-        end_timestamp =datetime.datetime.now()
+        end_timestamp = datetime.datetime.now()
         comment = 'This is from python'
         worklog_id = '31337'
-        worklog = base_classes.JiraWorklogEntry(self.sample_issue,
-                                           start_timestamp,
-                                           end_timestamp,
-                                           comment,
-                                           worklog_id)
+        worklog = base_classes.JiraWorklogEntry(self.sample_issue, start_timestamp, end_timestamp,
+                                                comment, worklog_id)
         httpretty.register_uri(httpretty.DELETE,
                                self.jira_url + '/rest/api/2/issue/' + self.sample_issue.key + '/worklog/' + worklog_id)
-        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
-                                                  'login',
-                                                  'password')
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url, 'login', 'password')
         accessor.remove_worklog_entry(worklog)
         # nothing to check, at first glance
+
+    @httpretty.activate
+    def test_from_igor(self):
+        response = b"""{
+            "total":1,
+            "maxResults":1,
+            "startAt":0,
+            "worklogs":[
+                {
+                    "id":"585458",
+                    "started":"2015-04-02T08:04:00.000-0700",
+                    "created":"2015-04-03T08:04:25.000-0700",
+                    "timeSpent":"1h",
+                    "self":"https://jira.ringcentral.com/rest/api/2/issue/477228/worklog/585458",
+                    "timeSpentSeconds":3600,
+                    "updated":"2015-04-03T08:04:25.000-0700",
+                    "updateAuthor":{
+                        "avatarUrls":{
+                            "16x16":"https://jira.ringcentral.com/secure/useravatar?size=small&avatarId=10302",
+                            "48x48":"https://jira.ringcentral.com/secure/useravatar?avatarId=10302"
+                        },
+                        "self":"https://jira.ringcentral.com/rest/api/2/user?username=sergey.zaitsev",
+                        "name":"sergey.zaitsev",
+                        "emailAddress":"sergey.zaitsev@nordigy.ru",
+                        "active":true,
+                        "displayName":"Sergey Zaitsev"
+                    },
+                    "author":{
+                        "avatarUrls":{
+                            "16x16":"https://jira.ringcentral.com/secure/useravatar?size=small&avatarId=10302",
+                            "48x48":"https://jira.ringcentral.com/secure/useravatar?avatarId=10302"
+                        },
+                        "self":"https://jira.ringcentral.com/rest/api/2/user?username=sergey.zaitsev",
+                        "name":"sergey.zaitsev",
+                        "emailAddress":"sergey.zaitsev@nordigy.ru",
+                        "active":true,
+                        "displayName":"Sergey Zaitsev"
+                    },
+                    "comment":"This is from python"
+                }
+            ]
+        }"""
+        httpretty.register_uri(httpretty.POST,
+                               self.jira_url + '/rest/api/2/issue/' + self.sample_issue.key + '/worklog/',
+                               body=response)
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url, 'login', 'password')
+        start_timestamp = datetime.datetime.now() - datetime.timedelta(hours=2)
+        end_timestamp = datetime.datetime.now()
+        comment = 'This is from python'
+        worklog = base_classes.JiraWorklogEntry(self.sample_issue,
+                                                start_timestamp,
+                                                end_timestamp,
+                                                comment)
+        new_worklog = accessor.add_worklog_entry(worklog)
+        self.assertIsNotNone(new_worklog)
+        self.assertEqual(comment, new_worklog.comment)
