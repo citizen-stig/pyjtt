@@ -6,8 +6,8 @@ import logging
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from . import base_classes, core, utils, workers
-from .widgets import login_window, main_window, worklog_window
+from pyjtt import base_classes, core, utils, workers
+from pyjtt.widgets import login_window, main_window, worklog_window
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 MINIMUM_WORKLOG_SIZE_MINUTES = 5
 
 
-class PyJTTExcetption(Exception):
+class PyJTTException(Exception):
     pass
 
 
-class NotSelectedException(PyJTTExcetption):
+class NotSelectedException(PyJTTException):
     pass
 
 
@@ -58,11 +58,14 @@ class LoginWindow(QtWidgets.QDialog):
         login = str(self.ui.lineEditLogin.text())
         password = str(self.ui.lineEditPassword.text())
         if not jira_host:
-            QtWidgets.QMessageBox.warning(self, 'Login error', 'Enter JIRA host address')
+            QtWidgets.QMessageBox.warning(
+                self, 'Login error', 'Enter JIRA host address')
         elif not login:
-            QtWidgets.QMessageBox.warning(self, 'Login error', 'Enter login')
+            QtWidgets.QMessageBox.warning(
+                self, 'Login error', 'Enter login')
         elif not password:
-            QtWidgets.QMessageBox.warning(self, 'Login error', 'Enter password')
+            QtWidgets.QMessageBox.warning(
+                self, 'Login error', 'Enter password')
         else:
             logger.debug('Starting Login')
             if self._login(jira_host, login, password):
@@ -605,4 +608,3 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.hide_to_tray()
                 return
         super(MainWindow, self).changeEvent(event)
-

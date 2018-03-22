@@ -15,8 +15,12 @@ logger = logging.getLogger(__name__)
 class TimeTrackerApp(object):
 
     def __init__(self, hostname, login, password):
-        self.jira_accessor = jira_accessor.JiraRESTAccessor(hostname, login, password)
-        self.db_accessor = db_accessor.DBAccessor(self._get_db_filename(hostname, login))
+        self.jira_accessor = jira_accessor.JiraRESTAccessor(
+            hostname,
+            login,
+            password)
+        self.db_accessor = db_accessor.DBAccessor(
+            self._get_db_filename(hostname, login))
 
     def get_user_info(self):
         return self.jira_accessor.get_user_info()
@@ -35,29 +39,36 @@ class TimeTrackerApp(object):
             issue, worklog = self.jira_accessor.get_issue_by_key(issue_key)
             self.db_accessor.add_issue(issue)
             self.db_accessor.add_worklog(worklog)
-            logger.info('Issue "%s" has been fetched from JIRA and stored in local db'
-                        % str(issue_key))
+            logger.info(
+                'Issue "%s" has been fetched from JIRA and stored in local db',
+                str(issue_key))
             return issue
         else:
             return cached_issue
 
     def add_worklog_entry(self, worklog_entry):
-        logger.info('Adding worklog entry to the issue: %s' % worklog_entry.issue)
+        logger.info('Adding worklog entry to the issue: %s',
+                    worklog_entry.issue)
         worklog_entry = self.jira_accessor.add_worklog_entry(worklog_entry)
         self.db_accessor.add_worklog_entry(worklog_entry)
-        logger.info('Worklog entry for issue %s has been successfully added' % worklog_entry.issue)
+        logger.info('Worklog entry for issue %s has been successfully added',
+                    worklog_entry.issue)
 
     def remove_worklog_entry(self, worklog_entry):
-        logger.info('Removing worklog entry to the issue: %s' % worklog_entry.issue)
+        logger.info('Removing worklog entry to the issue: %s',
+                    worklog_entry.issue)
         self.jira_accessor.remove_worklog_entry(worklog_entry)
         self.db_accessor.remove_worklog_entry(worklog_entry)
-        logger.info('Worklog entry for issue %s has been successfully removed' % worklog_entry.issue)
+        logger.info('Worklog entry for issue %s has been successfully removed',
+                    worklog_entry.issue)
 
     def update_worklog_entry(self, worklog_entry):
-        logger.info('Updating worklog entry to the issue: %s' % worklog_entry.issue)
+        logger.info('Updating worklog entry to the issue: %s',
+                    worklog_entry.issue)
         self.jira_accessor.update_worklog_entry(worklog_entry)
         self.db_accessor.update_worklog_entry(worklog_entry)
-        logger.info('Worklog entry for issue %s has been successfully updated' % worklog_entry.issue)
+        logger.info('Worklog entry for issue %s has been successfully updated',
+                    worklog_entry.issue)
 
     def get_day_worklog(self, day):
         return self.db_accessor.get_day_worklog(day)

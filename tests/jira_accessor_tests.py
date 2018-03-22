@@ -26,6 +26,12 @@ class SimpleWrapperTests(unittest.TestCase):
                                                   'password')
         self.assertIsNotNone(accessor)
 
+    def test_create_accessor_tricky_password(self):
+        accessor = jira_accessor.JiraRESTAccessor(self.jira_url,
+                                                  'login',
+                                                  'Ilike%!@#$%^&*()_')
+        self.assertIsNotNone(accessor)
+
     @httpretty.activate
     def test_get_issue_by_key(self):
         response = b'{"id": "10806", "fields": ' \

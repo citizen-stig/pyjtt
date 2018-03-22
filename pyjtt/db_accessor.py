@@ -49,7 +49,7 @@ class DBAccessor(object):
         logger.debug('Tables created')
 
     def _connect_to_db(self):
-        logger.debug('Connecting to local DB: %s' % self.db_filename)
+        logger.debug('Connecting to local DB: %s', self.db_filename)
         db_conn = sqlite3.connect(self.db_filename, timeout=10,
                                   check_same_thread=False)
         cursor = db_conn.cursor()
@@ -72,16 +72,17 @@ class DBAccessor(object):
         logger.debug('Saving issue "{0}" in local DB. '
                      'Id: {1}'.format(issue.key, issue.issue_id))
         db_conn, cursor = self._connect_to_db()
-        cursor.execute('INSERT OR REPLACE INTO '
-                       '{issues_table} (jira_issue_id, jira_issue_key, summary) '
-                       'VALUES (?,?,?);'.format(issues_table=self.ISSUES_TABLE_NAME),
-                       (issue.issue_id, issue.key, issue.summary))
+        cursor.execute(
+            'INSERT OR REPLACE INTO '
+            '{issues_table} (jira_issue_id, jira_issue_key, summary) '
+            'VALUES (?,?,?);'.format(issues_table=self.ISSUES_TABLE_NAME),
+            (issue.issue_id, issue.key, issue.summary))
         db_conn.commit()
         db_conn.close()
         logger.debug('Issue "{0}" has been saved in local DB'.format(issue.key))
 
     def remove_issue(self, issue):
-        logger.debug('Removing issue %s from local DB' % issue.key)
+        logger.debug('Removing issue %s from local DB', issue.key)
         db_conn, cursor = self._connect_to_db()
         cursor.execute('DELETE FROM Worklogs '
                        'WHERE jira_issue_id = '
@@ -91,10 +92,10 @@ class DBAccessor(object):
                        'WHERE jira_issue_key = ?', (issue.key,))
         db_conn.commit()
         db_conn.close()
-        logger.debug('Issue %s has been remove from local DB' % issue.key)
+        logger.debug('Issue %s has been remove from local DB', issue.key)
 
     def get_issue(self, issue_key):
-        logger.debug('Getting issue %s from local DB' % issue_key)
+        logger.debug('Getting issue %s from local DB', issue_key)
         db_conn, cursor = self._connect_to_db()
         cursor.execute('SELECT jira_issue_id, jira_issue_key, summary '
                        'FROM JIRAIssues WHERE jira_issue_key = ?', (issue_key,))

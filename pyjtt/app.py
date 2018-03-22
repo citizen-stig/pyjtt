@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from os import path, mkdir
 import sys
 
@@ -6,8 +7,8 @@ import logging.handlers
 
 from PyQt5.QtWidgets import QApplication, QDialog
 
-from . import gui
-from .import utils
+from pyjtt import gui
+from pyjtt import utils
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
@@ -44,10 +45,11 @@ def main():
     login = config.get('main', 'login')
     password = config.get('main', 'password')
     if any([x == '' for x in (jira_host, login, password)]):
-        login_window = gui.LoginWindow(jira_host,
-                                       login,
-                                       password,
-                                       bool(config.get('main', 'save_password')),)
+        login_window = gui.LoginWindow(
+            jira_host,
+            login,
+            password,
+            bool(config.get('main', 'save_password')))
         login_window.show()
         login_result = login_window.exec_()
         if login_result == QDialog.Accepted:
