@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 from . import utils
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
-__copyright__ = "Copyright 2012 - 2017, Nikolay Golub"
+__copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
 __license__ = "GPL"
 
 
