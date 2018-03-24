@@ -39,7 +39,7 @@ def init_config(workdir=None):
         defaults[item] = ''
 
     config_filename = os.path.join(workdir, CONFIG_FILENAME)
-    config = configparser.ConfigParser(defaults=defaults)
+    config = configparser.RawConfigParser(defaults=defaults)
     config.read(config_filename)
 
     if not config.has_section('main'):
