@@ -28,15 +28,17 @@ class JiraRESTAccessor(object):
         self.jirahost = jirahost
         self.login = login
         self.password = password
-        credentials = base64.b64encode((login + ':' + password).encode(self.encoding))
+        credentials = base64.b64encode(
+            (login + ':' + password).encode(self.encoding))
         self.auth_string = 'Basic '.encode(self.encoding) + credentials
 
     def _make_request(self, url, data=None, req_type=None):
         logger.info("Make a request to {url}".format(url=url))
         if data:
-            request = urllib.request.Request(url,
-                                             data,
-                                             {'Content-Type': 'application/json'})
+            request = urllib.request.Request(
+                url,
+                data,
+                {'Content-Type': 'application/json'})
         else:
             request = urllib.request.Request(url)
         request.add_header('Authorization', self.auth_string)

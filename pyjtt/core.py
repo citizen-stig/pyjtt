@@ -28,7 +28,10 @@ class TimeTrackerApp(object):
     @staticmethod
     def _get_db_filename(hostname, login):
         db_name = login + '_' \
-            + hostname.replace('http://', '').replace('https://', '').replace('/', '').replace(':', '') \
+            + hostname.replace('http://', '')\
+                      .replace('https://', '')\
+                      .replace('/', '')\
+                      .replace(':', '') \
             + '.db'
         return path.join(utils.get_app_working_dir(), db_name)
 

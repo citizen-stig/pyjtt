@@ -138,8 +138,9 @@ class WorklogWindow(QtWidgets.QDialog):
 
     def refresh_spent(self):
         spent = 'Time spent: ' + \
-                utils.get_time_spent_string(self.ui.timeEndEdit.dateTime().toPyDateTime() - \
-                                            self.ui.timeStartEdit.dateTime().toPyDateTime())
+                utils.get_time_spent_string(
+                    self.ui.timeEndEdit.dateTime().toPyDateTime() -
+                    self.ui.timeStartEdit.dateTime().toPyDateTime())
         self.ui.labelSpent.setText(spent)
 
     def start_time_changed(self):
@@ -329,11 +330,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def remove_worklog_entry(self):
         worklog_entry = self._get_selected_worklog_from_table()
-        confirmation = QtWidgets.QMessageBox.question(self,
-                                                      'Remove Worklog',
-                                                      'Are you really want to remove this worklog',
-                                                      buttons=QtWidgets.QMessageBox.Yes
-                                                              | QtWidgets.QMessageBox.No)
+        confirmation = QtWidgets.QMessageBox.question(
+            self,
+            'Remove Worklog',
+            'Are you really want to remove this worklog',
+            buttons=QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
 
         if confirmation == QtWidgets.QMessageBox.Yes:
             # Push the job to the queue
@@ -342,11 +343,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def remove_issue_from_local(self):
         issue = self._get_selected_issue_from_table()
-        confirmation = QtWidgets.QMessageBox.question(self,
-                                                      'Remove Issue',
-                                                      'Are you really want to remove this issue from local cache',
-                                                      buttons=QtWidgets.QMessageBox.Yes
-                                                              | QtWidgets.QMessageBox.No)
+        confirmation = QtWidgets.QMessageBox.question(
+            self,
+            'Remove Issue',
+            'Are you really want to remove this issue from local cache',
+            buttons=QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         if confirmation == QtWidgets.QMessageBox.Yes:
             job = partial(self.app.remove_issue, issue)
             self.tasks_queue.put(job)
@@ -434,7 +435,7 @@ class MainWindow(QtWidgets.QMainWindow):
             except NotSelectedException:
                 pass
         else:
-            #TODO: add extraction from worklog table
+            # TODO: add extraction from worklog table
             pass
 
     def full_refresh(self):
@@ -451,7 +452,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
         # Status bar customization
-        self.ui.spinning_img = QtGui.QMovie(":/res/img/spinning-progress6.gif")
+        self.ui.spinning_img = QtGui.QMovie(':/res/img/spinning-progress6.gif')
         self.ui.spinning_label = QtWidgets.QLabel()
         self.ui.spinning_label.setMovie(self.ui.spinning_img)
         self.ui.spinning_label.hide()
@@ -460,9 +461,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.statusbar.addWidget(self.ui.status_msg)
         self.ui.status_msg.hide()
 
-        #Tray icon
-        self.ui.tray_icon = SystemTrayIcon(QtGui.QIcon(":/res/icons/clock.ico"),
-                                           self)
+        # Tray icon
+        self.ui.tray_icon = SystemTrayIcon(
+            QtGui.QIcon(":/res/icons/clock.ico"),
+            self)
         self.ui.tray_icon.show()
 
     def refresh_ui(self):
