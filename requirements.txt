@@ -1,2 +1,2 @@
 PyQt5==5.10.1
-cx_Freeze=5.1.1
+cx_Freeze==5.1.1
