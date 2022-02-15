@@ -1,5 +1,0 @@
-pyuic6 --from-import main_window.ui -o ../pyjtt/widgets/main_window.py
-pyuic6 --from-import login_screen.ui -o ../pyjtt/widgets/login_window.py
-pyuic6 --from-import worklog_window.ui -o ../pyjtt/widgets/worklog_window.py
-pyrcc6 pyjtt_res.qrc -o ../pyjtt/widgets/pyjtt_res_rc.py
-

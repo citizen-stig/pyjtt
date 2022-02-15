@@ -8,7 +8,7 @@ import logging.handlers
 import pathlib
 
 from PyQt6.QtWidgets import QApplication, QDialog
-from PyQt6 import QtCore
+from PyQt6 import QtCore, QtGui
 
 import gui
 import utils
@@ -30,12 +30,26 @@ def main():
     if not path.isdir(workdir):
         mkdir(workdir)
 
-    resources_path = os.path.join(
-        pathlib.Path(__file__).parent.absolute(), '..', 'resources')
-    icons = os.path.join(resources_path, 'icons')
-    QtCore.QDir.addSearchPath('resources', resources_path)
-    QtCore.QDir.addSearchPath('icons', icons)
-    QtCore.QDir.addSearchPath('', resources_path)
+    resources_path1 = os.path.normpath(os.path.join(
+        pathlib.Path(__file__).parent, '..', 'resources')
+    )
+
+    resources_path2 = os.path.normpath(os.path.join(
+        pathlib.Path(__file__).parent, 'resources')
+    )
+    print(resources_path1)
+    # icons = os.path.join(resources_path, 'icons')
+    # resources_qdri = QtCore.QDir(resources_path)
+    # QtCore.QDir.addSearchPath('icons', icons)
+    # QtCore.QDir.addSearchPath('', resources_path)
+    QtCore.QDir.setSearchPaths('resources', [resources_path1, resources_path2])
+    # QtCore.QDir.setSearchPaths('icons', [resources_path1, resources_path2])
+
+    # print("Check")
+    # print(QtCore.QDir.searchPaths('resources'))
+
+
+    # print(QtCore.QDir.exists(resources_path))
 
     config = utils.init_config()
 
@@ -50,6 +64,12 @@ def main():
                         level=config.get('main', 'log_level'),
                         handlers=(log_rotater,))
     app = QApplication([])
+
+    # qPixMap = QtGui.QPixmap("../resources/icons/icon.png")
+    # print(qPixMap)
+    # print(qPixMap.isNull())
+    # print(qPixMap.size().width())
+    # print(qPixMap.size().height())
 
     jira_host = config.get('main', 'jirahost')
     login = config.get('main', 'login')
