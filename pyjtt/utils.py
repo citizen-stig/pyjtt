@@ -14,14 +14,6 @@ logger = logging.getLogger(__name__)
 CONFIG_FILENAME = 'pyjtt.cfg'
 
 
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
-
 def get_app_working_dir():
     """Returns path to application operational folder.
 

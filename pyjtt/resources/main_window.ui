@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>icons/icon.png</normaloff>icons/icon.png</iconset>
+    <normaloff>icons/clock.ico</normaloff>icons/clock.ico</iconset>
   </property>
   <property name="animated">
    <bool>false</bool>

@@ -192,6 +192,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.init_ui()
 
+
         # Initialize app
         self.app = core.TimeTrackerApp(jirahost, login, password)
 
@@ -380,8 +381,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Change UI
             stop_icon = QtGui.QIcon()
-            stop_icon.addPixmap(
-                QtGui.QPixmap(utils.resource_path('resources/icons/stop.ico')))
+            stop_icon.addPixmap(QtGui.QPixmap('resources/icons/stop.ico'))
             self.ui.startStopTracking.setText('Stop Tracking')
             self.ui.startStopTracking.setIcon(stop_icon)
         except NotSelectedException:
@@ -442,10 +442,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # Clear UI
         self.ui.startStopTracking.setText('Start Tracking')
         self.ui.labelTimeSpent.setText('00:00:00')
-        start_icon = QtGui.QIcon()
-        start_icon.addPixmap(
-            QtGui.QPixmap(utils.resource_path('resources/icons/start.ico')))
-        self.ui.startStopTracking.setIcon(start_icon)
 
     def refresh_issue(self):
         if not self.ui.tableIssues.isHidden():
@@ -473,8 +469,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
         # Status bar customization
-        self.ui.spinning_img = QtGui.QMovie(
-            utils.resource_path('resources/img/lazyloader.gif'))
+        self.ui.spinning_img = QtGui.QMovie('resources/img/lazyloader.gif')
         self.ui.spinning_label = QtWidgets.QLabel()
         self.ui.spinning_label.setMovie(self.ui.spinning_img)
         self.ui.spinning_label.hide()
@@ -484,9 +479,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.status_msg.hide()
 
         # Tray icon
-        self.ui.tray_icon = SystemTrayIcon(
-            QtGui.QIcon(utils.resource_path('resources/icons/icon-tray.png')),
-            self)
+        self.ui.tray_icon = SystemTrayIcon(QtGui.QIcon('resources/icons/icon-tray.png'), self)
         self.ui.tray_icon.show()
 
     def refresh_ui(self):

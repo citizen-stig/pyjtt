@@ -7,6 +7,7 @@ import logging
 import logging.handlers
 import pathlib
 
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QDialog
 from PyQt6 import QtCore, QtGui
 
@@ -64,12 +65,7 @@ def main():
                         level=config.get('main', 'log_level'),
                         handlers=(log_rotater,))
     app = QApplication([])
-
-    # qPixMap = QtGui.QPixmap("../resources/icons/icon.png")
-    # print(qPixMap)
-    # print(qPixMap.isNull())
-    # print(qPixMap.size().width())
-    # print(qPixMap.size().height())
+    app.setWindowIcon(QIcon('resources/icons/icon.icns'))
 
     jira_host = config.get('main', 'jirahost')
     login = config.get('main', 'login')
@@ -99,6 +95,7 @@ def main():
     else:
         main_window = gui.MainWindow(jira_host, login, password)
         main_window.show()
+
         sys.exit(app.exec())
 
 
