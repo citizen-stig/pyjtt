@@ -5,10 +5,10 @@ import sys
 import logging
 import logging.handlers
 
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt6.QtWidgets import QApplication, QDialog
 
-from pyjtt import gui
-from pyjtt import utils
+import gui
+import utils
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
@@ -51,8 +51,8 @@ def main():
             password,
             bool(config.get('main', 'save_password')))
         login_window.show()
-        login_result = login_window.exec_()
-        if login_result == QDialog.Accepted:
+        login_result = login_window.exec()
+        if login_result == QDialog.DialogCode.Accepted:
             jira_host = login_window.ui.lineEditHostAddress.text()
             login = login_window.ui.lineEditLogin.text()
             password = login_window.ui.lineEditPassword.text()
@@ -65,11 +65,11 @@ def main():
             utils.write_config(config)
             main_window = gui.MainWindow(jira_host, login, password)
             main_window.show()
-            sys.exit(app.exec_())
+            sys.exit(app.exec())
     else:
         main_window = gui.MainWindow(jira_host, login, password)
         main_window.show()
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
 
 
 if __name__ == '__main__':
