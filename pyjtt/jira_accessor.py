@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class JiraRESTAccessor(object):
     encoding = 'utf-8'
     jira_timeformat = '%Y-%m-%dT%H:%M:%S'
-    jql_assigned = 'project=PERF+AND+resolution=Unresolved+AND+(assignee+in+(currentUser())+OR+issuetype+in+("Routine%20Activity"))'
+    jql_assigned = 'resolution=Unresolved+AND+assignee+in+(currentUser())'
 
     def __init__(self, jirahost, login, password):
         self.jirahost = jirahost

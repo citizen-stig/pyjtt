@@ -1,11 +1,14 @@
 #!/usr/bin/env python
+import os
 from os import path, mkdir
 import sys
 
 import logging
 import logging.handlers
+import pathlib
 
 from PyQt6.QtWidgets import QApplication, QDialog
+from PyQt6 import QtCore
 
 import gui
 import utils
@@ -26,6 +29,13 @@ def main():
     workdir = utils.get_app_working_dir()
     if not path.isdir(workdir):
         mkdir(workdir)
+
+    resources_path = os.path.join(
+        pathlib.Path(__file__).parent.absolute(), '..', 'resources')
+    icons = os.path.join(resources_path, 'icons')
+    QtCore.QDir.addSearchPath('resources', resources_path)
+    QtCore.QDir.addSearchPath('icons', icons)
+    QtCore.QDir.addSearchPath('', resources_path)
 
     config = utils.init_config()
 

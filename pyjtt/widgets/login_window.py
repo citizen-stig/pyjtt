@@ -17,7 +17,7 @@ class Ui_loginWindow(object):
         loginWindow.setMaximumSize(QtCore.QSize(640, 200))
         loginWindow.setSizeIncrement(QtCore.QSize(10, 0))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/res/icons/clock.ico"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap("resources/icons/icon.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         loginWindow.setWindowIcon(icon)
         self.gridLayout = QtWidgets.QGridLayout(loginWindow)
         self.gridLayout.setObjectName("gridLayout")
