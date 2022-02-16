@@ -59,7 +59,7 @@ make build_mac
 There's alternative option to build for mac using pyinstaller:
 
 ```bash
-build_mac_pyinstaller
+make build_mac_pyinstaller
 ```
 
 
