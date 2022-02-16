@@ -6,11 +6,11 @@ from urllib import error
 
 from PyQt6 import QtWidgets, QtCore, QtGui
 
-import base_classes
-import core
-import utils
-import workers
-from widgets import login_window, main_window, worklog_window
+from pyjtt import base_classes
+from pyjtt import core
+from pyjtt import utils
+from pyjtt import workers
+from pyjtt.widgets import login_window, main_window, worklog_window
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2018, Nikolay Golub"

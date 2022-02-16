@@ -11,6 +11,7 @@ coverage = "3.7.1"
 [packages]
 cx-Freeze = "==6.10"
 pyqt6 = "==6.2.3"
+pyinstaller = "==4.9"
 
 [requires]
 python_version = "3.9"

@@ -1,7 +1,10 @@
 
 
+#build_mac:
+#	pipenv run python setup.py bdist_dmg
+
 build_mac:
-	pipenv run python setup.py bdist_dmg
+	pipenv run pyinstaller pyjtt/app.spec
 
 generate_widgets:
 	pipenv run pyuic6 -x resources/main_window.ui -o pyjtt/widgets/main_window.py

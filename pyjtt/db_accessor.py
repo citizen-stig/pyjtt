@@ -2,7 +2,7 @@ from datetime import datetime
 import sqlite3
 import logging
 
-from base_classes import JiraIssue, JiraWorklogEntry
+from pyjtt.base_classes import JiraIssue, JiraWorklogEntry
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
