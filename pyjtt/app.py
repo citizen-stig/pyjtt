@@ -29,13 +29,6 @@ def main():
     if not path.isdir(workdir):
         mkdir(workdir)
 
-    resources_path1 = os.path.normpath(os.path.join(
-        pathlib.Path(__file__).parent, '..', 'resources')
-    )
-
-    resources_path2 = os.path.normpath(os.path.join(
-        pathlib.Path(__file__).parent, 'resources')
-    )
     config = utils.init_config()
 
     # Initialize logging

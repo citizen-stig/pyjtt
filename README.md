@@ -38,10 +38,41 @@ Required packages:
 * Python 3.9
 * pipenv
 
-for mac just run
+Prepare environment:
 
 ```bash
-bin/install_mac.sh
+pipenv install
 ```
 
-## Regenerating
+This will start application:
+
+```bash
+make run
+```
+
+This will build application for mac:
+
+```bash
+make build_mac
+```
+
+There's alternative option to build for mac using pyinstaller:
+
+```bash
+build_mac_pyinstaller
+```
+
+
+## Changing UI
+
+Qt-Designer or Qt-Creator can be used for updating UI layout.
+
+All resources are stored in `resources` folder.
+
+To generate widgets run after resources editing:
+
+```bash
+make generate_widgets
+```
+
+

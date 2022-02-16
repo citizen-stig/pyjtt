@@ -63,6 +63,7 @@ if sys.platform == "win32":
     options["bdist_msi"] = bdist_msi_options
 elif sys.platform == "darwin":
     bdist_mac_options = {
+        "bundle_name": "pyJTT",
         "iconfile": "resources/icons/icon.icns",
         "include_resources": [
             ("resources/icons/start.ico", "resources/icons/start.ico"),

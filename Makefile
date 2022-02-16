@@ -1,9 +1,9 @@
 export PYTHONPATH = $(shell pwd)
 
-build_mac_cx_freeze:
+build_mac:
 	pipenv run python setup.py bdist_dmg
 
-build_mac:
+build_mac_pyinstaller:
 	pipenv run pyinstaller pyjtt/app.spec
 
 generate_widgets:
