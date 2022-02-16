@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sys
 import configparser
 import logging
@@ -13,6 +14,17 @@ logger = logging.getLogger(__name__)
 
 CONFIG_FILENAME = 'pyjtt.cfg'
 
+try:
+    BASE_PATH = sys._MEIPASS
+except AttributeError:
+    BASE_PATH = os.path.normpath(os.path.join(
+        pathlib.Path(__file__).parent, '..')
+    )
+
+
+def get_resource_path(relative_path):
+    return os.path.join(BASE_PATH, relative_path)
+
 
 def get_app_working_dir():
     """Returns path to application operational folder.
@@ -21,7 +33,7 @@ def get_app_working_dir():
     """
     app_name = 'pyjtt'
     current_platform = platform.system()
-    if 'Linux' == current_platform:
+    if current_platform in ('Linux', 'Darwin'):
         return os.path.join(os.environ['HOME'], '.' + app_name)
     elif 'Windows' == current_platform:
         return os.path.join(os.environ['APPDATA'], app_name)

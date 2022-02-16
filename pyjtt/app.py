@@ -1,15 +1,13 @@
 #!/usr/bin/env python
-import os
-from os import path, mkdir
-import sys
-
 import logging
 import logging.handlers
+import os
 import pathlib
+import sys
+from os import path, mkdir
 
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QDialog
-from PyQt6 import QtCore, QtGui
 
 import gui
 import utils
@@ -38,20 +36,6 @@ def main():
     resources_path2 = os.path.normpath(os.path.join(
         pathlib.Path(__file__).parent, 'resources')
     )
-    print(resources_path1)
-    # icons = os.path.join(resources_path, 'icons')
-    # resources_qdri = QtCore.QDir(resources_path)
-    # QtCore.QDir.addSearchPath('icons', icons)
-    # QtCore.QDir.addSearchPath('', resources_path)
-    QtCore.QDir.setSearchPaths('resources', [resources_path1, resources_path2])
-    # QtCore.QDir.setSearchPaths('icons', [resources_path1, resources_path2])
-
-    # print("Check")
-    # print(QtCore.QDir.searchPaths('resources'))
-
-
-    # print(QtCore.QDir.exists(resources_path))
-
     config = utils.init_config()
 
     # Initialize logging
@@ -65,7 +49,8 @@ def main():
                         level=config.get('main', 'log_level'),
                         handlers=(log_rotater,))
     app = QApplication([])
-    app.setWindowIcon(QIcon('resources/icons/icon.icns'))
+    app.setWindowIcon(QIcon(
+        utils.get_resource_path('resources/icons/icon.icns')))
 
     jira_host = config.get('main', 'jirahost')
     login = config.get('main', 'login')

@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'pyjtt/resources/main_window.ui'
+# Form implementation generated from reading ui file 'resources/main_window.ui'
 #
 # Created by: PyQt6 UI code generator 6.2.3
 #
@@ -15,7 +15,7 @@ class Ui_MainWindow(object):
         MainWindow.resize(780, 640)
         MainWindow.setMinimumSize(QtCore.QSize(780, 640))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("pyjtt/resources/icons/icon.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap("resources/icons/icon.icns"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setAnimated(False)
         MainWindow.setTabShape(QtWidgets.QTabWidget.TabShape.Rounded)
@@ -133,7 +133,7 @@ class Ui_MainWindow(object):
         self.startStopTracking.setMaximumSize(QtCore.QSize(160, 64))
         self.startStopTracking.setLayoutDirection(QtCore.Qt.LayoutDirection.LeftToRight)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("pyjtt/resources/icons/start.ico"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon1.addPixmap(QtGui.QPixmap("resources/icons/start.ico"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.startStopTracking.setIcon(icon1)
         self.startStopTracking.setIconSize(QtCore.QSize(32, 32))
         self.startStopTracking.setCheckable(True)

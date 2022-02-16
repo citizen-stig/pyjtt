@@ -192,7 +192,6 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.init_ui()
 
-
         # Initialize app
         self.app = core.TimeTrackerApp(jirahost, login, password)
 
@@ -381,7 +380,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Change UI
             stop_icon = QtGui.QIcon()
-            stop_icon.addPixmap(QtGui.QPixmap('resources/icons/stop.ico'))
+            stop_icon.addPixmap(QtGui.QPixmap(
+                utils.get_resource_path('resources/icons/stop.ico')))
             self.ui.startStopTracking.setText('Stop Tracking')
             self.ui.startStopTracking.setIcon(stop_icon)
         except NotSelectedException:
@@ -399,7 +399,8 @@ class MainWindow(QtWidgets.QMainWindow):
             worklog_entry = base_classes.JiraWorklogEntry(issue, started,
                                                           ended, '')
 
-            # Ask for options: Add, Cancel, Continue tracking, Open worklog before add
+            # Ask for options: Add, Cancel, Continue tracking,
+            # Open worklog before add
             info_msg = 'Do you want to add this worklog:\n' + \
                        'Issue: {issue_key}\n'.format(
                            issue_key=worklog_entry.issue.key) + \
@@ -409,13 +410,14 @@ class MainWindow(QtWidgets.QMainWindow):
                        'Time spent: {spent}\n'.format(
                            spent=worklog_entry.get_timespent_string()) + \
                        'Or edit before adding?'
-            confirmation = QtWidgets.QMessageBox.question(self,
-                                                          'Add New Worklog',
-                                                          info_msg,
-                                                          buttons=QtWidgets.QMessageBox.StandardButton.Yes
-                                                                  | QtWidgets.QMessageBox.StandardButton.No
-                                                                  | QtWidgets.QMessageBox.StandardButton.Cancel
-                                                                  | QtWidgets.QMessageBox.StandardButton.Open)
+            confirmation = QtWidgets.QMessageBox \
+                .question(self,
+                          'Add New Worklog',
+                          info_msg,
+                          buttons=QtWidgets.QMessageBox.StandardButton.Yes
+                                  | QtWidgets.QMessageBox.StandardButton.No
+                                  | QtWidgets.QMessageBox.StandardButton.Cancel
+                                  | QtWidgets.QMessageBox.StandardButton.Open)
             if confirmation == QtWidgets.QMessageBox.StandardButton.Yes:
                 # Push the job to the queue
                 job = partial(self.app.add_worklog_entry, worklog_entry)
@@ -442,6 +444,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Clear UI
         self.ui.startStopTracking.setText('Start Tracking')
         self.ui.labelTimeSpent.setText('00:00:00')
+        start_icon = QtGui.QIcon(
+            utils.get_resource_path('resources/icons/start.ico'))
+        self.ui.startStopTracking.setIcon(start_icon)
 
     def refresh_issue(self):
         if not self.ui.tableIssues.isHidden():
@@ -469,7 +474,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.ui.dateDayWorklogEdit.setDate(QtCore.QDate.currentDate())
         # Status bar customization
-        self.ui.spinning_img = QtGui.QMovie('resources/img/lazyloader.gif')
+        self.ui.spinning_img = QtGui.QMovie(
+            utils.get_resource_path('resources/img/lazyloader.gif'))
         self.ui.spinning_label = QtWidgets.QLabel()
         self.ui.spinning_label.setMovie(self.ui.spinning_img)
         self.ui.spinning_label.hide()
@@ -478,8 +484,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.statusbar.addWidget(self.ui.status_msg)
         self.ui.status_msg.hide()
 
+        start_icon = QtGui.QIcon(
+            utils.get_resource_path('resources/icons/start.ico'))
+        self.ui.startStopTracking.setIcon(start_icon)
+
         # Tray icon
-        self.ui.tray_icon = SystemTrayIcon(QtGui.QIcon('resources/icons/icon-tray.png'), self)
+        self.ui.tray_icon = SystemTrayIcon(
+            QtGui.QIcon(
+                utils.get_resource_path('resources/icons/icon-tray.png')),
+            self)
         self.ui.tray_icon.show()
 
     def refresh_ui(self):
