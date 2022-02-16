@@ -1,4 +1,4 @@
-
+export PYTHONPATH = $(shell pwd)
 
 build_mac_cx_freeze:
 	pipenv run python setup.py bdist_dmg
