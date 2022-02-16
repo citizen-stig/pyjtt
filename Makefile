@@ -1,7 +1,7 @@
 
 
-#build_mac:
-#	pipenv run python setup.py bdist_dmg
+build_mac_cx_freeze:
+	pipenv run python setup.py bdist_dmg
 
 build_mac:
 	pipenv run pyinstaller pyjtt/app.spec

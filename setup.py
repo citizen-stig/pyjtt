@@ -2,8 +2,11 @@ import sys
 import os
 from cx_Freeze import setup, Executable
 
+options = {}
+
 path = ["pyjtt"] + sys.path
 icon_path = os.path.join("resources", "icons", "icon.icns")
+
 build_exe_options = {
     'path': path,
     'include_msvcr': True,
@@ -50,20 +53,27 @@ msi_data = {"Shortcut": shortcut_table}
 # use of the above defined tables
 bdist_msi_options = {'data': msi_data}
 
-bdist_mac_options = {
-    "iconfile": "resources/icons/icon.icns",
-    "include_resources": [
-        ("resources/icons/start.ico", "resources/icons/start.ico"),
-        ("resources/icons/stop.ico", "resources/icons/stop.ico"),
-        ("resources/icons/icon-tray.png", "resources/icons/icon-tray.png"),
-    ]
-}
 
 # GUI applications require a different base on Windows (the default is for a
 # console application).
 base = None
+print("PLATFORM")
+print(sys.platform)
 if sys.platform == "win32":
     base = "Win32GUI"
+    options["build_exe"] = build_exe_options
+    options["bdist_msi"] = bdist_msi_options
+elif sys.platform == "darwin":
+    bdist_mac_options = {
+        "iconfile": "resources/icons/icon.icns",
+        "include_resources": [
+            ("resources/icons/start.ico", "resources/icons/start.ico"),
+            ("resources/icons/stop.ico", "resources/icons/stop.ico"),
+            ("resources/icons/icon-tray.png", "resources/icons/icon-tray.png"),
+        ]
+    }
+    options["bdist_mac"] = bdist_mac_options
+
 
 target_app = os.path.join("pyjtt", "app.py")
 
@@ -74,11 +84,7 @@ setup(name="pyjtt",
       maintainer_email="nikolay.v.golub@gmail.com",
       long_description="Allows track time in JIRA online and manage worklogs",
       license="GNU GENERAL PUBLIC LICENSE Version 3",
-      options={
-          "build_exe": build_exe_options,
-          "bdist_msi": bdist_msi_options,
-          "bdist_mac": bdist_mac_options,
-      },
+      options=options,
       executables=[Executable(target_app,
                               base=base,
                               targetName="pyjtt.exe",
