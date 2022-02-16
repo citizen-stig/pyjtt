@@ -57,8 +57,6 @@ bdist_msi_options = {'data': msi_data}
 # GUI applications require a different base on Windows (the default is for a
 # console application).
 base = None
-print("PLATFORM")
-print(sys.platform)
 if sys.platform == "win32":
     base = "Win32GUI"
     options["build_exe"] = build_exe_options
@@ -72,6 +70,15 @@ elif sys.platform == "darwin":
             ("resources/icons/icon-tray.png", "resources/icons/icon-tray.png"),
         ]
     }
+    codesign_identity = os.environ.get("PYJTT_CODESIGN_IDENTITY")
+    if codesign_identity:
+        bdist_mac_options["codesign_identity"] = codesign_identity
+    codesign_entitlements = os.environ.get("PYJTT_CODESIGN_ENTITLEMENTS")
+    if codesign_entitlements:
+        bdist_mac_options["codesign_entitlements"] = codesign_entitlements
+    codesign_resource_rules = os.environ.get("PYJTT_CODESIGN_RESOURCE_RULES")
+    if codesign_resource_rules:
+        bdist_mac_options["codesign_resource_rules"] = codesign_resource_rules
     options["bdist_mac"] = bdist_mac_options
 
 
