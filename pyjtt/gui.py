@@ -184,12 +184,12 @@ class WorklogWindow(QtWidgets.QDialog):
 
 class MainWindow(QtWidgets.QMainWindow):
     """Core widget of the GUI"""
-    ui = main_window.Ui_MainWindow()
     number_of_workers = 10
     tasks_queue = queue.Queue()
 
     def __init__(self, jirahost, login, password, parent=None):
         super(MainWindow, self).__init__()
+        self.ui = main_window.Ui_MainWindow()
         self.init_ui()
 
         # Initialize app
@@ -644,10 +644,11 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.hide_to_tray()
 
-    def changeEvent(self, event):
-        if event.type() == QtCore.QEvent.Type.WindowStateChange:
-            if self.windowState() & QtCore.Qt.WindowState.WindowMinimized:
-                event.ignore()
-                self.hide_to_tray()
-                return
-        super(MainWindow, self).changeEvent(event)
+    # DISABLED due to freeze after PyQt6 migration
+    # def changeEvent(self, event):
+    #     if event.type() == QtCore.QEvent.Type.WindowStateChange:
+    #         if self.windowState() & QtCore.Qt.WindowState.WindowMinimized:
+    #             event.ignore()
+    #             self.hide_to_tray()
+    #             return
+    #     super(MainWindow, self).changeEvent(event)
