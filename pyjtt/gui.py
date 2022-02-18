@@ -631,24 +631,9 @@ class MainWindow(QtWidgets.QMainWindow):
         time_string = '%02d:%02d:%02d' % (hours, minutes, seconds)
         self.ui.labelTimeSpent.setText(time_string)
 
-    def restore_from_tray(self):
-        self.showNormal()
-
-    def hide_to_tray(self):
-        self.hide()
-
     def tray_click(self, reason):
         if reason != QtWidgets.QSystemTrayIcon.ActivationReason.Context:
-            if self.isHidden():
-                self.restore_from_tray()
+            if self.isMinimized():
+                self.showNormal()
             else:
-                self.hide_to_tray()
-
-    # DISABLED due to freeze after PyQt6 migration
-    # def changeEvent(self, event):
-    #     if event.type() == QtCore.QEvent.Type.WindowStateChange:
-    #         if self.windowState() & QtCore.Qt.WindowState.WindowMinimized:
-    #             event.ignore()
-    #             self.hide_to_tray()
-    #             return
-    #     super(MainWindow, self).changeEvent(event)
+                self.showMinimized()
