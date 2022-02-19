@@ -1,9 +1,9 @@
 from os import path
 import logging
 
-from . import db_accessor
-from . import jira_accessor
-from . import utils
+from pyjtt import db_accessor
+from pyjtt import jira_accessor
+from pyjtt import utils
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2018, Nikolay Golub"

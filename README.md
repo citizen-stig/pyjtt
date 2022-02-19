@@ -13,10 +13,66 @@ PyJTT (Python Jira Time Tracker) is a desktop applicatoin for tracking time to i
 * Windows, MacOS or GNU/Linux
 
 ## How to start
-Download PyJTT distribution and start it.
-Entrer address of JIRA instance. 
-Enter login and password. Notice(!): login and password are stored in plain text, so be careful with "Saving credentials" option.
-PyJTT will get some issues from JIRA at start, but if you want to add worklog to issue, that is not presented in list, enter key of this issue in edit field on issues tab and click find it. Issue should appears in list of issues.
-Select issue. Double click open dialog window for adding new worklog. 
-Start tracking button will start timer for "online" tracking. 
-Existed worklogs can be edited on Worklogs tab.
+- Download PyJTT distribution and start it.
+- Enter address of JIRA instance.
+- Enter your login and password.
+Notice(!): login and password are stored in plain text, so be careful with "Saving credentials" option.
+PyJTT will get issues with accordance to filter from JIRA at start, but if you want to add worklog to issue, that is not presented in list, enter key of this issue in edit field on issues tab and click find it. Issue should appears in list of issues.
+- Select issue. Double click open dialog window for adding new worklog.
+- Start tracking button will start timer for "online" tracking.
+- Existed worklogs can be edited on Worklogs tab.
+
+## Troubleshooting
+1) Certificate package
+https://stackoverflow.com/questions/27835619/urllib-and-ssl-certificate-verify-failed-error
+2) Building as an .app with icon
+https://github.com/pyinstaller/pyinstaller/issues/5154
+
+
+# Development
+
+## Initialize environment
+
+Required packages:
+
+* Python 3.9
+* pipenv
+
+Prepare environment:
+
+```bash
+pipenv install
+```
+
+This will start application:
+
+```bash
+make run
+```
+
+This will build application for mac:
+
+```bash
+make build_mac
+```
+
+There's alternative option to build for mac using pyinstaller:
+
+```bash
+make build_mac_pyinstaller
+```
+
+
+## Changing UI
+
+Qt-Designer or Qt-Creator can be used for updating UI layout.
+
+All resources are stored in `resources` folder.
+
+To generate widgets run after resources editing:
+
+```bash
+make generate_widgets
+```
+
+

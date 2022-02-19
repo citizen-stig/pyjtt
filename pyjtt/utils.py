@@ -1,4 +1,6 @@
 import os
+import pathlib
+import sys
 import configparser
 import logging
 import platform
@@ -12,6 +14,17 @@ logger = logging.getLogger(__name__)
 
 CONFIG_FILENAME = 'pyjtt.cfg'
 
+try:
+    BASE_PATH = sys._MEIPASS
+except AttributeError:
+    BASE_PATH = os.path.normpath(os.path.join(
+        pathlib.Path(__file__).parent, '..')
+    )
+
+
+def get_resource_path(relative_path):
+    return os.path.join(BASE_PATH, relative_path)
+
 
 def get_app_working_dir():
     """Returns path to application operational folder.
@@ -20,7 +33,7 @@ def get_app_working_dir():
     """
     app_name = 'pyjtt'
     current_platform = platform.system()
-    if 'Linux' == current_platform:
+    if current_platform in ('Linux', 'Darwin'):
         return os.path.join(os.environ['HOME'], '.' + app_name)
     elif 'Windows' == current_platform:
         return os.path.join(os.environ['APPDATA'], app_name)
@@ -50,7 +63,7 @@ def init_config(workdir=None):
 def write_config(config):
     workdir = get_app_working_dir()
     with open(os.path.join(workdir, CONFIG_FILENAME), 'w') as configfile:
-            config.write(configfile)
+        config.write(configfile)
 
 
 def get_local_utc_offset(now, utcnow):
@@ -73,7 +86,7 @@ def get_local_utc_offset(now, utcnow):
         return offset
 
     if (now - utcnow).total_seconds() > 50400 \
-            or (now - utcnow).total_seconds() < -43200:
+        or (now - utcnow).total_seconds() < -43200:
         raise ValueError('Offset is too large')
     if now >= utcnow:
         sign = '+'
@@ -110,7 +123,7 @@ def check_jira_issue_key(issue_key):
     splitted = issue_key.split('-')
     if len(splitted) == 2:
         return splitted[1].isdigit() and splitted[0].isalpha() \
-            and splitted[0].isupper()
+               and splitted[0].isupper()
     else:
         return False
 

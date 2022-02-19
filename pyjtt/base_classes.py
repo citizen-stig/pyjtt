@@ -1,6 +1,6 @@
 from urllib.parse import urljoin
 
-from . import utils
+from pyjtt import utils
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
@@ -42,7 +42,7 @@ class JiraWorklogEntry(object):
 
     def __str__(self):
         return self.worklog_id + '=' + self.started.strftime(self.time_fmt) \
-            + ' - ' + self.ended.strftime(self.time_fmt)
+               + ' - ' + self.ended.strftime(self.time_fmt)
 
     def get_timespent(self):
         return self.ended - self.started

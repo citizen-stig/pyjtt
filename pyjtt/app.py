@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-from os import path, mkdir
-import sys
-
 import logging
 import logging.handlers
+import os
+import pathlib
+import sys
+from os import path, mkdir
 
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication, QDialog
 
 from pyjtt import gui
 from pyjtt import utils
@@ -40,6 +42,8 @@ def main():
                         level=config.get('main', 'log_level'),
                         handlers=(log_rotater,))
     app = QApplication([])
+    app.setWindowIcon(QIcon(
+        utils.get_resource_path('resources/icons/icon.icns')))
 
     jira_host = config.get('main', 'jirahost')
     login = config.get('main', 'login')
@@ -51,8 +55,8 @@ def main():
             password,
             bool(config.get('main', 'save_password')))
         login_window.show()
-        login_result = login_window.exec_()
-        if login_result == QDialog.Accepted:
+        login_result = login_window.exec()
+        if login_result == QDialog.DialogCode.Accepted:
             jira_host = login_window.ui.lineEditHostAddress.text()
             login = login_window.ui.lineEditLogin.text()
             password = login_window.ui.lineEditPassword.text()
@@ -65,11 +69,12 @@ def main():
             utils.write_config(config)
             main_window = gui.MainWindow(jira_host, login, password)
             main_window.show()
-            sys.exit(app.exec_())
+            sys.exit(app.exec())
     else:
         main_window = gui.MainWindow(jira_host, login, password)
         main_window.show()
-        sys.exit(app.exec_())
+
+        sys.exit(app.exec())
 
 
 if __name__ == '__main__':

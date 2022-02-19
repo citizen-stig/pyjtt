@@ -2,7 +2,7 @@ from datetime import datetime
 import queue
 import logging
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 __author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
 __copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
@@ -16,7 +16,7 @@ class BaseThread(QtCore.QThread):
     exception_raised = QtCore.pyqtSignal(Exception)
     task_started = QtCore.pyqtSignal()
     task_done = QtCore.pyqtSignal()
-    sleep_timeout = 0.2
+    sleep_timeout = 200
 
     def __init__(self, tasks_queue):
         """Initializes tasks_queue and statuses.
@@ -46,7 +46,7 @@ class BaseThread(QtCore.QThread):
                 self.exception_raised.emit(exc)
             finally:
                 self.task_done.emit()
-                self.sleep(self.sleep_timeout)
+                self.msleep(self.sleep_timeout)
 
 
 class NoResultThread(BaseThread):
@@ -71,7 +71,7 @@ class TrackingWorker(QtCore.QThread):
     """
     timer_updated = QtCore.pyqtSignal(int)
 
-    sleep_timeout = 1
+    sleep_timeout = 300
 
     def __init__(self, parent=None):
         super(TrackingWorker, self).__init__(parent)
@@ -85,4 +85,4 @@ class TrackingWorker(QtCore.QThread):
         while True:
             spent_seconds = (datetime.now() - self.started).total_seconds()
             self.timer_updated.emit(int(round(spent_seconds)))
-            self.sleep(self.sleep_timeout)
+            self.msleep(self.sleep_timeout)
