@@ -4,8 +4,8 @@ import logging
 
 from pyjtt.base_classes import JiraIssue, JiraWorklogEntry
 
-__author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
-__copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
+__author__ = "Nikolai Golub (nikolay.v.golub@gmail.com)"
+__copyright__ = "Copyright 2012 - 2022, Nikolai Golub"
 __license__ = "GPL"
 
 logger = logging.getLogger(__name__)
@@ -61,6 +61,16 @@ class DBAccessor(object):
 
     def _convert_to_datetime(self, datetime_string):
         return datetime.strptime(datetime_string, self.TIMEFORMAT)
+
+    def truncate_db(self):
+        db_conn, cursor = self._connect_to_db()
+        cursor.execute(
+            'DELETE FROM {worklog}'.format(worklog=self.WORKLOG_TABLE_NAME))
+        cursor.execute(
+            'DELETE FROM {issues}'.format(issues=self.ISSUES_TABLE_NAME))
+
+        db_conn.commit()
+        db_conn.close()
 
     @staticmethod
     def _parse_raw_issue(row):
@@ -118,7 +128,7 @@ class DBAccessor(object):
         cursor.execute('SELECT worklog_id, start_date, end_date, comment '
                        'FROM {worklog} WHERE jira_issue_id = ?'.format(
             worklog=self.WORKLOG_TABLE_NAME),
-                       (issue.issue_id,))
+            (issue.issue_id,))
         for raw_worklog_entry in cursor.fetchall():
             yield self._parse_raw_worklog_entry(issue, raw_worklog_entry)
 
@@ -159,7 +169,7 @@ class DBAccessor(object):
         db_conn, cursor = self._connect_to_db()
         cursor.execute('DELETE FROM {worklog} WHERE worklog_id = ?'.format(
             worklog=self.WORKLOG_TABLE_NAME),
-                       (worklog_entry.worklog_id,))
+            (worklog_entry.worklog_id,))
         db_conn.commit()
         db_conn.close()
 
@@ -175,8 +185,8 @@ class DBAccessor(object):
                        'WHERE '
                        'worklog_id = ?'.format(
             worklog=self.WORKLOG_TABLE_NAME),
-                       (worklog_entry.started, worklog_entry.ended,
-                        worklog_entry.comment, worklog_entry.worklog_id))
+            (worklog_entry.started, worklog_entry.ended,
+             worklog_entry.comment, worklog_entry.worklog_id))
         db_conn.commit()
         db_conn.close()
 
@@ -197,7 +207,7 @@ class DBAccessor(object):
                        '{worklog}.start_date LIKE (?) '.format(
             issues=self.ISSUES_TABLE_NAME,
             worklog=self.WORKLOG_TABLE_NAME),
-                       (day.strftime('%Y-%m-%d') + '%',))
+            (day.strftime('%Y-%m-%d') + '%',))
         for raw_entry in cursor.fetchall():
             issue = self._parse_raw_issue(raw_entry[:3])
             yield self._parse_raw_worklog_entry(issue, raw_entry[3:])

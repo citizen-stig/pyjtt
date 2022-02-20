@@ -13,3 +13,7 @@ generate_widgets:
 
 run:
 	pipenv run python pyjtt/app.py
+
+
+test:
+	pipenv run nosetests  tests

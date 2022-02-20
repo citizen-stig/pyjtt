@@ -5,8 +5,8 @@ from pyjtt import db_accessor
 from pyjtt import jira_accessor
 from pyjtt import utils
 
-__author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
-__copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
+__author__ = "Nikolai Golub (nikolay.v.golub@gmail.com)"
+__copyright__ = "Copyright 2012 - 2022, Nikolai Golub"
 __license__ = "GPL"
 
 logger = logging.getLogger(__name__)

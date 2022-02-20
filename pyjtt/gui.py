@@ -12,8 +12,8 @@ from pyjtt import utils
 from pyjtt import workers
 from pyjtt.widgets import login_window, main_window, worklog_window
 
-__author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
-__copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
+__author__ = "Nikolai Golub (nikolay.v.golub@gmail.com)"
+__copyright__ = "Copyright 2012 - 2022, Nikolai Golub"
 __license__ = "GPL"
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__author__ = 'Nikolay Golub'
+__author__ = 'Nikolai Golub'
 
 import os
 from datetime import datetime

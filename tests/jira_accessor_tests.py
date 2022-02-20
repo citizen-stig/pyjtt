@@ -150,7 +150,7 @@ class SimpleWrapperTests(unittest.TestCase):
                                     "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=login&avatarId=10300",
                                     "48x48":"http://example.com/secure/useravatar?ownerId=login&avatarId=10300"
                                 },
-                                "displayName":"Nikolay Golub",
+                                "displayName":"Nikolai Golub",
                                 "active":true
                             },
                             "updateAuthor":{
@@ -163,7 +163,7 @@ class SimpleWrapperTests(unittest.TestCase):
                                     "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=login&avatarId=10300",
                                     "48x48":"http://example.com/secure/useravatar?ownerId=login&avatarId=10300"
                                 },
-                                "displayName":"Nikolay Golub",
+                                "displayName":"Nikolai Golub",
                                 "active":true
                             },
                             "comment":"",
@@ -218,7 +218,7 @@ class SimpleWrapperTests(unittest.TestCase):
                     "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",
                     "48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"
                 },
-                "displayName":"Nikolay Golub",
+                "displayName":"Nikolai Golub",
                 "active":true
             },
             "updateAuthor":{
@@ -231,7 +231,7 @@ class SimpleWrapperTests(unittest.TestCase):
                     "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",
                     "48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"
                 },
-                "displayName":"Nikolay Golub",
+                "displayName":"Nikolai Golub",
                 "active":true
             },
             "comment":"This is from python",
@@ -271,7 +271,7 @@ class SimpleWrapperTests(unittest.TestCase):
                     "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",
                     "48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"
                 },
-                "displayName":"Nikolay Golub",
+                "displayName":"Nikolai Golub",
                 "active":true
             },
             "updateAuthor":{
@@ -284,7 +284,7 @@ class SimpleWrapperTests(unittest.TestCase):
                     "32x32":"http://example.com/secure/useravatar?size=medium&ownerId=golub&avatarId=10300",
                     "48x48":"http://example.com/secure/useravatar?ownerId=golub&avatarId=10300"
                 },
-                "displayName":"Nikolay Golub",
+                "displayName":"Nikolai Golub",
                 "active":true
             },
             "comment":"This is from python",

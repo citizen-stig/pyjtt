@@ -4,8 +4,8 @@ import logging
 
 from PyQt6 import QtCore
 
-__author__ = "Nikolay Golub (nikolay.v.golub@gmail.com)"
-__copyright__ = "Copyright 2012 - 2018, Nikolay Golub"
+__author__ = "Nikolai Golub (nikolay.v.golub@gmail.com)"
+__copyright__ = "Copyright 2012 - 2022, Nikolai Golub"
 __license__ = "GPL"
 
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ class TrackingWorker(QtCore.QThread):
     """
     timer_updated = QtCore.pyqtSignal(int)
 
-    sleep_timeout = 300
+    sleep_timeout = 100
 
     def __init__(self, parent=None):
         super(TrackingWorker, self).__init__(parent)

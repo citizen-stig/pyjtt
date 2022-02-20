@@ -9,7 +9,7 @@ import datetime
 from pyjtt import utils
 
 
-class pyjttUtilsTest(unittest.TestCase):
+class PyjttUtilsTest(unittest.TestCase):
 
     # utils.get_local_utc_offset
     def test_get_local_utc_offset_simple(self):
