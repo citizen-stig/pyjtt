@@ -72,7 +72,7 @@ def get_local_utc_offset(now, utcnow):
 
     def absolute_offset(bigger_timestamp, smaller_timestamp):
         minutes = bigger_timestamp.minute - smaller_timestamp.minute
-        # Case when, minutes can be differ on one minute because
+        # Case when, minutes can differ on one minute because
         # of time gap between now and utcnow. This difference cannot
         # be more than one minute
         if minutes == 1:
@@ -82,12 +82,12 @@ def get_local_utc_offset(now, utcnow):
             hours_diff -= 1
         if bigger_timestamp.day != smaller_timestamp.day:
             hours_diff = abs(hours_diff - 24)
-        offset = '%02d%02d' % (hours_diff, abs(minutes))
-        return offset
+        offset_str = '%02d%02d' % (hours_diff, abs(minutes))
+        return offset_str
 
-    if (now - utcnow).total_seconds() > 50400 \
-        or (now - utcnow).total_seconds() < -43200:
-        raise ValueError('Offset is too large')
+    offset_sec = (now - utcnow).total_seconds()
+    if offset_sec < -43200 or offset_sec > 50400:
+        raise ValueError('Offset {} seconds is too large'.format(offset_sec))
     if now >= utcnow:
         sign = '+'
         offset = absolute_offset(now, utcnow)
